@@ -1,16 +1,7 @@
-//
-//  UISlider.cpp
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 6/11/13.
-//
-//
-
 #include "UISlider.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "Renderer.h"
-
 
 UISliderBase::UISliderBase(int posX, int posY,
                            int width, int height,
@@ -20,7 +11,8 @@ UISliderBase::UISliderBase(int posX, int posY,
                            std::string texActive,
                            std::string texPressed) :
 UIWidget(posX, posY, width, height, depth,
-         texDefault, texActive, texPressed ) {
+         texDefault, texActive, texPressed )
+{
     m_label = label;
     
     glm::vec3 labelPos = glm::vec3(x+4.0f, y+(SLIDER_TEXT_SIZE/2), WIDGET_TEXT_DEPTH);
@@ -37,7 +29,8 @@ UIWidget(posX, posY, width, height, depth,
     g_uiMan->AddWidget(this);
 }
 
-UISliderBase::~UISliderBase() {
+UISliderBase::~UISliderBase()
+{
     g_uiMan->RemoveWidget(this);
     
     if ( varLabelID != -1 ) {

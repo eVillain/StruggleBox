@@ -57,4 +57,4 @@ private:
     std::string _inputText;
 };
 
-#endif
+#endif /* INPUT_H */

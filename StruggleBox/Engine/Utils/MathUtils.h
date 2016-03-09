@@ -1,15 +1,8 @@
-//
-//  MathUtils.h
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 16/05/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
+#ifndef MATH_UTILS_H
+#define MATH_UTILS_H
 
-#ifndef DungeonSmith_MathUtils_h
-#define DungeonSmith_MathUtils_h
-
-namespace MathUtils {
+namespace MathUtils
+{
     // Function to convert degrees to radians
     //const float TO_RADS = 3.141592654f / 180.0f; // The value of 1 degree in radians
     inline static float ToRadians( const float &theAngleInDegrees ) {
@@ -98,4 +91,4 @@ namespace MathUtils {
     }
 }
 
-#endif
+#endif /* MATH_UTILS_H */

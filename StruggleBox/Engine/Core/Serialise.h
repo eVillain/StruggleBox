@@ -1,5 +1,5 @@
-#ifndef BWO_SERIALISE_H
-#define BWO_SERIALISE_H
+#ifndef SERIALISE_H
+#define SERIALISE_H
 
 #include <string>
 #include <glm/glm.hpp>
@@ -190,4 +190,4 @@ namespace Serialise {
     long double unpack754(long long i, unsigned bits, unsigned expbits);
 };
 
-#endif
+#endif /* SERIALIZE_H */

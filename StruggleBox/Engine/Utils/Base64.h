@@ -1,11 +1,6 @@
-#ifndef NGN_BASE64_H
-#define NGN_BASE64_H
+#ifndef BASE64_H
+#define BASE64_H
 
-//
-//  Base64.h
-//  DungeonSmith
-//
-//
 /*
  base64.cpp and base64.h
  
@@ -38,5 +33,4 @@
 std::string base64_encode(unsigned char const* , unsigned int len);
 std::string base64_decode(std::string const& s);
 
-
-#endif
+#endif /* BASE64_H */

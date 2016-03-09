@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 The Drudgerist. All rights reserved.
 //
 
-#ifndef DungeonSmith_ThreadSafeQueue_h
-#define DungeonSmith_ThreadSafeQueue_h
+#ifndef THREAD_SAFE_QUEUE_H
+#define THREAD_SAFE_QUEUE_H
 
 #include <queue>
 #include <mutex>
@@ -56,4 +56,5 @@ private:
     mutable std::mutex _mutex;
     std::condition_variable _condition;
 };
-#endif
+
+#endif /* THREAD_SAFE_QUEUE_H */

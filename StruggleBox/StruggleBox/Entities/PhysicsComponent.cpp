@@ -79,10 +79,13 @@ struct ContactSensorCallback : public btCollisionWorld::ContactResultCallback {
 //                const float velFactor = cp.m_appliedImpulse;
                 if ( velFactor > 1.0f ) {
                     ctxt.AddContactToFilter(entityB);
-                    ItemComponent* itemA = (ItemComponent*) ctxt.m_manager->GetComponent(ctxt.m_ownerID, "Item");
+                    ItemComponent* itemA = (ItemComponent*) ctxt.m_manager->GetComponent(ctxt.GetOwnerID(),
+                                                                                         "Item");
                     if ( itemA ) {
                         btVector3 normal = cp.m_normalWorldOnB;
-                        itemA->HitEntity(entityB, glm::vec3(normal.x(),normal.y(),normal.z())*velFactor, glm::vec3(pt.x(),pt.y(),pt.z()));
+                        itemA->HitEntity(entityB,
+                                         glm::vec3(normal.x(),normal.y(),normal.z())*velFactor,
+                                         glm::vec3(pt.x(),pt.y(),pt.z()));
                     }
                 }
             }   // entityA is an item

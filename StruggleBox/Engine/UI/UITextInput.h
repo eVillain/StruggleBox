@@ -1,12 +1,5 @@
-#ifndef NE_UI_TEXTINPUT_H
-#define NE_UI_TEXTINPUT_H
-//
-//  UITextInput.h
-//  NeverEngine
-//
-//  Created by Ville-Veikko Urrila on 10/01/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef UI_TEXT_INPUT_H
+#define UI_TEXT_INPUT_H
 
 #include "UIWidget.h"
 #include "Input.h"
@@ -118,4 +111,5 @@ public:
         }
     };
 };
-#endif
+
+#endif /* UI_TEXT_INPUT_H */

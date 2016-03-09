@@ -1,11 +1,3 @@
-//
-//  StringUtil.cpp
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 20/04/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
-
 #include "StringUtil.h"
 #ifdef _WIN32
 #include <windows.h>

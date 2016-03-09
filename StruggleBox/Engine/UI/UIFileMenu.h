@@ -1,19 +1,13 @@
-//
-//  UIFileMenu.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 7/28/13.
-//
-//
+#ifndef UI_FILEMENU_H
+#define UI_FILEMENU_H
 
-#ifndef NGN_UIFILEMENU_H
-#define NGN_UIFILEMENU_H
 #include "UIWidget.h"
 #include "UITextInput.h"
 #include "UIButton.h"
 #include "UIScrollerList.h"
 
-class UIFileMenuBase : public UIWidget {
+class UIFileMenuBase : public UIWidget
+{
     std::string label;
     int labelID;
 
@@ -97,4 +91,4 @@ public:
 };
 
 
-#endif
+#endif /* UI_FILEMENU_H */

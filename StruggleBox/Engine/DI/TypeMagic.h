@@ -1,5 +1,5 @@
-#ifndef TypeMagic_h
-#define TypeMagic_h
+#ifndef TYPE_MAGIC_H
+#define TYPE_MAGIC_H
 
 #include <memory>
 
@@ -20,4 +20,4 @@ private:
     }
 };
 
-#endif /* TypeMagic_h */
+#endif /* TYPE_MAGIC_H */

@@ -53,7 +53,7 @@ void HyperVisor::Initialize(const std::string title,
     
     initOptions();
     
-	if ( _options->GetOptionDataPtr<bool>("h_multiThreading") ) {
+	if ( _options->getOption<bool>("h_multiThreading") ) {
         initThreadPool();
     }
     
@@ -68,7 +68,7 @@ void HyperVisor::Initialize(const std::string title,
     initConsole();
     
     // Init managers and hook pointers
-    SceneManager* m_sceneMan = new SceneManager( this );
+    SceneManager* m_sceneMan = new SceneManager(_locator);
     _locator.MapInstance<SceneManager>(m_sceneMan);
     
     m_inputMan = new Input(_locator);
@@ -241,7 +241,7 @@ void HyperVisor::initThreadPool()
 {
     const int hwThreads = std::thread::hardware_concurrency();
     if (hwThreads < 2) {
-        _options->GetOptionDataPtr<bool>("h_multiThreading") = false;
+        _options->getOption<bool>("h_multiThreading") = false;
     }
     const int numThreads = (hwThreads)-1;
     ThreadPool* threadPool = new ThreadPool(numThreads); // Start new thread pool
@@ -267,17 +267,17 @@ void HyperVisor::initOptions()
 {
     _options = std::make_unique<Options>();
     _locator.MapInstance<Options>(_options.get());
-    _options->GetOptionDataPtr<std::string>("version") = "alpha 0.0.0";
+    _options->getOption<std::string>("version") = "alpha 0.0.0";
 }
 
 void HyperVisor::initAppContext(const std::string& title)
 {
-    int renderWidth = _options->GetOptionDataPtr<int>("r_resolutionX");
-    int renderHeight = _options->GetOptionDataPtr<int>("r_resolutionY");
-    bool renderFullScreen = _options->GetOptionDataPtr<bool>("r_fullScreen");
+    int renderWidth = _options->getOption<int>("r_resolutionX");
+    int renderHeight = _options->getOption<int>("r_resolutionY");
+    bool renderFullScreen = _options->getOption<bool>("r_fullScreen");
     
     _context = std::make_unique<AppContext>();
-    _context->InitApp(title + " - " + _options->GetOptionDataPtr<std::string>("version"),
+    _context->InitApp(title + " - " + _options->getOption<std::string>("version"),
                       renderWidth,
                       renderHeight,
                       renderFullScreen);

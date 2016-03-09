@@ -1,16 +1,5 @@
-#ifndef NGN_THREAD_POOL_H
-#define NGN_THREAD_POOL_H
-//
-//  ThreadPool.h
-//  Ingenium
-//
-//  Created by Ville-Veikko Urrila on 8/6/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-//  This class creates a pool of worker threads
-//  These threads can then be given jobs to execute
-//  Latest modification includes a priority value for each job
-//
+#ifndef THREAD_POOL_H
+#define THREAD_POOL_H
 
 #include <vector>
 #include <map>
@@ -22,7 +11,10 @@
 #include <functional>
 #include <stdexcept>
 
-class ThreadPool {
+///  Creates a pool of worker threads
+///  These threads can then be given jobs to execute
+class ThreadPool
+{
 private:
     // Vector of worker threads
     std::vector< std::thread > workers;
@@ -47,7 +39,8 @@ public:
 };
 
 // The constructor just launches some amount of workers
-inline ThreadPool::ThreadPool(size_t threads) : isRunning(true) {
+inline ThreadPool::ThreadPool(size_t threads) : isRunning(true)
+{
     for(size_t i = 0;i<threads;++i) {
         workers.emplace_back( [this] {
             while(true) {
@@ -68,8 +61,10 @@ inline ThreadPool::ThreadPool(size_t threads) : isRunning(true) {
     }
     printf("[ThreadPool] Started with %lu threads, hardware threads: %i\n", threads, std::thread::hardware_concurrency());
 };
+
 // The destructor just notifies all threads and waits for them to join before shutting down
-inline ThreadPool::~ThreadPool() {
+inline ThreadPool::~ThreadPool()
+{
     // Theoretically the lock below should prevent a race condition...
     // In practice it makes some of the threads miss the notify_all()
     // Thus it is commented out for now, investigate later if/when problems arise
@@ -85,10 +80,12 @@ inline ThreadPool::~ThreadPool() {
     }
     printf("[ThreadPool] Shut down complete, threads released\n");
 };
+
 // Function to add a job to the pool
 template<class F, class... Args>
 auto ThreadPool::AddJob(int priority, F&& f, Args&&... args)
--> std::future<typename std::result_of<F(Args...)>::type> {
+-> std::future<typename std::result_of<F(Args...)>::type>
+{
     typedef typename std::result_of<F(Args...)>::type return_type;
     // Don't allow new jobs after stopping the pool
     if(!isRunning) { throw "[ThreadPool] Was stopped, shouldn't be adding new jobs\n"; }
@@ -103,4 +100,4 @@ auto ThreadPool::AddJob(int priority, F&& f, Args&&... args)
 };
 
 
-#endif
+#endif /* THREAD_POOL_H */

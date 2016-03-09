@@ -1,11 +1,3 @@
-//
-//  UIScrollerList.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 06/03/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
 #include "UIScrollerList.h"
 #include "SysCore.h"
 #include "Renderer.h"

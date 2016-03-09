@@ -1,11 +1,3 @@
-//
-//  Random.cpp
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 20/04/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
-
 #include "Random.h"
 
 uint32_t rand_x[5]; // Mother of all randoms history buffer

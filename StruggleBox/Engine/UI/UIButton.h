@@ -1,9 +1,7 @@
-#ifndef NGN_UI_BUTTON_H
-#define NGN_UI_BUTTON_H
+#ifndef UI_BUTTON_H
+#define UI_BUTTON_H
 
 #include "UIWidget.h"
-//#include <string>
-//#include <vector>
 #include <functional>
 
 enum UIButtonState {
@@ -21,8 +19,9 @@ enum UIButtonType {
 };
 
 
-// First a base class for buttons
-class ButtonBase : public UIWidget {
+/// Base widget class for buttons
+class ButtonBase : public UIWidget
+{
 protected:
     // Button attributes
     std::string label;                          // Text label on button
@@ -103,7 +102,8 @@ public:
 //	printf("Behold, for I am your button and I have thus been summoned\n");
 //}
 template <class UnknownClass>
-class UIButton : private ButtonBase {
+class UIButton : private ButtonBase
+{
 private:
     // Button callback attributes
     void ( UnknownClass::*function )( void* );  // Pointer to a member function
@@ -415,4 +415,4 @@ public:
     };
 };
 
-#endif
+#endif */ UI_BUTTON_H */

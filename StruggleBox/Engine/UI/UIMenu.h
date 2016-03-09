@@ -1,16 +1,5 @@
-#ifndef NE_UI_MENU_H
-#define NE_UI_MENU_H
-
-//
-//  UIMenu.h
-//  NeverEngine
-//
-//  The purpose of this class is to serve as a base class for
-//  all the user-interface widgets (buttons, sliders, text input boxes etc.)
-//
-//  Created by Ville-Veikko Urrila on 31/03/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef UI_MENU_H
+#define UI_MENU_H
 
 #include <string>
 #include <vector>
@@ -231,4 +220,4 @@ protected:
     int                             scrollPos;      // Scrolling position in list
 };
 
-#endif
+#endif */ UI_MENU_H */

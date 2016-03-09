@@ -81,8 +81,8 @@ void StatTracker::ToggleStats()
 
 void StatTracker::DisplayStats()
 {
-    int x = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2-300;
-    int y = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-40;
+    int x = _locator.Get<Options>()->getOption<int>("r_resolutionX")/2-300;
+    int y = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-40;
     TextManager* textMan = _locator.Get<TextManager>();
     
     int fontSize = 20;

@@ -1,5 +1,5 @@
-#ifndef Container_h
-#define Container_h
+#ifndef CONTAINER_H
+#define CONTAINER_H
 
 #include "TypeMagic.h"
 #include <memory>
@@ -60,4 +60,4 @@ private:
     std::shared_ptr<ContainerValueBase> _value;
 };
 
-#endif /* Container_h */
+#endif /* CONTAINER_H */

@@ -1,21 +1,10 @@
-//
-//  Random.h
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 20/04/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
-//========================================================================
-// Random
-// Mother of all randoms!
-// (Pseudo)Random number generators
-//========================================================================
-
-#ifndef __DungeonSmith__Random__
-#define __DungeonSmith__Random__
+#ifndef RANDOM_H
+#define RANDOM_H
 
 #include <stdint.h>
 
+/// Mother of all randoms!
+/// Contains (pseudo)random number generators
 class Random {
 public:
     static uint32_t RandomBits();
@@ -24,5 +13,4 @@ public:
     static void RandomSeed (int seed);
 };
 
-
-#endif /* defined(__DungeonSmith__Random__) */
+#endif /* RANDOM_H */

@@ -1,16 +1,5 @@
-#ifndef NE_UI_WIDGET_H
-#define NE_UI_WIDGET_H
-
-//
-//  UIWidget.h
-//  NeverEngine
-//
-//  The purpose of this class is to serve as a base class for
-//  all the user-interface widgets (buttons, sliders, text input boxes etc.)
-//
-//  Created by Ville-Veikko Urrila on 10/01/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef UI_WIDGET_H
+#define UI_WIDGET_H
 
 #include <string>
 #include <vector>
@@ -18,25 +7,10 @@
 #include "GFXIncludes.h"
 #include "Texture.h"
 
-
-class UIWidget {
-protected:
-    // UIWidget parameters
-    Texture * texture;                          // NULL if not a textured widget
-    std::string frameDefault;
-    std:: string frameActive;
-    std::string framePressed;
-    
-    static UIManager* g_uiMan;                  // Global pointer to UIManager instance
-    
-    bool moveable;                              // Whether widget can be moved
-    bool dragging;                              // Moving widget by dragging menu bar
-    int dragX, dragY;                           // Dragging amount
-
-    bool minimizeable;                          // Whether widget can be minimized
-    bool minimized;                             // Widget is currently minimized
-    
-    
+/// Serves as a base class for all the user-interface widgets
+/// (buttons, sliders, text input boxes etc.)
+class UIWidget
+{
 public:
     static void SetUIManager( UIManager* uiMan ) { g_uiMan = uiMan; };
     
@@ -71,6 +45,22 @@ public:
     virtual void Update( void ) { printf("[Widget] update called, override\n"); }; // Unused for most widgets, menu items need it though
 
     inline bool IsActive( void ) { return active; };
+    
+protected:
+    // UIWidget parameters
+    Texture * texture;                          // NULL if not a textured widget
+    std::string frameDefault;
+    std:: string frameActive;
+    std::string framePressed;
+    
+    static UIManager* g_uiMan;                  // Global pointer to UIManager instance
+    
+    bool moveable;                              // Whether widget can be moved
+    bool dragging;                              // Moving widget by dragging menu bar
+    int dragX, dragY;                           // Dragging amount
+    
+    bool minimizeable;                          // Whether widget can be minimized
+    bool minimized;                             // Widget is currently minimized
 };
 
-#endif
+#endif /* UI_WIDGET_H */

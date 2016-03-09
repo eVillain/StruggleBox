@@ -142,8 +142,8 @@ void MainMenu::ShowMainMenu()
 //    TextureManager::Inst()->LoadTexture(FileUtil::GetPath().append("Data/GFX/"), "Crosshair.png");
 
     // Add random particle system
-    int hH = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2;
-    int W = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX");
+    int hH = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2;
+    int W = _locator.Get<Options>()->getOption<int>("r_resolutionX");
 
     std::string particlePath = FileUtil::GetPath().append("Data/Particles/");
     Random::RandomSeed((int)Timer::Microseconds());
@@ -253,11 +253,11 @@ void MainMenu::ShowOptionsMenu() {
         int bW = 140;
         int bH = 22;
         int posX = 8+bW+8;
-        int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-30;
+        int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-30;
 
         optionsMenu = new UIMenu(posX, posY, bW, bH, "Options");
         // Get all the options and add them in to our menu
-        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->GetOptionMap();
+        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
         std::map<const std::string, Attribute*>::iterator it;
         for ( it = allOptions.begin(); it != allOptions.end(); it++ ) {
             std::string category = "";
@@ -278,10 +278,10 @@ void MainMenu::ShowOptionsMenu() {
             }
         }
         optionsMenu->AddButton("Defaults", ( [=]() {
-            _locator.Get<Options>()->ResetToDefaults();
+            _locator.Get<Options>()->setDefaults();
         }  ) );
         optionsMenu->AddButton("Save", ( [=]() {
-            _locator.Get<Options>()->SaveOptions();
+            _locator.Get<Options>()->save();
         }  ) );
         optionsMenu->AddButton("Close", ( [=]() {
             if ( optionsMenu != NULL ) {

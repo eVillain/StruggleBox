@@ -129,8 +129,8 @@ void RendererGLProg::SetDefaults()
     lr_density = 1.15f;
     lr_weight = 3.95f;
     if (g_options) {
-        windowWidth = g_options->GetOptionDataPtr<int>("r_resolutionX");
-        windowHeight = g_options->GetOptionDataPtr<int>("r_resolutionY");
+        windowWidth = g_options->getOption<int>("r_resolutionX");
+        windowHeight = g_options->getOption<int>("r_resolutionY");
     }
 }
 
@@ -173,12 +173,12 @@ void RendererGLProg::Resize(const int width, const int height)
 //    double hh = windowHeight*0.5;
     
     if ( updateRes ) {
-        g_options->GetOptionDataPtr<int>("r_resolutionX") = windowWidth;
-        g_options->GetOptionDataPtr<int>("r_resolutionY") = windowHeight;
+        g_options->getOption<int>("r_resolutionX") = windowWidth;
+        g_options->getOption<int>("r_resolutionY") = windowHeight;
 //        glLineWidth(1.0f);
     } else {
-//        GLfloat scaleX = (float)windowWidth/g_options->GetOptionDataPtr<int>("r_resolutionX");
-//        GLfloat scaleY = (float)windowHeight/g_options->GetOptionDataPtr<int>("r_resolutionY");
+//        GLfloat scaleX = (float)windowWidth/g_options->getOption<int>("r_resolutionX");
+//        GLfloat scaleY = (float)windowHeight/g_options->getOption<int>("r_resolutionY");
 //        GLfloat scale = fmin(scaleX, scaleY);
 //        hw = windowWidth*(0.5/scale);
 //        hh = windowHeight*(0.5/scale);
@@ -737,7 +737,7 @@ void RendererGLProg::BeginDraw( void ) {
     glCullFace( GL_BACK );
     glEnable( GL_CULL_FACE );
     
-    if ( g_options->GetOptionDataPtr<bool>("r_fsAA") ) {
+    if ( g_options->getOption<bool>("r_fsAA") ) {
         glEnable( GL_MULTISAMPLE_ARB );
         glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );   // Can also try GL_FASTEST as hint
         glHint( GL_POINT_SMOOTH_HINT, GL_NICEST );
@@ -763,10 +763,10 @@ void RendererGLProg::BeginDraw( void ) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // Bind screen buffer and clear it
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 
-    if ( g_options->GetOptionDataPtr<bool>("r_deferred") ) {
+    if ( g_options->getOption<bool>("r_deferred") ) {
 //        glBindFramebuffer(GL_FRAMEBUFFER, light_fbo);  // Bind and clear our light buffer for rendering
 //        glClear(GL_STENCIL_BUFFER_BIT);
-//        if ( g_options->GetOptionDataPtr<bool>("r_shadows") ) {
+//        if ( g_options->getOption<bool>("r_shadows") ) {
             glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);  // Bind and clear our shadow buffer for rendering
             glClear(GL_DEPTH_BUFFER_BIT);
 //        }
@@ -847,15 +847,15 @@ void RendererGLProg::PostProcess() {
     if ( numBufferedCubes ) { Render3DCubes(); }
     if ( numBuffered3DLines ) { Render3DLines(); }
 
-    if ( g_options->GetOptionDataPtr<bool>("r_deferred") ) {
+    if ( g_options->getOption<bool>("r_deferred") ) {
         glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-        bool dof = g_options->GetOptionDataPtr<bool>("r_renderDOF");
-        bool flare = g_options->GetOptionDataPtr<bool>("r_renderFlare");
-        bool vignette = g_options->GetOptionDataPtr<bool>("r_renderVignette");
-        bool correctGamma = g_options->GetOptionDataPtr<bool>("r_renderCorrectGamma");
-        bool toneMap = g_options->GetOptionDataPtr<bool>("r_renderToneMap");
+        bool dof = g_options->getOption<bool>("r_renderDOF");
+        bool flare = g_options->getOption<bool>("r_renderFlare");
+        bool vignette = g_options->getOption<bool>("r_renderVignette");
+        bool correctGamma = g_options->getOption<bool>("r_renderCorrectGamma");
+        bool toneMap = g_options->getOption<bool>("r_renderToneMap");
 
         if (!dof && !flare && !vignette && !correctGamma && !toneMap) {          // No post-processing
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -950,7 +950,7 @@ void RendererGLProg::PostProcess() {
             }
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        if ( g_options->GetOptionDataPtr<bool>("r_debug") ) { // Render buffers to screen for debugging
+        if ( g_options->getOption<bool>("r_debug") ) { // Render buffers to screen for debugging
             float ar = (float)windowHeight/windowWidth;
             int wh2 = windowHeight/2;
             glDisable(GL_BLEND);
@@ -962,13 +962,13 @@ void RendererGLProg::PostProcess() {
             DrawTexture(Rect2D( 128,wh2-(256*ar),256,256*ar), tRect, depth_texture);
             DrawTexture(Rect2D( 384,wh2-(256*ar),256,256*ar), tRect, ao_texture);
             DrawTexture(Rect2D( 384,wh2-(768*ar),256,256*ar), tRect, final_texture);
-            if ( g_options->GetOptionDataPtr<bool>("r_debugLights") ) { // Render light buffers to screen for debugging
+            if ( g_options->getOption<bool>("r_debugLights") ) { // Render light buffers to screen for debugging
                 DrawTexture(Rect2D(-640,wh2-(512*ar),256,256*ar), tRect, light_textures[0]);
                 DrawTexture(Rect2D(-384,wh2-(512*ar),256,256*ar), tRect, light_textures[1]);
                 DrawTexture(Rect2D(-128,wh2-(512*ar),256,256*ar), tRect, light_textures[2]);
                 DrawTexture(Rect2D(128,wh2-(512*ar),256,256*ar), tRect, light_textures[3]);
                 DrawTexture(Rect2D(384,wh2-(512*ar),256,256*ar), tRect, light_textures[4]);
-            } else if ( g_options->GetOptionDataPtr<bool>("r_debugShadows") ) { // Render shadow buffers to screen for debugging
+            } else if ( g_options->getOption<bool>("r_debugShadows") ) { // Render shadow buffers to screen for debugging
                 DrawTexture(Rect2D(384,wh2-(1024*ar),256,256*ar), tRect, shadow_texture);
                 // Draw cubemaps
                 float min = -1.0f;
@@ -1037,7 +1037,7 @@ void RendererGLProg::RenderFromTexture( const GLuint tex ) {
 }
 
 void RendererGLProg::PassSSAO( const GLuint fbo ) {
-    int blur = g_options->GetOptionDataPtr<int>("r_SSAOblur");
+    int blur = g_options->getOption<int>("r_SSAOblur");
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_DEPTH_TEST);
     if ( blur ) {
@@ -1054,11 +1054,11 @@ void RendererGLProg::PassSSAO( const GLuint fbo ) {
     d_shaderSSAO->setUniform1fv( "texScale", 1.0/SSAO_SCALE );
     d_shaderSSAO->setUniform1iv( "depthMap", 1 );
     d_shaderSSAO->setUniform1iv( "rnm", 0 );
-    float total_strength = g_options->GetOptionDataPtr<float>("r_SSAOtotal_strength");
-    float base = g_options->GetOptionDataPtr<float>("r_SSAObase");
-    float area = g_options->GetOptionDataPtr<float>("r_SSAOarea");
-    float falloff = g_options->GetOptionDataPtr<float>("r_SSAOfalloff");
-    float radius = g_options->GetOptionDataPtr<float>("r_SSAOradius");
+    float total_strength = g_options->getOption<float>("r_SSAOtotal_strength");
+    float base = g_options->getOption<float>("r_SSAObase");
+    float area = g_options->getOption<float>("r_SSAOarea");
+    float falloff = g_options->getOption<float>("r_SSAOfalloff");
+    float radius = g_options->getOption<float>("r_SSAOradius");
     d_shaderSSAO->setUniform1fv("total_strength", total_strength);
     d_shaderSSAO->setUniform1fv("base", base);
     d_shaderSSAO->setUniform1fv("area", area);
@@ -1379,17 +1379,17 @@ glm::mat4 RendererGLProg::GetLightProjection(Light3D& light) {
 // Get lights from LightSystem3D
 void RendererGLProg::RenderLighting( const Color& fogColor ) {
     // Get Ambient Occlusion if needed
-    bool ssao = g_options->GetOptionDataPtr<bool>("r_renderSSAO");
+    bool ssao = g_options->getOption<bool>("r_renderSSAO");
     if ( ssao ) {  PassSSAO(ao_fbo); }
-    bool lightRays = g_options->GetOptionDataPtr<bool>("r_lightRays");
-    bool renderFog = g_options->GetOptionDataPtr<bool>("r_renderFog");
-    bool shadowMultitap = g_options->GetOptionDataPtr<bool>("r_shadowMultitap");
-    bool shadowNoise = g_options->GetOptionDataPtr<bool>("r_shadowNoise");
-    bool shadows = g_options->GetOptionDataPtr<bool>("r_shadows");
-    float fogDensity = g_options->GetOptionDataPtr<float>("r_fogDensity");
-    float fogHeightFalloff = g_options->GetOptionDataPtr<float>("r_fogHeightFalloff");
-    float fogExtinctionFalloff = g_options->GetOptionDataPtr<float>("r_fogExtinctionFalloff");
-    float fogInscatteringFalloff = g_options->GetOptionDataPtr<float>("r_fogInscatteringFalloff");
+    bool lightRays = g_options->getOption<bool>("r_lightRays");
+    bool renderFog = g_options->getOption<bool>("r_renderFog");
+    bool shadowMultitap = g_options->getOption<bool>("r_shadowMultitap");
+    bool shadowNoise = g_options->getOption<bool>("r_shadowNoise");
+    bool shadows = g_options->getOption<bool>("r_shadows");
+    float fogDensity = g_options->getOption<float>("r_fogDensity");
+    float fogHeightFalloff = g_options->getOption<float>("r_fogHeightFalloff");
+    float fogExtinctionFalloff = g_options->getOption<float>("r_fogExtinctionFalloff");
+    float fogInscatteringFalloff = g_options->getOption<float>("r_fogInscatteringFalloff");
     
     
     // Output to final image FBO
@@ -1398,7 +1398,7 @@ void RendererGLProg::RenderLighting( const Color& fogColor ) {
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     
-    if ( !g_options->GetOptionDataPtr<bool>("r_lighting3D") ) {
+    if ( !g_options->getOption<bool>("r_lighting3D") ) {
         RenderFromTexture(diffuse_texture);
         return;
     }
@@ -1581,9 +1581,9 @@ void RendererGLProg::RenderLighting( const Color& fogColor ) {
     glDisable(GL_STENCIL_TEST);
 
     model = glm::translate(model, glm::vec3(-g_camera->position.x, -g_camera->position.y, -g_camera->position.z));
-    bool renderSun = g_options->GetOptionDataPtr<bool>("r_sun");
-    bool renderSunBlur = g_options->GetOptionDataPtr<bool>("r_sunBlur");
-    bool renderSunFlare = g_options->GetOptionDataPtr<bool>("r_sunFlare");
+    bool renderSun = g_options->getOption<bool>("r_sun");
+    bool renderSunBlur = g_options->getOption<bool>("r_sunBlur");
+    bool renderSunFlare = g_options->getOption<bool>("r_sunFlare");
 
     if ( renderSun ) {  // Copy stencil buffer at lower res to light FBO
         glBindFramebuffer(GL_FRAMEBUFFER, light_fbo);
@@ -1602,8 +1602,8 @@ void RendererGLProg::RenderLighting( const Color& fogColor ) {
         if ( !light.active ) continue;
         if ( light.rayCaster ) {
             // Project light coordinate to screen space
-            int windowWidth = g_options->GetOptionDataPtr<int>("r_resolutionX");
-            int windowHeight = g_options->GetOptionDataPtr<int>("r_resolutionY");
+            int windowWidth = g_options->getOption<int>("r_resolutionX");
+            int windowHeight = g_options->getOption<int>("r_resolutionY");
             glm::vec3 lightPosition = glm::vec3(light.position.x,light.position.y,light.position.z);
             float radius = 8.0f; // 8 pixel radius minimum?
             if ( light.lightType == Light3D_Directional ||
@@ -1859,7 +1859,7 @@ void RendererGLProg::RenderVertBuffer( VertexBuffer* vBuffer,
         }
     }
     // Optionally render shadows here
-    if ( g_options->GetOptionDataPtr<bool>("r_shadows") && render3D ) {
+    if ( g_options->getOption<bool>("r_shadows") && render3D ) {
         GLint m_oldFrameBuffer=0;
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &m_oldFrameBuffer);
         RenderVertBufferShadows(vBuffer, rangeEnd, rangeStart );
@@ -1978,7 +1978,7 @@ void RendererGLProg::RenderInstancedBuffer( VertexBuffer* vBuffer, const std::ve
         }
     }
     // Optionally render shadows here
-    if ( g_options->GetOptionDataPtr<bool>("r_shadows") && render3D ) {
+    if ( g_options->getOption<bool>("r_shadows") && render3D ) {
         GLint m_oldFrameBuffer=0;
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &m_oldFrameBuffer);
         RenderInstancedBufferShadows(vBuffer, instances, rangeEnd, rangeStart );
@@ -3040,7 +3040,7 @@ void RendererGLProg::Render3DCubes() {
     GLint fbo = render_fbo; // Grab previous FBO
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fbo);
     // Render shadow pass
-    if ( g_options->GetOptionDataPtr<bool>("r_shadows") ) {
+    if ( g_options->getOption<bool>("r_shadows") ) {
         d_shaderShadowMapCube->Begin();
         std::vector<Light3D*>& lights = g_lights3D->GetLights();
         for ( int i=0; i < lights.size(); i++ ) {  // Render to shadow buffer
@@ -3235,7 +3235,7 @@ const glm::vec3 RendererGLProg::GetCursor3DPos( glm::vec2 cursorPos ) const {
 
 const std::string RendererGLProg::GetInfo() const {
     std::string info = "Renderer: OpenGL Programmable pipeline\n";
-    if ( g_options->GetOptionDataPtr<bool>("r_fullScreen") ) {
+    if ( g_options->getOption<bool>("r_fullScreen") ) {
         info.append("Full screen, resolution: ");
     } else {
         info.append("Window, resolution: ");

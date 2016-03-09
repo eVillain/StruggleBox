@@ -1,12 +1,7 @@
 #ifndef NGN_SYSCORE_H
 #define NGN_SYSCORE_H
-//
-//  SysCore.h
-//  NeverEngine
-//
-//  Created by Ville-Veikko Urrila on 8/10/12.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+
+// TODO: Replace all usages of this class with FileUtil, Timer and Random
 
 #include <string>
 #include <vector>

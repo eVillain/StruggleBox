@@ -168,7 +168,7 @@ void LocalGame::Draw()
             loadLabelID = -1;
         }
         glPolygonMode( GL_FRONT_AND_BACK,
-                      _locator.Get<Options>()->GetOptionDataPtr<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
+                      _locator.Get<Options>()->getOption<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
         
         // Draw world and objects
         world->Draw( renderer );
@@ -391,7 +391,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             if ( Console::isVisible() ) {
                 Console::ToggleVisibility();
             } else {
-                _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
+                _locator.Get<Options>()->getOption<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
 //                glfwSetInputMode(m_hyperVisor.GetRenderer()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 // Show main menu
                 std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
@@ -407,7 +407,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
                 killed->GetAttributeDataPtr<int>("health") = 0;
             }
         } else if (theEvent == INPUT_EDIT_OBJECT ) {
-            _locator.Get<Options>()->GetOptionDataPtr<bool>("r_renderMap") = !_locator.Get<Options>()->GetOptionDataPtr<bool>("r_renderMap");
+            _locator.Get<Options>()->getOption<bool>("r_renderMap") = !_locator.Get<Options>()->getOption<bool>("r_renderMap");
         } else if ( theEvent == INPUT_START ) {
             if ( world ) {
                 world->Explosion(cursorWorldPos, 4.0f, 4.0f);
@@ -443,7 +443,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             joyMoveInput.y += amount;
     } else if (theEvent == INPUT_GRAB_CURSOR ) {
         if ( amount == -1.0f ) {
-            bool& grabCursor = _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor");
+            bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
             SDL_ShowCursor(grabCursor);
         }
@@ -469,9 +469,9 @@ bool LocalGame::OnEvent(const std::string &theEvent,
 
 bool LocalGame::OnMouse(const glm::ivec2 &coord)
 {
-    double midWindowX = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
-    double midWindowY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor") ) {
+    double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
+    double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
+    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
         
         float mouseSensitivity = 0.01f;
         float rotationX = (midWindowX-coord.x)*mouseSensitivity;

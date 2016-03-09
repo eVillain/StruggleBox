@@ -1,29 +1,21 @@
-//
-//  ThreadSafeMap.h
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 11/08/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
-
-#ifndef DungeonSmith_ThreadSafeMap_h
-#define DungeonSmith_ThreadSafeMap_h
+#ifndef THREAD_SAFE_MAP_H
+#define THREAD_SAFE_MAP_H
 
 #include <unordered_map>
 #include <mutex>
 #include <condition_variable>
 
 template <typename KeyType, typename ContainerType>
-class ThreadSafeQueue
+class ThreadSafeMap
 {
 public:
-    ThreadSafeQueue(void)
+    ThreadSafeMap(void)
     : _queue()
     , _mutex()
     , _condition()
     {}
     
-    ~ThreadSafeQueue(void)
+    ~ThreadSafeMap(void)
     {}
     
     void enqueue(ContainerType t)
@@ -51,4 +43,4 @@ private:
     std::condition_variable _condition;
 };
 
-#endif
+#endif /* THREAD_SAFE_MAP_H */

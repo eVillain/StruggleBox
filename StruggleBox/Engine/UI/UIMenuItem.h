@@ -1,13 +1,6 @@
-//
-//  UIMenuItem.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/20/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef UI_MENU_ITEM_H
+#define UI_MENU_ITEM_H
 
-#ifndef Bloxelizer_UIMenuItem_h
-#define Bloxelizer_UIMenuItem_h
 #include "UIWidget.h"
 #include "TextManager.h"
 #include "GFXHelpers.h"
@@ -263,4 +256,5 @@ public:
         }
     };
 };
-#endif
+
+#endif /* UI_MENU_ITEM_H */

@@ -1,13 +1,5 @@
-//
-//  PathUtil.h
-//  DungeonSmith
-//
-//  Created by eVillain on 18/10/15.
-//  Copyright © 2015 The Drudgerist. All rights reserved.
-//
-
-#ifndef PathUtil_h
-#define PathUtil_h
+#ifndef PATH_UTIL_H
+#define PATH_UTIL_H
 
 #include "FileUtil.h"
 
@@ -25,4 +17,4 @@ public:
     }
 };
 
-#endif /* PathUtil_h */
+#endif /* PATH_UTIL_H */

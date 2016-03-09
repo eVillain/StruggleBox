@@ -214,8 +214,8 @@ void Console::Draw(double deltaTime)
     if (!_visible) return;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    int winWidth = _locator->Get<Options>()->GetOptionDataPtr<int>("r_resolutionX");
-    int winHeight = _locator->Get<Options>()->GetOptionDataPtr<int>("r_resolutionY");
+    int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
+    int winHeight = _locator->Get<Options>()->getOption<int>("r_resolutionY");
     // Draw background box
     Renderer* renderer = _locator->Get<Renderer>();
     renderer->Draw2DRect( glm::vec2(0.0f, (winHeight/4.0f)-1.0f), winWidth-1.0f, winHeight/2.0f,
@@ -251,9 +251,9 @@ void Console::Show()
     if ( !tMan || _visible ) {
         return;
     }
-    int winWidth = _locator->Get<Options>()->GetOptionDataPtr<int>("r_resolutionX");
+    int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
     std::string consoleInfo = "Console:  Ingenium v.";
-    consoleInfo.append(_locator->Get<Options>()->GetOptionDataPtr<std::string>("version"));
+    consoleInfo.append(_locator->Get<Options>()->getOption<std::string>("version"));
     _textWidget = new UITextInputSCB(-winWidth/2,
                                     1.0,
                                     winWidth-1,
@@ -288,7 +288,7 @@ void Console::Refresh()
     
     int msgCount = (int)_textLines.size();
     if (_visible) {
-        int winWidth = _locator->Get<Options>()->GetOptionDataPtr<int>("r_resolutionX");
+        int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
         double labelPosX = -winWidth / 2 + 8;    // left edge of screen
         double labelPosY = 22+(msgCount + 2)*CONSOLE_FONT_SIZE;
         // Move existing labels up

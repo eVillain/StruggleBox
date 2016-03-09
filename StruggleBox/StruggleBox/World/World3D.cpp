@@ -488,7 +488,7 @@ void World3D::Draw(Renderer* renderer)
     
     // Draw debug physics
     if (physicsEnabled &&
-        _locator.Get<Options>()->GetOptionDataPtr<bool>("d_physics"))
+        _locator.Get<Options>()->getOption<bool>("d_physics"))
     {
         worldPhysics->SetRenderer( renderer );
         glEnable(GL_DEPTH_TEST);

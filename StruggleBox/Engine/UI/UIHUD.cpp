@@ -1,11 +1,3 @@
-//
-//  UIHUD.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 17/01/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
 #include "UIHUD.h"
 
 #include "Renderer.h"

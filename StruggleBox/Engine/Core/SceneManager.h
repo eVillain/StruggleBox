@@ -1,19 +1,16 @@
-#ifndef NGN_SCENE_MANAGER_H
-#define NGN_SCENE_MANAGER_H
-//
-//  SceneManager.h
-//  NeverEngine
-//
-//  Created by Ville-Veikko Urrila on 8/10/12.
-//  Copyright (c) 2012 The Drudgerist. All rights reserved.
-//
+#ifndef SCENE_MANAGER_H
+#define SCENE_MANAGER_H
+
 #include <vector>
 #include <string>
-#include "CoreTypes.h"
 
-class SceneManager {
+class Locator;
+class Scene;
+
+class SceneManager
+{
 public:
-    SceneManager( HyperVisor* hv );
+    SceneManager(Locator& locator);
     virtual ~SceneManager();
 
     void AddActiveScene(Scene* theScene);
@@ -30,8 +27,7 @@ public:
     void KillPreviousScene(void);
     size_t NumScenes(void);
 private:
-    // Pointer to the HyperVisor class
-    HyperVisor*                 hyperVisor;
+    Locator& _locator;
     // Stack to store the current and previously active scenes
     std::vector<Scene*>   mStack;
     // Stack to store the dead scenes until they properly cleaned up

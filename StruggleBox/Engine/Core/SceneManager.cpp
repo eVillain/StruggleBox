@@ -1,23 +1,17 @@
-//
-//  SceneManager.cpp
-//  NeverEngine
-//
-//  Created by Ville-Veikko Urrila on 8/28/12.
-//  Copyright (c) 2012 The Drudgerist. All rights reserved.
-//
-#include <assert.h>
-
 #include "SceneManager.h"
+#include "Locator.h"
 #include "Scene.h"
 #include "HyperVisor.h"
+#include <assert.h>
 
 #define DEBUGSCENES 0
 
-SceneManager::SceneManager( HyperVisor* hv) :
-hyperVisor(hv) {
-}
+SceneManager::SceneManager(Locator& locator) :
+_locator(locator)
+{ }
 
-SceneManager::~SceneManager() {
+SceneManager::~SceneManager()
+{
     // Drop all active scenes
     while( !mStack.empty() ) {
         // Retrieve the currently active scene
@@ -31,9 +25,6 @@ SceneManager::~SceneManager() {
         
         // De-initialize the scene
         aScene->Release();
-        
-        // Handle the cleanup before we pop it off the stack
-//        aScene->Cleanup();
         
         // Just delete the scene now
         delete aScene;
@@ -55,26 +46,22 @@ SceneManager::~SceneManager() {
         
         // De-initialize the scene
         aScene->Release();
-        
-        // Handle the cleanup before we pop it off the stack
-//        aScene->Cleanup();
-        
+                
         // Just delete the scene now
         delete aScene;
         
         // Don't keep pointers around we don't need
         aScene = NULL;
     }
-    
-    // Clear pointers we don't need anymore
-    hyperVisor = NULL;
 }
 
-bool SceneManager::IsEmpty(void) {
+bool SceneManager::IsEmpty()
+{
     return mStack.empty();
 }
 
-void SceneManager::AddActiveScene(Scene* theScene) {
+void SceneManager::AddActiveScene(Scene* theScene)
+{
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddActiveScene() received a bad pointer");
 #if DEBUGSCENES
@@ -94,7 +81,8 @@ void SceneManager::AddActiveScene(Scene* theScene) {
     mStack.back()->Initialize();
 }
 
-void SceneManager::AddInactiveScene(Scene* theScene) {
+void SceneManager::AddInactiveScene(Scene* theScene)
+{
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddInactiveScene() received a bad pointer");
 #if DEBUGSCENES
@@ -104,14 +92,16 @@ void SceneManager::AddInactiveScene(Scene* theScene) {
     mStack.insert(mStack.begin(), theScene);
 }
 
-Scene& SceneManager::GetActiveScene(void) {
+Scene& SceneManager::GetActiveScene()
+{
     if ( mStack.empty() ) {
         printf("[SceneManager] WARNING: no active scene to get!");
     }
     return *mStack.back();
 }
 
-void SceneManager::InactivateActiveScene(void) {
+void SceneManager::InactivateActiveScene()
+{
 #if DEBUGSCENES
     printf("SceneManager: inactivating active scene\n" );
 #endif
@@ -133,9 +123,9 @@ void SceneManager::InactivateActiveScene(void) {
         aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(NULL != hyperVisor) {
+        if(_locator.Satisfies<HyperVisor>()) {
             printf("SceneManager: stack was empty on inactivation\n");
-            hyperVisor->Stop();
+            _locator.Get<HyperVisor>()->Stop();
         }
         return;
     }
@@ -152,15 +142,10 @@ void SceneManager::InactivateActiveScene(void) {
             mStack.back()->Initialize();
         }
     }
-    else {
-        // There are no scenes on the stack, exit the program
-        if(NULL != hyperVisor) {
-            hyperVisor->Stop();
-        }
-    }
 }
 
-void SceneManager::DropActiveScene(void) {
+void SceneManager::DropActiveScene()
+{
 #if DEBUGSCENES
     printf("SceneManager: dropping active scene\n" );
 #endif
@@ -187,9 +172,9 @@ void SceneManager::DropActiveScene(void) {
         aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(NULL != hyperVisor) {
+        if(_locator.Satisfies<HyperVisor>()) {
             printf("SceneManager: stack was empty on scene drop\n");
-            hyperVisor->Stop();
+            _locator.Get<HyperVisor>()->Stop();
         }
         return;
     }
@@ -204,15 +189,11 @@ void SceneManager::DropActiveScene(void) {
             // Initialize the new active scene
             mStack.back()->Initialize();
         }
-    } else {
-        // There are no scenes on the stack, exit the program
-        if( NULL != hyperVisor ) {
-            hyperVisor->Stop();
-        }
     }
 }
 
-void SceneManager::ResetActiveScene(void) {
+void SceneManager::ResetActiveScene()
+{
 #if DEBUGSCENES
     printf("SceneManager: resetting active scene\n" );
 #endif
@@ -234,15 +215,16 @@ void SceneManager::ResetActiveScene(void) {
         aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(NULL != hyperVisor) {
+        if(_locator.Satisfies<HyperVisor>()) {
             printf("SceneManager: stack was empty on scene reset\n");
-            hyperVisor->Stop();
+            _locator.Get<HyperVisor>()->Stop();
         }
         return;
     }
 }
 
-void SceneManager::RemoveActiveScene(void) {
+void SceneManager::RemoveActiveScene()
+{
 #if DEBUGSCENES
     printf("SceneManager: remove active scene\n" );
 #endif
@@ -267,9 +249,9 @@ void SceneManager::RemoveActiveScene(void) {
         aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(NULL != hyperVisor) {
+        if(_locator.Satisfies<HyperVisor>()) {
             printf("SceneManager: stack was empty on scene removal\n");
-            hyperVisor->Stop();
+            _locator.Get<HyperVisor>()->Stop();
         }
         return;
     }
@@ -283,11 +265,6 @@ void SceneManager::RemoveActiveScene(void) {
         } else {
             // Initialize the new active scene
             mStack.back()->Initialize();
-        }
-    } else {
-        // There are no scenes on the stack, exit the program
-        if(NULL != hyperVisor) {
-//            hyperVisor->Quit(StatusAppOK);
         }
     }
 }
@@ -339,9 +316,6 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
 
 void SceneManager::Cleanup(void)
 {
-    // Always call our cleanup events with our pointer when this method is called
-//    mCleanupEvents.DoEvents();
-    
     // Remove one of our dead scenes
     if( !mDead.empty() ) {
         // Retrieve the dead scene
@@ -359,9 +333,6 @@ void SceneManager::Cleanup(void)
             aScene->Release();
         }
         
-        // Handle the cleanup before we delete aScene
-//        aScene->Cleanup();
-        
         // Just delete the scene now
         delete aScene;
         
@@ -372,8 +343,9 @@ void SceneManager::Cleanup(void)
     // Make sure we still have an active scene
     if( NULL == mStack.back() ) {
         // There are no scenes on the stack, exit the program
-        if( NULL != hyperVisor ) {
-            hyperVisor->Stop();
+        if(_locator.Satisfies<HyperVisor>()) {
+            printf("SceneManager: stack was empty on cleanup\n");
+            _locator.Get<HyperVisor>()->Stop();
         }
     }
 }

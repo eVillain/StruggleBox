@@ -96,11 +96,11 @@ void Particle3DEditor::ShowEditor()
     int bW = 140;       // Button width
     int bH = 24;        // Button height
     int padding = 8;    // Button padding
-    int posX = padding-(_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2);
-    int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+padding);
+    int posX = padding-(_locator.Get<Options>()->getOption<int>("r_resolutionX")/2);
+    int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+padding);
     if ( !optionsBtn ) {
         // Options menu button
-        optionsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)-(padding+32), posY-8, 32, 32, ( [=]() {
+        optionsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)-(padding+32), posY-8, 32, 32, ( [=]() {
             if ( optionsMenu == NULL ) { this->ShowOptionsMenu(); }
             else { this->RemoveOptionsMenu(); }
         } ), BUTTON_TYPE_DEFAULT, true, "OptionsDefault.png", "OptionsActive.png", "OptionsPressed.png" );
@@ -110,8 +110,8 @@ void Particle3DEditor::ShowEditor()
     }
     if ( !cameraBtn ) {
         // Camera menu
-        int resX = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX");
-        int resY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY");
+        int resX = _locator.Get<Options>()->getOption<int>("r_resolutionX");
+        int resY = _locator.Get<Options>()->getOption<int>("r_resolutionY");
         
         cameraBtn = UIButtonLambda::CreateButton("", (resX/2)-(padding+32+32), posY-8, 32, 32, ( [=]() {
             if ( cameraMenu == NULL ) {
@@ -336,7 +336,7 @@ void Particle3DEditor::Draw( void )
     
     Renderer* renderer = _locator.Get<Renderer>();
     
-    glPolygonMode( GL_FRONT_AND_BACK, _locator.Get<Options>()->GetOptionDataPtr<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
+    glPolygonMode( GL_FRONT_AND_BACK, _locator.Get<Options>()->getOption<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
     // Draw editing object and floor
     float objectHeight = 5.0f;
     float objectWidth = 5.0f;
@@ -371,7 +371,7 @@ void Particle3DEditor::Draw( void )
 
     // Apply lighting
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    if ( _locator.Get<Options>()->GetOptionDataPtr<bool>("r_useShaders") && _locator.Get<Options>()->GetOptionDataPtr<bool>("r_deferred") ) {
+    if ( _locator.Get<Options>()->getOption<bool>("r_useShaders") && _locator.Get<Options>()->getOption<bool>("r_deferred") ) {
         LightSystem3D* lsys = _locator.Get<LightSystem3D>();
         if ( lsys->GetLights().size() == 0 ) {
             Light3D* newLight = new Light3D();
@@ -424,11 +424,11 @@ void Particle3DEditor::ShowOptionsMenu() {
         int bW = 140;
         int bH = 22;
         int posX = 8+bW+8;
-        int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-30;
+        int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-30;
 
         optionsMenu = new UIMenu(posX, posY, bW, bH, "Options");
         // Get all the options and add them in to our menu
-        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->GetOptionMap();
+        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
         std::map<const std::string, Attribute*>::iterator it;
         for ( it = allOptions.begin(); it != allOptions.end(); it++ ) {
             std::string category = "";
@@ -449,10 +449,10 @@ void Particle3DEditor::ShowOptionsMenu() {
             }
         }
         optionsMenu->AddButton("Defaults", ( [=]() {
-            _locator.Get<Options>()->ResetToDefaults();
+            _locator.Get<Options>()->setDefaults();
         }  ) );
         optionsMenu->AddButton("Save", ( [=]() {
-            _locator.Get<Options>()->SaveOptions();
+            _locator.Get<Options>()->save();
         }  ) );
         optionsMenu->AddButton("Close", ( [=]() {
             if ( optionsMenu != NULL ) {
@@ -514,7 +514,7 @@ bool Particle3DEditor::OnEvent(const std::string& theEvent,
         if (theEvent == INPUT_CONSOLE) {
             Console::ToggleVisibility();
         } else if (theEvent == INPUT_GRAB_CURSOR) {
-            bool& grabCursor = _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor");
+            bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
             SDL_ShowCursor(grabCursor);
         } else if (theEvent == INPUT_BACK) {
@@ -533,9 +533,9 @@ bool Particle3DEditor::OnEvent(const std::string& theEvent,
 
 bool Particle3DEditor::OnMouse(const glm::ivec2& coord)
 {
-    double midWindowX = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
-    double midWindowY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor") ) {
+    double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
+    double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
+    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
         
         float mouseSensitivity = 0.1f;
         float rotationX = (midWindowX-coord.x)*mouseSensitivity;

@@ -1,13 +1,5 @@
-//
-//  UISlider.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 6/11/13.
-//
-//
-
-#ifndef BWO_UISLIDER_H
-#define BWO_UISLIDER_H
+#ifndef UI_SLIDER_H
+#define UI_SLIDER_H
 
 #include "UIWidget.h"
 #include "GFXHelpers.h"
@@ -651,4 +643,4 @@ public:
 //    };
 //};
 
-#endif
+#endif /* UI_SLIDER_H */

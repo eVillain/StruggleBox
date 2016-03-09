@@ -88,7 +88,7 @@ void TextManager::Initialize(Locator& locator)
         return;
     }
     // Check if shaders available
-    if ( locator.Get<Options>()->GetOptionDataPtr<bool>("r_useShaders") ) {
+    if ( locator.Get<Options>()->getOption<bool>("r_useShaders") ) {
         shadersAvailable = true;
         textShader = new Shader();
         textShader->InitFromSource(text_vertex_shader32, text_frag_shader32);

@@ -83,8 +83,8 @@ Scene("Editor", locator)
     selectedLight = NULL;
 //    int bW = 140;
 //    int bH = 22;
-//    int posX = 8-(_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)+(bW+8);
-//    int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+8);
+//    int posX = 8-(_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)+(bW+8);
+//    int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+8);
     // Load object editing facilities
 //    objectMenu = new UIObjectMenu(posX, posY, bW, bH, this, "Object Menu");
     
@@ -159,19 +159,19 @@ void Object3DEditor::ShowEditor() {
     int bW = 140;       // Button width
     int bH = 24;        // Button height
     int padding = 8;    // Button padding
-    int posX = padding-(_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2);
-    int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+padding);
+    int posX = padding-(_locator.Get<Options>()->getOption<int>("r_resolutionX")/2);
+    int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+padding);
     // Options menu
-    optionsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)-(padding+32), posY-8, 32, 32, ( [=]() {
+    optionsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)-(padding+32), posY-8, 32, 32, ( [=]() {
         if ( optionsMenu == NULL ) { this->ShowOptionsMenu(); }
         else { this->RemoveOptionsMenu(); }
     } ), BUTTON_TYPE_DEFAULT, true, "OptionsDefault.png", "OptionsActive.png", "OptionsPressed.png" );
 
     // Camera menu
-    cameraBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)-(padding+32+32), posY-8, 32, 32, ( [=]() {
+    cameraBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)-(padding+32+32), posY-8, 32, 32, ( [=]() {
         if ( cameraMenu == NULL ) {
             int pX = posX+bW+8;
-            int pY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+8);
+            int pY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+8);
             if ( optionsMenu ) pY -= (optionsMenu->h+optionsMenu->contentHeight+8);
             cameraMenu = new UIMenu(pX, pY, bW, bH, "Camera");
             Camera& camera = *_locator.Get<Camera>();
@@ -202,10 +202,10 @@ void Object3DEditor::ShowEditor() {
     } ), BUTTON_TYPE_DEFAULT, true, "CameraDefault.png", "CameraActive.png", "CameraPressed.png" );
 
     //  Lights menu
-    lightsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)-(padding+32+32+32), posY-8, 32, 32, ( [=]() {
+    lightsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)-(padding+32+32+32), posY-8, 32, 32, ( [=]() {
         if ( lightsMenu == NULL ) {
             int pX = posX+bW+8;
-            int pY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+8);
+            int pY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+8);
             if ( optionsMenu ) pY -= (optionsMenu->h+optionsMenu->contentHeight+8);
             if ( cameraMenu ) pY -= (cameraMenu->h+cameraMenu->contentHeight+8);
             lightsMenu = new UIMenu(pX, pY, bW*2.0f, bH, "Lights Menu");
@@ -355,11 +355,11 @@ void Object3DEditor::ShowEditor() {
     editMenu = new UIMenu(posX, posY, bW, bH, "Editor");
     editMenu->AddVar<bool>("Colored lights", &colorLights );
     editMenu->AddButton("Show Grid", ( [=]() {
-        _locator.Get<Options>()->GetOptionDataPtr<bool>("e_gridRender") = !_locator.Get<Options>()->GetOptionDataPtr<bool>("e_gridRender");
+        _locator.Get<Options>()->getOption<bool>("e_gridRender") = !_locator.Get<Options>()->getOption<bool>("e_gridRender");
     }  ), "", true );
     editMenu->Sort();
     
-    posX = padding-(_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2);
+    posX = padding-(_locator.Get<Options>()->getOption<int>("r_resolutionX")/2);
     posY -= fileMenu->h+fileMenu->contentHeight+padding+padding;
 
     toolMenu = new UIMenu(posX, posY, 40, 36, "");
@@ -506,12 +506,12 @@ void Object3DEditor::ShowOptionsMenu() {
     if ( optionsMenu == NULL ) {
         int bW = 140;
         int bH = 22;
-        int posX = 8-(_locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX")/2)+(bW+8);
-        int posY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY")/2-(bH+8);
+        int posX = 8-(_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)+(bW+8);
+        int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-(bH+8);
         if ( cameraMenu ) posY -= (cameraMenu->h+cameraMenu->contentHeight+8);
         optionsMenu = new UIMenu(posX, posY, bW, bH, "Options");
         // Get all the options and add them in to our menu
-        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->GetOptionMap();
+        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
         std::map<const std::string, Attribute*>::iterator it;
         for ( it = allOptions.begin(); it != allOptions.end(); it++ ) {
             std::string category = "";
@@ -532,10 +532,10 @@ void Object3DEditor::ShowOptionsMenu() {
             }
         }
         optionsMenu->AddButton("Defaults", ( [=]() {
-            _locator.Get<Options>()->ResetToDefaults();
+            _locator.Get<Options>()->setDefaults();
         }  ) );
         optionsMenu->AddButton("Save", ( [=]() {
-            _locator.Get<Options>()->SaveOptions();
+            _locator.Get<Options>()->save();
         }  ) );
         optionsMenu->AddButton("Close", ( [=]() {
             if ( optionsMenu != NULL ) {
@@ -752,7 +752,7 @@ void Object3DEditor::UpdateEditCursor() {
 void Object3DEditor::Draw( void ) {
     glDisable(GL_CULL_FACE);
     Renderer* renderer = _locator.Get<Renderer>();
-    glPolygonMode( GL_FRONT_AND_BACK, _locator.Get<Options>()->GetOptionDataPtr<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
+    glPolygonMode( GL_FRONT_AND_BACK, _locator.Get<Options>()->getOption<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glStencilFunc(GL_ALWAYS, Stencil_Solid, 0xFF);
@@ -789,7 +789,7 @@ void Object3DEditor::Draw( void ) {
             editObject->Draw( renderer );
             editObject->DrawTransparent( renderer );
         }
-        if ( editInstance && _locator.Get<Options>()->GetOptionDataPtr<bool>("e_gridRender") ) {
+        if ( editInstance && _locator.Get<Options>()->getOption<bool>("e_gridRender") ) {
             // Render grid
             glm::vec3 gridPos = editInstance->position+glm::vec3(0.0,-objectHeight+0.011f,0.0);
             renderer->Draw3DGrid( gridPos, objectWidth, editObject->cubes->GetWidth());
@@ -816,7 +816,7 @@ void Object3DEditor::Draw( void ) {
 
     // Apply lighting
 //    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    if ( _locator.Get<Options>()->GetOptionDataPtr<bool>("r_useShaders") && _locator.Get<Options>()->GetOptionDataPtr<bool>("r_deferred") ) {
+    if ( _locator.Get<Options>()->getOption<bool>("r_useShaders") && _locator.Get<Options>()->getOption<bool>("r_deferred") ) {
         LightSystem3D* lsys = _locator.Get<LightSystem3D>();
         const float radius = 60.0f;
         if ( lsys->GetLights().size() < 3 ) {
@@ -1213,7 +1213,7 @@ bool Object3DEditor::OnEvent( const std::string& theEvent, const float& amount )
                 newCubeType = eraseBlock->blockType;
             }
         } else if (theEvent == INPUT_GRAB_CURSOR ) {
-            bool& grabCursor = _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor");
+            bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
             SDL_ShowCursor(grabCursor);
         } else if ( theEvent == "Jump" ) {
@@ -1238,9 +1238,9 @@ bool Object3DEditor::OnEvent( const std::string& theEvent, const float& amount )
 
 bool Object3DEditor::OnMouse( const glm::ivec2& coord )
 {
-    double midWindowX = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
-    double midWindowY = _locator.Get<Options>()->GetOptionDataPtr<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->GetOptionDataPtr<bool>("r_grabCursor") ) {
+    double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
+    double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
+    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
         
         float mouseSensitivity = 0.1f;
         float rotationX = (midWindowX-coord.x)*mouseSensitivity;

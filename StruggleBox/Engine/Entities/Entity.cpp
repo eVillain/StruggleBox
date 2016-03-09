@@ -1,40 +1,31 @@
-//
-//  Entity.cpp
-//  ComponentTest
-//
-//  Created by Ville-Veikko Urrila on 4/17/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include "Entity.h"
 #include "EntityComponent.h"
 #include "GFXDefines.h"
 #include "GFXHelpers.h"
 
-int Entity::nextEntityID = 1;
+int Entity::_nextEntityID = 1;
 
 // This tells the compiler to create the following data type functions
 // Using GetAttributeDataPtr<type> without defining the type here will not compile
-void TemplateGuards() {
-    Entity* e = NULL;
-//    if ( e ) {
-        e->GetAttributeDataPtr<bool>("");
-        e->GetAttributeDataPtr<int>("");
-        e->GetAttributeDataPtr<unsigned int>("");
-        e->GetAttributeDataPtr<std::string>("");
-        e->GetAttributeDataPtr<float>("");
-        e->GetAttributeDataPtr<double>("");
-        e->GetAttributeDataPtr<Color>("");
-        e->GetAttributeDataPtr<glm::vec2>("");
-        e->GetAttributeDataPtr<glm::vec3>("");
-        e->GetAttributeDataPtr<glm::vec4>("");
-        e->GetAttributeDataPtr<glm::quat>("");
-//    }
+void TemplateGuards(Entity* e)
+{
+    e->GetAttributeDataPtr<bool>("");
+    e->GetAttributeDataPtr<int>("");
+    e->GetAttributeDataPtr<unsigned int>("");
+    e->GetAttributeDataPtr<std::string>("");
+    e->GetAttributeDataPtr<float>("");
+    e->GetAttributeDataPtr<double>("");
+    e->GetAttributeDataPtr<Color>("");
+    e->GetAttributeDataPtr<glm::vec2>("");
+    e->GetAttributeDataPtr<glm::vec3>("");
+    e->GetAttributeDataPtr<glm::vec4>("");
+    e->GetAttributeDataPtr<glm::quat>("");
 }
 
-Entity::Entity( const std::string& entName ) {
+Entity::Entity(const std::string& entName)
+{
     // Get entity ID and save in attributes
-    m_ID = nextEntityID++;
+    m_ID = _nextEntityID++;
     this->AddAttribute<int>("ID");
     Attribute* idAttrib = (GetAttribute<int>("ID"));
     int& idA = idAttrib->as<int>();
@@ -55,32 +46,40 @@ Entity::Entity( const std::string& entName ) {
     nA = entName;
 }
 
-Entity::~Entity() {
-//    ClearComponents();
+Entity::~Entity()
+{
     ClearAttributes();
 }
 
 //Entity Interface
-const unsigned int Entity::GetID() const {
+const unsigned int Entity::GetID() const
+{
     return m_ID;
 }
+
 // Attribute Interface
-bool Entity::HasAttribute(const std::string& attrName) const {
+bool Entity::HasAttribute(const std::string& attrName) const
+{
     if ( m_Attributes.find( attrName ) != m_Attributes.end() ) { return true; }
     else { return false; }
 }
 
-void Entity::RemoveAttribute(const std::string& attrName) {
+void Entity::RemoveAttribute(const std::string& attrName)
+{
     std::map<const std::string, Attribute*>::iterator it;
     it = m_Attributes.find( attrName );
     if ( it != m_Attributes.end() ) {
         m_Attributes.erase( it );
     }
 }
-void Entity::ClearAttributes() {
+
+void Entity::ClearAttributes()
+{
     m_Attributes.clear();
 }
-template<typename T> void Entity::AddAttribute(const std::string& attrName) {
+
+template<typename T> void Entity::AddAttribute(const std::string& attrName)
+{
     if ( m_Attributes.find( attrName ) == m_Attributes.end() ) {
         Attribute* newAttrib = new Attribute(T());
         m_Attributes[attrName] = (Attribute*)newAttrib;
@@ -88,7 +87,10 @@ template<typename T> void Entity::AddAttribute(const std::string& attrName) {
         printf("[Entity] attrib %s already added \n", attrName.c_str());
     }
 }
-template<typename T> void Entity::AddAttribute(const std::string& attrName, T value) {
+
+template<typename T> void Entity::AddAttribute(const std::string& attrName,
+                                               T value)
+{
     if ( m_Attributes.find( attrName ) == m_Attributes.end() ) {
         Attribute* newAttrib = new Attribute(value);
         m_Attributes[attrName] = (Attribute*)newAttrib;
@@ -96,7 +98,9 @@ template<typename T> void Entity::AddAttribute(const std::string& attrName, T va
         printf("[Entity] attrib %s already added \n", attrName.c_str());
     }
 }
-template<typename T> Attribute* Entity::GetAttribute(const std::string& attrName) {
+
+template<typename T> Attribute* Entity::GetAttribute(const std::string& attrName)
+{
     if ( m_Attributes.find( attrName ) != m_Attributes.end() ) {
         return ((Attribute*)m_Attributes.at( attrName ));
         // Notify entity that attribute has been updated
@@ -105,14 +109,18 @@ template<typename T> Attribute* Entity::GetAttribute(const std::string& attrName
         return NULL;
     }
 }
-template<typename T> const Attribute* Entity::GetAttribute(const std::string& attrName) const {
+
+template<typename T> const Attribute* Entity::GetAttribute(const std::string& attrName) const
+{
     if ( m_Attributes.find( attrName ) != m_Attributes.end() ) {
         return ((Attribute*) m_Attributes.at( attrName ));
     } else {
         return NULL;
     }
 }
-Attribute* Entity::GetAttributeBase(const std::string& attrName) const {
+
+Attribute* Entity::GetAttributeBase(const std::string& attrName) const
+{
     if ( m_Attributes.find( attrName ) != m_Attributes.end() ) {
         return m_Attributes.at( attrName );
     } else {
@@ -120,7 +128,8 @@ Attribute* Entity::GetAttributeBase(const std::string& attrName) const {
     }
 }
 
-const std::vector<std::string> Entity::GetAttributeNames( void ) {
+const std::vector<std::string> Entity::GetAttributeNames()
+{
     std::map<const std::string, Attribute*>::iterator it;
     std::vector<std::string> names;
     for (it=m_Attributes.begin(); it != m_Attributes.end(); it++ )  {
@@ -128,7 +137,9 @@ const std::vector<std::string> Entity::GetAttributeNames( void ) {
     }
     return names;
 }
-const std::vector<std::string> Entity::GetAttributeTypes( void ) {
+
+const std::vector<std::string> Entity::GetAttributeTypes()
+{
     std::map<const std::string, Attribute*>::iterator it;
     std::vector<std::string> typeNames;
     for (it=m_Attributes.begin(); it != m_Attributes.end(); it++ ) {
@@ -138,7 +149,8 @@ const std::vector<std::string> Entity::GetAttributeTypes( void ) {
     return typeNames;
 }
 
-void Entity::Print() {
+void Entity::Print()
+{
     std::map<const std::string, Attribute*>::iterator it;
     std::vector<std::string> typeNames;
     for (it=m_Attributes.begin(); it != m_Attributes.end(); it++ ) {

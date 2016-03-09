@@ -1,17 +1,10 @@
-#ifndef BWO_ENTITY_H
-#define BWO_ENTITY_H
-//
-//  Entity.h
-//  Component-Based Entity class
-//
-//  Created by Ville-Veikko Urrila on 4/17/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef ENTITY_H
+#define ENTITY_H
 
+#include "Attribute.h"
 #include <string>
 #include <map>
 #include <vector>
-#include "Attribute.h"
 
 typedef enum {
     ENTITY_NONE = 0,            // For completion's sake
@@ -23,7 +16,6 @@ typedef enum {
     ENTITY_LIGHT = 6,           // NOT IMPLEMENTED - MIGHT BE FACTORED OUT INTO A COMPONENT OR INTO CUBE DATA
 } EntityType;
 
-
 typedef enum {
     ALIGNMENT_CHAOTIC = -1,
     ALIGNMENT_NEUTRAL = 0,
@@ -31,7 +23,8 @@ typedef enum {
 } EntityAlignment;
 
 
-inline static std::string NameForEntity( const EntityType type ) {
+inline static std::string NameForEntity(const EntityType type)
+{
     switch (type) {
         case ENTITY_NONE:
             return "No entity";
@@ -58,35 +51,23 @@ inline static std::string NameForEntity( const EntityType type ) {
             break;
     }
 };
+
 class EntityComponent;
 
-class Entity {
-private:
-    void                                            RemoveAttribute(const std::string& attrName);
-    void                                            ClearAttributes();
-    template<typename T> void                       AddAttribute(const std::string& attrName);
-    template<typename T> void                       AddAttribute(const std::string& attrName, T value);
-    
-    // Entity Data
-    unsigned int                                    m_ID;
-    bool                                            attributeUpdate;
-    std::map<const std::string, Attribute*>         m_Attributes;
-    template<typename T> Attribute*                 GetAttribute(const std::string& attrName);
-    template<typename T> const Attribute*           GetAttribute(const std::string& attrName) const;
-    
-    static int                                      nextEntityID;
-    
+class Entity
+{
 public:
-    // Create new empty entity by name
-    Entity( const std::string& entName );
-    // Destructor
+    Entity(const std::string& name);
     ~Entity();
+
     // Entity Interface
-    const unsigned int                              GetID() const;
+    const unsigned int GetID() const;
 
     // Attribute Interface
-    bool                                            HasAttribute(const std::string& attrName) const;
-    template<typename T> T&                         GetAttributeDataPtr(const std::string& attrName) {
+    bool HasAttribute(const std::string& attrName) const;
+    
+    template<typename T> T& GetAttributeDataPtr(const std::string& attrName)
+    {
         Attribute *a = GetAttribute<T>(attrName);
         if ( a != NULL &&  a->GetMagicNumber() == a->magic_number_for<T>() ) {
                 attributeUpdate = true;
@@ -99,14 +80,30 @@ public:
             return a2->as<T>();
         }
     }
-    const std::vector<std::string>                  GetAttributeNames( void );
-    const std::vector<std::string>                  GetAttributeTypes( void );
-    Attribute*                                      GetAttributeBase( const std::string& attrName ) const;
-    static const int                                GetNextEntityID( void ) { return nextEntityID; };
-    std::map<const std::string, Attribute*>&        GetAttributes( void ) { return m_Attributes; }
+    
+    const std::vector<std::string> GetAttributeNames();
+    const std::vector<std::string> GetAttributeTypes();
+    Attribute* GetAttributeBase(const std::string& attrName) const;
+    static const int GetNextEntityID() { return _nextEntityID; };
+    std::map<const std::string, Attribute*>& GetAttributes() { return m_Attributes; }
 
     // Debugging output of all attributes and components
     void Print();
+    
+private:
+    static int _nextEntityID;
+
+    void RemoveAttribute(const std::string& attrName);
+    void ClearAttributes();
+    template<typename T> void AddAttribute(const std::string& attrName);
+    template<typename T> void AddAttribute(const std::string& attrName, T value);
+    
+    // Entity Data
+    unsigned int m_ID;
+    bool attributeUpdate;
+    std::map<const std::string, Attribute*> m_Attributes;
+    template<typename T> Attribute* GetAttribute(const std::string& attrName);
+    template<typename T> const Attribute* GetAttribute(const std::string& attrName) const;
 };
 
-#endif
+#endif /* ENTITY_H */

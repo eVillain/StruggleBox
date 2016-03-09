@@ -1,5 +1,5 @@
-#ifndef NGN_OPTIONS_H
-#define NGN_OPTIONS_H
+#ifndef OPTIONS_H
+#define OPTIONS_H
 
 #include "Dictionary.h"
 #include <map>
@@ -7,13 +7,6 @@
 
 class CmdProcessor;
 
-//
-//  Options.h
-//  Ingenium
-//
-//  Created by Ville-Veikko Urrila on 13/01/12.
-//  Copyright (c) 2012 The Drudgerist. All rights reserved.
-//
 //  Holds options values
 //  Key:
 //  r_ = renderer options
@@ -22,30 +15,19 @@ class CmdProcessor;
 //  n_ = network options
 //  d_ = debug options
 
-
-class Options {
-private:
-    std::map<const std::string, Attribute*> m_Attributes;
+class Options
+{
 public:
-    // Constructor
     Options();
-    // Destructor
-    ~Options();
     
-    // Loading and saving
-    bool SaveOptionData(const char *filename);
-    bool LoadOptionData(const char *filename);
-    void SaveOptions();
-    void LoadOptions();
-    
-    void ResetToDefaults();
-    void PrintOpts();
-    void AddConsoleVars();
-    
-    std::map<const std::string, Attribute*>& GetOptionMap() { return m_Attributes; };
+    void save();
+    void load();
+    void setDefaults();
 
     // Interface for options variables
-    template<typename T> void AddOption(const std::string& attrName, T value) {
+    template<typename T> void addOption(const std::string& attrName,
+                                        T value)
+    {
         if ( m_Attributes.find( attrName ) == m_Attributes.end() ) {
             Attribute* newAttrib = new Attribute(value);
             m_Attributes[attrName] = (Attribute*)newAttrib;
@@ -57,10 +39,11 @@ public:
                 // Set previous attribute value
                 a->as<T>() = value;
             }
-//            printf("[Options] attrib %s already added \n", attrName.c_str());
         }
     }
-    template<typename T> T& GetOptionDataPtr(const std::string& attrName) {
+    
+    template<typename T> T& getOption(const std::string& attrName)
+    {
         Attribute *a = NULL;
         if ( m_Attributes.find( attrName ) != m_Attributes.end() ) {
             a = ((Attribute*) m_Attributes[attrName]);
@@ -73,6 +56,18 @@ public:
         }
         return a->as<T>();
     }
+    
+    std::map<const std::string, Attribute*>& getAllOptions()
+    {
+        return m_Attributes;
+    }
+private:
+    std::map<const std::string, Attribute*> m_Attributes;
+
+    bool save(const char *filename);
+    bool load(const char *filename);
+    void printDebugInfo();
+    void addConsoleVars();
 };
 
 #endif

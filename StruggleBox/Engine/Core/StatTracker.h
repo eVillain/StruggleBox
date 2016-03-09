@@ -1,5 +1,5 @@
-#ifndef NGN_STAT_TRACKER_H
-#define NGN_STAT_TRACKER_H
+#ifndef STAT_TRACKER_H
+#define STAT_TRACKER_H
 
 #include <vector>
 
@@ -79,4 +79,4 @@ private:
     void HideStats();
 };
 
-#endif
+#endif /* STAT_TRACKER_H */

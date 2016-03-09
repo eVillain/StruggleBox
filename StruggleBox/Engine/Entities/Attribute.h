@@ -1,25 +1,16 @@
-#ifndef NGN_ATTRIBUTE_H
-#define NGN_ATTRIBUTE_H
-
-//
-//  Attribute.h
-//  Ingenium data Attribute class
-//  These are a form of type-erasure, no run-time types needed
-//  Instead the magic_number can be used to check data type
-//
-//  Created by Ville-Veikko Urrila on 4/19/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef ATTRIBUTE_H
+#define ATTRIBUTE_H
 
 #include <memory>
 #include "GFXHelpers.h"
 
-// Sanity check class, should never get called unless something is broken
+/// Sanity check class, should never get called unless something is broken
 class SomethingIsSomethingElse
-{
-    
-};
+{ };
 
+///  Generic data Attribute class:
+///  These are a form of type-erasure, no run-time types needed
+///  Instead the magic_number can be used to check data type
 class Attribute
 {
 private:
@@ -69,8 +60,7 @@ public:
     template <typename T_>
     Attribute(const T_ & t) :
     _value(new AttributeValue<T_>(t))
-    {
-    }
+    { }
 
     template <typename T_>
     T_ & as() const
@@ -79,7 +69,9 @@ public:
             throw "[Attribute] magic number mismatch, wrong data type";;
         return std::static_pointer_cast< AttributeValue<T_> >(_value)->value;
     }
+    
     const int GetMagicNumber() const { return _value->magic_number; };
+    
     template <typename T_>
     bool IsType() {
         if (magic_number_for<T_>() == _value->magic_number) {
@@ -87,6 +79,7 @@ public:
         }
         return false;
     }
+    
     const std::string GetValueString()
     {
         if (magic_number_for<bool>() == _value->magic_number) {
@@ -102,7 +95,6 @@ public:
         }
         return "Unknown Attribute type";
     };
-
 };
 
-#endif
+#endif /* ATTRIBUTE_H */

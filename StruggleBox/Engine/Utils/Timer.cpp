@@ -1,11 +1,3 @@
-//
-//  Timer.cpp
-//  DungeonSmith
-//
-//  Created by The Drudgerist on 20/04/15.
-//  Copyright (c) 2015 The Drudgerist. All rights reserved.
-//
-
 #include "Timer.h"
 
 #ifdef __APPLE__
@@ -24,10 +16,6 @@
 #include <sstream>          // string stream
 
 #if defined(_WIN32)
-//========================================================================
-// Seconds()/Milliseconds()
-// universal timers, rather hackish but working
-//========================================================================
 long Timer::Microseconds()
 {
     __int64 count, freq;
@@ -63,11 +51,8 @@ std::string Timer::TimeStamp()
     std::string output(buffer);
     return output;
 }
+
 #elif defined __APPLE__
-//========================================================================
-// Seconds()/Milliseconds()
-// universal timers, rather hackish but working
-//========================================================================
 long Timer::Microseconds()
 {
     struct timeval time;

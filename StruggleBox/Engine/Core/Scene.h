@@ -37,4 +37,5 @@ private:
     Scene( const Scene& );            // Intentionally undefined constructor
     Scene& operator=( const Scene& ); // Intentionally undefined constructor
 };
-#endif
+
+#endif /* SCENE_H */

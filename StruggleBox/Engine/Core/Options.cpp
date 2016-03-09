@@ -8,19 +8,18 @@
 
 static bool s_debugOutput = false;
 
-Options::Options() {
-    LoadOptions();
-    AddConsoleVars();
-}
-Options::~Options() {
+Options::Options()
+{
+    load();
 }
 
-void Options::LoadOptions() {
+void Options::load()
+{
     bool loaded = false;
     std::string path = FileUtil::GetPath();
     if ( FileUtil::DoesFileExist(path, "Options.plist" ) ) {
         path.append("Options.plist");
-        if ( LoadOptionData(path.c_str()) ) {
+        if ( load(path.c_str()) ) {
             loaded = true;
             if ( s_debugOutput ) Console::Print("Loaded options file");
         } else {
@@ -29,22 +28,55 @@ void Options::LoadOptions() {
     } else {
         if ( s_debugOutput ) Console::Print("No options file to load");
     }
-    if ( !loaded ) {
-        ResetToDefaults();
-        PrintOpts();
-        SaveOptions();
+    if (!loaded) {
+        setDefaults();
+        printDebugInfo();
+        save();
+    } else {
+        addConsoleVars();
     }
 }
-void Options::SaveOptions() {
+
+void Options::save()
+{
     std::string path = FileUtil::GetPath();
     path.append("Options.plist");
-    if ( SaveOptionData(path.c_str()) ) {
+    if ( save(path.c_str()) ) {
         if ( s_debugOutput ) Console::Print("Saved options file");
     } else {
         if ( s_debugOutput ) Console::Print("Failed to save options file");
     }
 }
-bool Options::SaveOptionData(const char *fileName) {
+
+/// Prints out options data values
+void Options::printDebugInfo()
+{
+    std::map<const std::string, Attribute*>::iterator it;
+    for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
+        printf("Options Key: %s, Data: %s\n",
+               it->first.c_str(),
+               it->second->GetValueString().c_str());
+    }
+}
+
+void Options::addConsoleVars()
+{
+    std::map<const std::string, Attribute*>::iterator it;
+    for ( it = m_Attributes.begin(); it != m_Attributes.end(); it++ ) {
+        if ( it->second->IsType<bool>()) {
+            Console::AddVar(it->second->as<bool>(), it->first);
+        } else if ( it->second->IsType<int>()) {
+            Console::AddVar(it->second->as<int>(), it->first);
+        } else if ( it->second->IsType<float>()) {
+            Console::AddVar(it->second->as<float>(), it->first);
+        } else if ( it->second->IsType<std::string>()) {
+            Console::AddVar(it->second->as<std::string>(), it->first);
+        }
+    }
+}
+
+bool Options::save(const char *fileName)
+{
     Dictionary dict;
     std::map<const std::string, Attribute*>::iterator it;
     for ( it = m_Attributes.begin(); it != m_Attributes.end(); it++ ) {
@@ -63,41 +95,22 @@ bool Options::SaveOptionData(const char *fileName) {
     }
     return false;
 }
-// Print out options data values
-void Options::PrintOpts() {
-    std::map<const std::string, Attribute*>::iterator it;
-    for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
-        printf("Options Key: %s, Data: %s\n", it->first.c_str(), it->second->GetValueString().c_str());
-    }
-}
-void Options::AddConsoleVars() {
-    std::map<const std::string, Attribute*>::iterator it;
-    for ( it = m_Attributes.begin(); it != m_Attributes.end(); it++ ) {
-        if ( it->second->IsType<bool>()) {
-            Console::AddVar(it->second->as<bool>(), it->first);
-        } else if ( it->second->IsType<int>()) {
-            Console::AddVar(it->second->as<int>(), it->first);
-        } else if ( it->second->IsType<float>()) {
-            Console::AddVar(it->second->as<float>(), it->first);
-        } else if ( it->second->IsType<std::string>()) {
-            Console::AddVar(it->second->as<std::string>(), it->first);
-        }
-    }
-}
-bool Options::LoadOptionData(const char *fileName) {
+
+bool Options::load(const char *fileName)
+{
     Dictionary dict;
     if ( dict.loadRootSubDictFromFile(fileName) ) {
         std::vector<std::string> keys = dict.getAllKeys();
         for ( int i=0; i<keys.size(); i++ ) {
             int keyType = dict.getTypeForKey(keys[i].c_str());
             if ( keyType == DD_Bool ) {
-                AddOption( keys[i], dict.getBoolForKey(keys[i].c_str()) );
+                addOption( keys[i], dict.getBoolForKey(keys[i].c_str()) );
             } else if ( keyType == DD_Int ) {
-                AddOption( keys[i], dict.getIntegerForKey(keys[i].c_str()) );
+                addOption( keys[i], dict.getIntegerForKey(keys[i].c_str()) );
             } else if ( keyType == DD_Float ) {
-                AddOption( keys[i], dict.getFloatForKey(keys[i].c_str()) );
+                addOption( keys[i], dict.getFloatForKey(keys[i].c_str()) );
             } else if ( keyType == DD_String ) {
-                AddOption( keys[i], dict.getStringForKey(keys[i].c_str()) );
+                addOption( keys[i], dict.getStringForKey(keys[i].c_str()) );
             } else {
                 printf("[Options] bad type in dictionary for %s (%i)\n", keys[i].c_str(), keyType);
             }
@@ -107,104 +120,105 @@ bool Options::LoadOptionData(const char *fileName) {
     return false;
 }
 
-void Options::ResetToDefaults() {
+void Options::setDefaults()
+{
     // Clear out old options
     m_Attributes.empty();
     
-    AddOption("version", "0");
-    AddOption("h_multiThreading", true);
-
-    AddOption("r_resolutionX", 1280);
-    AddOption("r_resolutionY", 720);
-
-    AddOption("r_useShaders", true);
-    AddOption("r_deferred", true);
-    AddOption("r_fullScreen", false);
-    AddOption("r_debug", false);
-
-    AddOption("r_vSync", true);
-    AddOption("r_fsAA", false);
-    AddOption("r_fxAA", false);
+    addOption("version", "0");
+    addOption("h_multiThreading", true);
     
-    AddOption("r_lighting2D", true);
-    AddOption("r_lighting3D", true);
-    AddOption("r_debugLights", false);
-    AddOption("r_debugShadows", false);
-    AddOption("r_lightRays", false);
-    AddOption("r_shadows", false);
-    AddOption("r_shadowMultitap", false);
-    AddOption("r_shadowNoise", false);
-    AddOption("r_renderFog", true);
-    AddOption("r_fogDensity", 0.75f);
-    AddOption("r_fogHeightFalloff", 0.25f);
-    AddOption("r_fogExtinctionFalloff", 20.0f);
-    AddOption("r_fogInscatteringFalloff", 20.0f);
+    addOption("r_resolutionX", 1280);
+    addOption("r_resolutionY", 720);
     
-    AddOption("r_renderMap", false);
+    addOption("r_useShaders", true);
+    addOption("r_deferred", true);
+    addOption("r_fullScreen", false);
+    addOption("r_debug", false);
     
-    AddOption("r_sun", true);
-    AddOption("r_sunBlur", false);
-    AddOption("r_sunFlare", false);
+    addOption("r_vSync", true);
+    addOption("r_fsAA", false);
+    addOption("r_fxAA", false);
     
-    AddOption("r_renderDOF", false);
-    AddOption("r_renderFisheye", false);
-    AddOption("r_renderVignette", false);
-    AddOption("r_renderCorrectGamma", false);
-    AddOption("r_renderToneMap", false);
-
-    AddOption("r_renderFlare", false);
-    AddOption("r_flareSamples", 5);
-    AddOption("r_flareDispersal", 0.3f);
-    AddOption("r_flareHaloWidth", 0.45f);
-    AddOption("r_flareChromaDistortionX", 0.01f);
-    AddOption("r_flareChromaDistortionY", 0.03f);
-    AddOption("r_flareChromaDistortionZ", 0.05f);
-    AddOption("r_flareThreshold", 0.75f);
-    AddOption("r_flareGain", 1.0f);
+    addOption("r_lighting2D", true);
+    addOption("r_lighting3D", true);
+    addOption("r_debugLights", false);
+    addOption("r_debugShadows", false);
+    addOption("r_lightRays", false);
+    addOption("r_shadows", false);
+    addOption("r_shadowMultitap", false);
+    addOption("r_shadowNoise", false);
+    addOption("r_renderFog", true);
+    addOption("r_fogDensity", 0.75f);
+    addOption("r_fogHeightFalloff", 0.25f);
+    addOption("r_fogExtinctionFalloff", 20.0f);
+    addOption("r_fogInscatteringFalloff", 20.0f);
     
-    AddOption("r_renderSSAO", false);
-    AddOption("r_SSAOblur", 0);
-
-    AddOption("r_SSAOtotal_strength", 1.0f);
-    AddOption("r_SSAObase", 0.0f);
-    AddOption("r_SSAOarea", 0.008f);
-    AddOption("r_SSAOfalloff", 0.00001f);
-    AddOption("r_SSAOradius", 0.06f);
+    addOption("r_renderMap", false);
     
-    AddOption("r_renderEdge", false);
-    AddOption("r_edgeSobel", false);
-    AddOption("r_edgeBrightness", 1.0f);
-    AddOption("r_edgeThreshold", 0.05f);
+    addOption("r_sun", true);
+    addOption("r_sunBlur", false);
+    addOption("r_sunFlare", false);
     
-    AddOption("r_motionBlur", false);
-    AddOption("r_renderWireFrame", false);
-    AddOption("r_renderPoint", false);
-    AddOption("r_renderParticles", true);
+    addOption("r_renderDOF", false);
+    addOption("r_renderFisheye", false);
+    addOption("r_renderVignette", false);
+    addOption("r_renderCorrectGamma", false);
+    addOption("r_renderToneMap", false);
     
-    AddOption("r_voxelCulling", true);
+    addOption("r_renderFlare", false);
+    addOption("r_flareSamples", 5);
+    addOption("r_flareDispersal", 0.3f);
+    addOption("r_flareHaloWidth", 0.45f);
+    addOption("r_flareChromaDistortionX", 0.01f);
+    addOption("r_flareChromaDistortionY", 0.03f);
+    addOption("r_flareChromaDistortionZ", 0.05f);
+    addOption("r_flareThreshold", 0.75f);
+    addOption("r_flareGain", 1.0f);
     
-    AddOption("r_grabCursor", false);
-
-    AddOption("e_worldLabels", false);
-    AddOption("e_gridRender", false);
-    AddOption("e_gridSnap", false);
-    AddOption("e_gridSize", 1.0f);
-
-    AddOption("i_invertLeftStickX", false);
-    AddOption("i_invertLeftStickY", false);
-    AddOption("i_invertRightStickX", false);
-    AddOption("i_invertRightStickY", false);
+    addOption("r_renderSSAO", false);
+    addOption("r_SSAOblur", 0);
     
-    AddOption("a_playSFX", false);
-    AddOption("a_playMusic", false);
-    AddOption("a_playMenuSFX", false);
-    AddOption("a_volumeSFX", 1.0f);
-    AddOption("a_volumeMusic", 1.0f);
-    AddOption("a_volumeMenu", 0.3f);
-
-    AddOption("e_gridSize", 1.0f);
-    AddOption("e_gridSnap", false);
+    addOption("r_SSAOtotal_strength", 1.0f);
+    addOption("r_SSAObase", 0.0f);
+    addOption("r_SSAOarea", 0.008f);
+    addOption("r_SSAOfalloff", 0.00001f);
+    addOption("r_SSAOradius", 0.06f);
     
-    AddOption("n_networkEnabled", false);
-    AddOption("d_physics", false);
+    addOption("r_renderEdge", false);
+    addOption("r_edgeSobel", false);
+    addOption("r_edgeBrightness", 1.0f);
+    addOption("r_edgeThreshold", 0.05f);
+    
+    addOption("r_motionBlur", false);
+    addOption("r_renderWireFrame", false);
+    addOption("r_renderPoint", false);
+    addOption("r_renderParticles", true);
+    
+    addOption("r_voxelCulling", true);
+    
+    addOption("r_grabCursor", false);
+    
+    addOption("e_worldLabels", false);
+    addOption("e_gridRender", false);
+    addOption("e_gridSnap", false);
+    addOption("e_gridSize", 1.0f);
+    
+    addOption("i_invertLeftStickX", false);
+    addOption("i_invertLeftStickY", false);
+    addOption("i_invertRightStickX", false);
+    addOption("i_invertRightStickY", false);
+    
+    addOption("a_playSFX", false);
+    addOption("a_playMusic", false);
+    addOption("a_playMenuSFX", false);
+    addOption("a_volumeSFX", 1.0f);
+    addOption("a_volumeMusic", 1.0f);
+    addOption("a_volumeMenu", 0.3f);
+    
+    addOption("e_gridSize", 1.0f);
+    addOption("e_gridSnap", false);
+    
+    addOption("n_networkEnabled", false);
+    addOption("d_physics", false);
 }

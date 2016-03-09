@@ -1,5 +1,5 @@
-#ifndef INPUT_FUNCTORS_H
-#define INPUT_FUNCTORS_H
+#ifndef INPUT_LISTENER_H
+#define INPUT_LISTENER_H
 
 //  The boolean return value dictates whether the event was swallowed
 //  False means the event should propagate to other listeners
@@ -29,4 +29,4 @@ private:
     virtual void OnTextInput(const std::string& text) = 0;
 };
 
-#endif /* INPUT_FUNCTORS_H */
+#endif /* INPUT_LISTENER_H */
