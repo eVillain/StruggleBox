@@ -1,0 +1,42 @@
+#ifndef NGN_SPRITE_H
+#define NGN_SPRITE_H
+
+#include <string>
+#include "CoreTypes.h"
+#include "GFXDefines.h"
+#include "Rect2D.h"
+//#include "Vector2D.h"
+
+/**
+ * Sprite class for NeverEngine
+ *
+ *
+ */
+class Sprite {
+private:
+public:
+    Sprite( Texture * tex, float w, float h, glm::vec2 position = glm::vec2(), Rect2D rect = Rect2D(), Color col = COLOR_WHITE );
+    Sprite( SpriteBatch* batch, std::string frame, glm::vec2 position = glm::vec2(), Color col = COLOR_WHITE );
+    virtual ~Sprite();
+    
+    static Sprite* SpriteFromFile( const std::string filePath, const std::string fileName, glm::vec2 position = glm::vec2() );
+
+    virtual void Update( double dt ) {};
+    void FitToRect( const Rect2D &r );
+    void Draw();
+    void Visit();
+    
+    SpriteBatch* spriteBatch;
+    Texture* texture;
+    Rect2D rect;            // Position, size
+    int z;                    // depth
+    glm::vec2 scale;
+    glm::vec2 rot;
+    Color color;
+    
+    Rect2D texRect;
+    bool batched;               // Is part of spritebatch
+    int batchID;                // ID for frame in batch
+};
+
+#endif

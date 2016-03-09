@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Components</key>
+	<dict>
+		<key>Health</key>
+		<string>Health</string>
+		<key>Humanoid</key>
+		<string>Humanoid</string>
+		<key>Inventory</key>
+		<string>Inventory</string>
+	</dict>
+	<key>Attributes</key>
+	<dict>
+		<key>iID</key>
+		<integer>0</integer>
+		<key>ialignment</key>
+		<integer>1</integer>
+		<key>v3bbX</key>
+		<real>0.4</real>
+		<key>v3bbY</key>
+		<real>0.8</real>
+		<key>v3bbZ</key>
+		<real>0.4</real>
+		<key>sheadAccessoryObject</key>
+		<string></string>
+		<key>sheadObject</key>
+		<string>Head.bwo</string>
+		<key>ihealth</key>
+		<integer>100</integer>
+		<key>sleftArmObject</key>
+		<string>Naked_HandL.bwo</string>
+		<key>sleftFootObject</key>
+		<string>Naked_HandR.bwo</string>
+		<key>imaxHealth</key>
+		<integer>100</integer>
+		<key>sname</key>
+		<string>Player</string>
+		<key>v3positionX</key>
+		<real>0</real>
+		<key>v3positionY</key>
+		<real>0</real>
+		<key>v3positionZ</key>
+		<real>0</real>
+		<key>srightArmObject</key>
+		<string>HandRLeather.bwo</string>
+		<key>srightFootObject</key>
+		<string>FootLLeather.bwo</string>
+		<key>q4rotationX</key>
+		<real>0</real>
+		<key>q4rotationY</key>
+		<real>0</real>
+		<key>q4rotationZ</key>
+		<real>0</real>
+		<key>q4rotationW</key>
+		<real>1</real>
+		<key>storsoObject</key>
+		<string>Naked_Torso.bwo</string>
+		<key>itype</key>
+		<integer>2</integer>
+	</dict>
+</dict>
+</plist>
