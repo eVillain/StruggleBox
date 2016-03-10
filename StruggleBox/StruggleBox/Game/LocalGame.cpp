@@ -229,77 +229,15 @@ void LocalGame::Draw()
     renderer->DrawImage(glm::vec2( cursorScrnPos.x, cursorScrnPos.y), 16, 16, "Crosshair.png", 0.0f, crossHairCol);
 }
 
-//void LocalGame::Explode( void ) {
-//    Chunk* selectedChunk = NULL;
-//    if ( world ) {
-//        selectedChunk = world->GetChunk( cursorWorldPos );
-//        if ( selectedChunk ) {
-//            const SmitherType explodeBlock = selectedChunk->Get(cursorErasePos);
-//            if ( explodeBlock != Type_Empty ) {
-//                btVector3 center = btVector3(cursorWorldPos.x, cursorWorldPos.y, cursorWorldPos.z);
-//                btVector3 newPos = btVector3(cursorErasePos.x, cursorErasePos.y, cursorErasePos.z);
-//                btVector3 newVel = (center-newPos).normalize();
-//                newVel *= 5.0;
-//                float length = BLOCK_RADIUS;
-//                DynaCube* cube = world->AddDynaCube(newPos, btVector3(length,length,length), ColorForType((BlockType)explodeBlock));
-//                cube->SetVelocity(newVel);
-//                cube->timer = 5.0f;
-//                // Clear selected cube
-//                selectedChunk->Set(cursorErasePos, Type_Empty);
-//            }
-//        }
-//    }
-//}
-//void LocalGame::ExplodeArea( const int radius ) {
-//    Chunk* selectedChunk = NULL;
-//    const float blockWidth = BLOCK_RADIUS*2;
-//    const float length = BLOCK_RADIUS;
-//    if ( world ) {
-//        for (int x=-radius; x <= radius; x++) {
-//            for (int y=-radius; y <= radius; y++) {
-//                for (int z=-radius; z <= radius; z++) {
-//                    if ( glm::length(glm::vec3(x,y,z)*blockWidth) < radius*blockWidth ) {
-//                        glm::vec3 bPos = cursorErasePos+(glm::vec3(x,y,z)*blockWidth);
-//                        selectedChunk = world->GetChunk( bPos );
-//                        if ( selectedChunk ) {
-//                            SmitherType explodeBlock = selectedChunk->Get(bPos);
-//                            if ( explodeBlock != Type_Empty ) {
-//                                btVector3 center = btVector3(cursorWorldPos.x, cursorWorldPos.y, cursorWorldPos.z);
-//                                btVector3 newPos = btVector3(bPos.x,bPos.y,bPos.z);
-//                                btVector3 newVel = (center-newPos).normalize();
-//                                newVel *= 5.0;
-//                                DynaCube* cube = world->AddDynaCube(newPos, btVector3(length,length,length), ColorForType((BlockType)explodeBlock));
-//                                cube->SetVelocity(newVel);
-//                                cube->timer = 5.0f;
-//                                // Clear selected cube
-//                                selectedChunk->Set(bPos, Type_Empty);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//========================
-//  Input event handling
-//=======================
 bool LocalGame::OnEvent(const std::string &theEvent,
                         const float &amount)
 {
-//    printf("Event %s, %f\n", theEvent.c_str(), amount);
     if ( amount == 1.0f ) {
-        if ( theEvent == INPUT_SHOOT ) {
-            if ( world && world->playerID ) {
+        if (theEvent == INPUT_SHOOT) {
+            if (world && world->playerID) {
                 HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
-                if ( human && human->rightHandItem ) {
-                    int itemType = human->rightHandItem->GetAttributeDataPtr<int>("itemType");
+                if (human) {
                     human->UseRightHand();
-                    if ( itemType == Item_Pickaxe ) {   // Removing blocks
-//                        Entity* player = world->entityMan->GetEntity(world->playerID);
-//                        const glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
-//                        world->Explode(cursorErasePos, playerPos-cursorWorldPos);
-                    }
                 }
             }
         } else if ( theEvent == INPUT_SHOOT2 ) {
@@ -311,10 +249,8 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             if ( world ) {
                 if ( world->paused ) {
                     world->paused = false;
-                    _locator.Get<Camera>()->thirdPerson = true;
                 } else {
                     world->paused = true;
-//                    Renderer::GetCamera().thirdPerson = false;
                 }
             }
         } else if ( theEvent == INPUT_RUN ) {
@@ -402,8 +338,9 @@ bool LocalGame::OnEvent(const std::string &theEvent,
         } else if ( theEvent == INPUT_EDIT_BLOCKS ) {
             if ( world ) {
                 // test exploding things
-                Entity* player = world->entityMan->GetEntity(world->playerID);
-                Entity* killed = world->entityMan->GetNearestEntity(cursorWorldPos, player);
+                Entity* killed = world->entityMan->GetNearestEntity(cursorWorldPos,
+                                                                    world->playerID,
+                                                                    ENTITY_HUMANOID);
                 killed->GetAttributeDataPtr<int>("health") = 0;
             }
         } else if (theEvent == INPUT_EDIT_OBJECT ) {
@@ -417,9 +354,9 @@ bool LocalGame::OnEvent(const std::string &theEvent,
                 // Grab nearest item
                 Entity* player = world->entityMan->GetEntity(world->playerID);
                 HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
-                Entity* grabEntity = world->entityMan->GetNearestEntityByType(player->GetAttributeDataPtr<glm::vec3>("position"),
-                                                                              player->GetID(),
-                                                                              ENTITY_ITEM);
+                Entity* grabEntity = world->entityMan->GetNearestEntity(player->GetAttributeDataPtr<glm::vec3>("position"),
+                                                                        world->playerID,
+                                                                        ENTITY_ITEM);
                 if ( grabEntity ) {
                     human->Grab(grabEntity);
                 }
@@ -503,7 +440,8 @@ void LocalGame::HandleMouseWheel( double mWx, double mWy ) {
     }
 }
 
-void LocalGame::HandleJoyAxis(int axis, float value) {
+void LocalGame::HandleJoyAxis(int axis, float value)
+{
 //    if ( axis == JOY_AXIS_1 ) {             // Left joystick horizontal
 //        joyMoveInput.x = value;             // Save x value for next pass
 //    } else if ( axis == JOY_AXIS_2 ) {      // Left joystick vertical
@@ -514,6 +452,7 @@ void LocalGame::HandleJoyAxis(int axis, float value) {
 //        joyCameraInput.y = value;           // Save y value
 //    }
 }
+
 void LocalGame::UpdateMovement() {
     float deadZone = 0.35f;
     if ( fabsf(joyMoveInput.x)+fabsf(joyMoveInput.y) < deadZone ) joyMoveInput = glm::vec2();

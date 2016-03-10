@@ -48,7 +48,10 @@ void ActorComponent::Update( double delta ) {
         // TODO:: Get value for weapon damage etc to prioritize grabbing new weapons
         
         // Gather nearby entities
-        std::map<int, Entity*> nearbyEnts = m_manager->GetNearbyEntities(position, m_owner, brainViewDist);
+        std::map<int, Entity*> nearbyEnts = m_manager->GetNearbyEntities(position,
+                                                                         m_ownerID,
+                                                                         ENTITY_NONE,
+                                                                         brainViewDist);
         std::map<int, Entity*>::iterator it;
         Entity* interestingEntity = NULL;   // Try to find biggest absolute interest,
         int interestType = ENTITY_NONE;

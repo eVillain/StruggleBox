@@ -35,8 +35,6 @@ private:
     
     // Main Menu button callbacks
     void LoadLevelButtonCB( void*data );
-//    void HostGameButtonCB( void*data );
-//    void JoinGameButtonCB( void*data );
     void HostEditorWorldBtnCB( void*data );
     void HostEditorObjectsBtnCB( void*data );
     void HostEditorParticlesBtnCB( void*data );

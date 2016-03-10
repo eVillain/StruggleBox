@@ -1,13 +1,5 @@
-//
-//  Particle3DEditor.h
-//  Ingenium
-//
-//  Created by Ville-Veikko Urrila on 05/03/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_PARTICLE3D_EDITOR_H
-#define NGN_PARTICLE3D_EDITOR_H
+#ifndef PARTICLE3D_EDITOR_H
+#define PARTICLE3D_EDITOR_H
 
 #include "Scene.h"
 #include "CoreTypes.h"

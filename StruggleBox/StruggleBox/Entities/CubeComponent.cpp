@@ -76,7 +76,9 @@ void CubeComponent::LoadObject() {
         bb = glm::vec3(width,height,width);
     }
 }
-void CubeComponent::UnloadObject() {
+
+void CubeComponent::UnloadObject()
+{
     if ( m_instanceID != -1 ) {
         Entity* m_owner = m_manager->GetEntity(m_ownerID);
         if ( !m_object->RemoveInstance(m_instanceID) ) {
@@ -87,6 +89,7 @@ void CubeComponent::UnloadObject() {
         m_object = NULL;
     }
 }
+
 void CubeComponent::Update( double delta ) {
     if ( m_instanceID != -1 ) {
         Entity* m_owner = m_manager->GetEntity(m_ownerID);

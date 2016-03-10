@@ -67,11 +67,6 @@ private:
     // Input functors
     glm::vec2 joyMoveInput;
     glm::vec2 joyCameraInput;
-    
-    // World destruction
-    //    void Explode( void );
-    //    void ExplodeArea( const int radius );
-    
 };
 
 #endif

@@ -1,18 +1,10 @@
-//
-//  3DAABB.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 21/02/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_AABB3D_H
-#define NGN_AABB3D_H
+#ifndef AABB3D_H
+#define AABB3D_H
 
 #include "GFXDefines.h"
 
-
-struct AABB3D {
+struct AABB3D
+{
     glm::vec3 m_min;
     glm::vec3 m_max;
     

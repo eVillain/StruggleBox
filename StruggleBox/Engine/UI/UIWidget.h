@@ -12,7 +12,7 @@
 class UIWidget
 {
 public:
-    static void SetUIManager( UIManager* uiMan ) { g_uiMan = uiMan; };
+    static void SetUIManager(UIManager* uiMan) { g_uiMan = uiMan; };
     
     // UIWidget attributes
     int x,y,w,h,z;

@@ -1,11 +1,3 @@
-//
-//  Physics.cpp
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/13/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include <iostream>
 #include "Physics.h"
 #include "SysCore.h"
@@ -20,7 +12,8 @@ int Physics::maxSubSteps=4;
 btScalar Physics::fixedTimeStep=btScalar(1.)/btScalar(60.); // try to simulate physics at 60fps
 Physics* Physics::g_physics = NULL;
 
-Physics::Physics() {
+Physics::Physics()
+{
     // Bullet physics engine setup
     broadphase = new btDbvtBroadphase();
     collisionConfiguration = new btDefaultCollisionConfiguration();

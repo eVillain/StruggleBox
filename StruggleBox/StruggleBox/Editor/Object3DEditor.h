@@ -1,5 +1,5 @@
-#ifndef NGN_OBJECT3D_EDITOR_H
-#define NGN_OBJECT3D_EDITOR_H
+#ifndef OBJECT3D_EDITOR_H
+#define OBJECT3D_EDITOR_H
 
 #include "Scene.h"
 #include "CoreTypes.h"
@@ -30,8 +30,8 @@ public:
     virtual ~Object3DEditor();
     
     // Overridden from Scene
-    void Initialize( void );
-    void ReInitialize( void );
+    void Initialize();
+    void ReInitialize();
     void Release( void );
     void Pause( void );
     void Resume( void );

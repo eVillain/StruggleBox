@@ -1,11 +1,3 @@
-//
-//  3DAABB.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 21/02/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
 #include "AABB3D.h"
 
 AABB3D::AABB3D( const glm::vec3 max, const glm::vec3 min ) :
