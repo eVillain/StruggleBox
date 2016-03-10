@@ -3,6 +3,7 @@
 
 #include "GFXDefines.h"
 #include "Physics.h"
+#include "Color.h"
 
 class Renderer;
 class World3D;
@@ -27,6 +28,8 @@ public:
 
     void SetPos(btVector3& pos);
     void SetRotation(btQuaternion& rot);
+    
+    btVector3 GetPos() { return cubeRigidBody->getWorldTransform().getOrigin(); }
 };
 
 #endif

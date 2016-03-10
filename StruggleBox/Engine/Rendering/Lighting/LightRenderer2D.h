@@ -2,8 +2,8 @@
 #define LIGHT_RENDERER2D_H
 
 #include <vector>
-//#include "chipmunk.h"
 #include "GFXDefines.h"
+#include "Color.h"
 
 class Renderer;
 class Light2D;

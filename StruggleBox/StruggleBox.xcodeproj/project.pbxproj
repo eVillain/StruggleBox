@@ -81,8 +81,6 @@
 		D90362A91C8BBC1F00E6AD07 /* UIButton.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362441C8BBC1D00E6AD07 /* UIButton.h */; settings = {ASSET_TAGS = (); }; };
 		D90362AA1C8BBC1F00E6AD07 /* UIFileMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362451C8BBC1D00E6AD07 /* UIFileMenu.cpp */; settings = {ASSET_TAGS = (); }; };
 		D90362AB1C8BBC2000E6AD07 /* UIFileMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362461C8BBC1D00E6AD07 /* UIFileMenu.h */; settings = {ASSET_TAGS = (); }; };
-		D90362AC1C8BBC2000E6AD07 /* UIHUD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362471C8BBC1D00E6AD07 /* UIHUD.cpp */; settings = {ASSET_TAGS = (); }; };
-		D90362AD1C8BBC2000E6AD07 /* UIHUD.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362481C8BBC1D00E6AD07 /* UIHUD.h */; settings = {ASSET_TAGS = (); }; };
 		D90362AE1C8BBC2000E6AD07 /* UIManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362491C8BBC1D00E6AD07 /* UIManager.cpp */; settings = {ASSET_TAGS = (); }; };
 		D90362AF1C8BBC2000E6AD07 /* UIManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D903624A1C8BBC1D00E6AD07 /* UIManager.h */; settings = {ASSET_TAGS = (); }; };
 		D90362B01C8BBC2000E6AD07 /* UIMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D903624B1C8BBC1D00E6AD07 /* UIMenu.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -290,6 +288,25 @@
 		D90F47E81C8EA3160018BE71 /* Console.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E41C8EA3160018BE71 /* Console.h */; settings = {ASSET_TAGS = (); }; };
 		D90F47E91C8EA3160018BE71 /* ConsoleDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E51C8EA3160018BE71 /* ConsoleDefs.h */; settings = {ASSET_TAGS = (); }; };
 		D90F47EA1C8EA3160018BE71 /* ConsoleVar.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E61C8EA3160018BE71 /* ConsoleVar.h */; settings = {ASSET_TAGS = (); }; };
+		D92031361C91DF5300217562 /* Button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031201C91DF5300217562 /* Button.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031371C91DF5300217562 /* Button.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031211C91DF5300217562 /* Button.h */; settings = {ASSET_TAGS = (); }; };
+		D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031221C91DF5300217562 /* ButtonBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031391C91DF5300217562 /* ButtonBehavior.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031231C91DF5300217562 /* ButtonBehavior.h */; settings = {ASSET_TAGS = (); }; };
+		D920313A1C91DF5300217562 /* GUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031241C91DF5300217562 /* GUIConstants.h */; settings = {ASSET_TAGS = (); }; };
+		D920313B1C91DF5300217562 /* GUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031251C91DF5300217562 /* GUI.cpp */; settings = {ASSET_TAGS = (); }; };
+		D920313C1C91DF5300217562 /* GUI.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031261C91DF5300217562 /* GUI.h */; settings = {ASSET_TAGS = (); }; };
+		D92031411C91DF5300217562 /* Slider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D920312B1C91DF5300217562 /* Slider.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031421C91DF5300217562 /* Slider.h in Headers */ = {isa = PBXBuildFile; fileRef = D920312C1C91DF5300217562 /* Slider.h */; settings = {ASSET_TAGS = (); }; };
+		D92031431C91DF5300217562 /* SliderBehavior.h in Headers */ = {isa = PBXBuildFile; fileRef = D920312D1C91DF5300217562 /* SliderBehavior.h */; settings = {ASSET_TAGS = (); }; };
+		D92031441C91DF5300217562 /* TextInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D920312E1C91DF5300217562 /* TextInput.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031451C91DF5300217562 /* TextInput.h in Headers */ = {isa = PBXBuildFile; fileRef = D920312F1C91DF5300217562 /* TextInput.h */; settings = {ASSET_TAGS = (); }; };
+		D92031461C91DF5300217562 /* TextInputBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031301C91DF5300217562 /* TextInputBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031471C91DF5300217562 /* TextInputBehavior.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031311C91DF5300217562 /* TextInputBehavior.h */; settings = {ASSET_TAGS = (); }; };
+		D92031481C91DF5300217562 /* Widget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031321C91DF5300217562 /* Widget.cpp */; settings = {ASSET_TAGS = (); }; };
+		D92031491C91DF5300217562 /* Widget.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031331C91DF5300217562 /* Widget.h */; settings = {ASSET_TAGS = (); }; };
+		D920314E1C91EE8D00217562 /* Transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D920314C1C91EE8D00217562 /* Transform.cpp */; settings = {ASSET_TAGS = (); }; };
+		D920314F1C91EE8D00217562 /* Transform.h in Headers */ = {isa = PBXBuildFile; fileRef = D920314D1C91EE8D00217562 /* Transform.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF121C92196500C7F3A2 /* Color.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF111C92196500C7F3A2 /* Color.h */; settings = {ASSET_TAGS = (); }; };
 		D98BC5491C8D4CE200FAC522 /* StaticCube.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */; settings = {ASSET_TAGS = (); }; };
 		D98BC54B1C8D4FBE00FAC522 /* Arrow.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367021C8BF75C00E6AD07 /* Arrow.bwo */; };
 		D98BC54C1C8D4FBE00FAC522 /* Arrow2.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367031C8BF75C00E6AD07 /* Arrow2.bwo */; };
@@ -652,8 +669,6 @@
 		D90362441C8BBC1D00E6AD07 /* UIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIButton.h; sourceTree = "<group>"; };
 		D90362451C8BBC1D00E6AD07 /* UIFileMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UIFileMenu.cpp; sourceTree = "<group>"; };
 		D90362461C8BBC1D00E6AD07 /* UIFileMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIFileMenu.h; sourceTree = "<group>"; };
-		D90362471C8BBC1D00E6AD07 /* UIHUD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UIHUD.cpp; sourceTree = "<group>"; };
-		D90362481C8BBC1D00E6AD07 /* UIHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIHUD.h; sourceTree = "<group>"; };
 		D90362491C8BBC1D00E6AD07 /* UIManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UIManager.cpp; sourceTree = "<group>"; };
 		D903624A1C8BBC1D00E6AD07 /* UIManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIManager.h; sourceTree = "<group>"; };
 		D903624B1C8BBC1D00E6AD07 /* UIMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UIMenu.cpp; sourceTree = "<group>"; };
@@ -986,6 +1001,25 @@
 		D90F47E41C8EA3160018BE71 /* Console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Console.h; sourceTree = "<group>"; };
 		D90F47E51C8EA3160018BE71 /* ConsoleDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleDefs.h; sourceTree = "<group>"; };
 		D90F47E61C8EA3160018BE71 /* ConsoleVar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleVar.h; sourceTree = "<group>"; };
+		D92031201C91DF5300217562 /* Button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Button.cpp; sourceTree = "<group>"; };
+		D92031211C91DF5300217562 /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
+		D92031221C91DF5300217562 /* ButtonBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonBehavior.cpp; sourceTree = "<group>"; };
+		D92031231C91DF5300217562 /* ButtonBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonBehavior.h; sourceTree = "<group>"; };
+		D92031241C91DF5300217562 /* GUIConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GUIConstants.h; sourceTree = "<group>"; };
+		D92031251C91DF5300217562 /* GUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GUI.cpp; sourceTree = "<group>"; };
+		D92031261C91DF5300217562 /* GUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GUI.h; sourceTree = "<group>"; };
+		D920312B1C91DF5300217562 /* Slider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Slider.cpp; sourceTree = "<group>"; };
+		D920312C1C91DF5300217562 /* Slider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slider.h; sourceTree = "<group>"; };
+		D920312D1C91DF5300217562 /* SliderBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SliderBehavior.h; sourceTree = "<group>"; };
+		D920312E1C91DF5300217562 /* TextInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextInput.cpp; sourceTree = "<group>"; };
+		D920312F1C91DF5300217562 /* TextInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextInput.h; sourceTree = "<group>"; };
+		D92031301C91DF5300217562 /* TextInputBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextInputBehavior.cpp; sourceTree = "<group>"; };
+		D92031311C91DF5300217562 /* TextInputBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextInputBehavior.h; sourceTree = "<group>"; };
+		D92031321C91DF5300217562 /* Widget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Widget.cpp; sourceTree = "<group>"; };
+		D92031331C91DF5300217562 /* Widget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Widget.h; sourceTree = "<group>"; };
+		D920314C1C91EE8D00217562 /* Transform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Transform.cpp; sourceTree = "<group>"; };
+		D920314D1C91EE8D00217562 /* Transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transform.h; sourceTree = "<group>"; };
+		D939DF111C92196500C7F3A2 /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
 		D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticCube.cpp; sourceTree = "<group>"; };
 		D98BC5481C8D4CE200FAC522 /* StaticCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticCube.h; sourceTree = "<group>"; };
 		D9B0693D1C89CEDE00D10277 /* StruggleBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StruggleBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1035,6 +1069,7 @@
 				D90361EC1C8BBC1D00E6AD07 /* Core */,
 				D90366D21C8BEE1200E6AD07 /* DI */,
 				D903620A1C8BBC1D00E6AD07 /* Entities */,
+				D920311F1C91DF5300217562 /* GUI */,
 				D90366061C8BC2E500E6AD07 /* Input */,
 				D90366311C8BCF7100E6AD07 /* Log */,
 				D903620F1C8BBC1D00E6AD07 /* Rendering */,
@@ -1090,6 +1125,7 @@
 			children = (
 				D90362101C8BBC1D00E6AD07 /* Camera.cpp */,
 				D90362111C8BBC1D00E6AD07 /* Camera.h */,
+				D939DF111C92196500C7F3A2 /* Color.h */,
 				D90362121C8BBC1D00E6AD07 /* FontAtlas.cpp */,
 				D90362131C8BBC1D00E6AD07 /* FontAtlas.h */,
 				D90362141C8BBC1D00E6AD07 /* Frustum.cpp */,
@@ -1124,6 +1160,8 @@
 				D903623D1C8BBC1D00E6AD07 /* Texture.h */,
 				D903623E1C8BBC1D00E6AD07 /* TextureManager.cpp */,
 				D903623F1C8BBC1D00E6AD07 /* TextureManager.h */,
+				D920314C1C91EE8D00217562 /* Transform.cpp */,
+				D920314D1C91EE8D00217562 /* Transform.h */,
 				D90362401C8BBC1D00E6AD07 /* VertexBuffer.cpp */,
 				D90362411C8BBC1D00E6AD07 /* VertexBuffer.h */,
 			);
@@ -1154,8 +1192,6 @@
 				D90362441C8BBC1D00E6AD07 /* UIButton.h */,
 				D90362451C8BBC1D00E6AD07 /* UIFileMenu.cpp */,
 				D90362461C8BBC1D00E6AD07 /* UIFileMenu.h */,
-				D90362471C8BBC1D00E6AD07 /* UIHUD.cpp */,
-				D90362481C8BBC1D00E6AD07 /* UIHUD.h */,
 				D90362491C8BBC1D00E6AD07 /* UIManager.cpp */,
 				D903624A1C8BBC1D00E6AD07 /* UIManager.h */,
 				D903624B1C8BBC1D00E6AD07 /* UIMenu.cpp */,
@@ -1660,6 +1696,29 @@
 			path = Console;
 			sourceTree = "<group>";
 		};
+		D920311F1C91DF5300217562 /* GUI */ = {
+			isa = PBXGroup;
+			children = (
+				D92031201C91DF5300217562 /* Button.cpp */,
+				D92031211C91DF5300217562 /* Button.h */,
+				D92031221C91DF5300217562 /* ButtonBehavior.cpp */,
+				D92031231C91DF5300217562 /* ButtonBehavior.h */,
+				D92031241C91DF5300217562 /* GUIConstants.h */,
+				D92031251C91DF5300217562 /* GUI.cpp */,
+				D92031261C91DF5300217562 /* GUI.h */,
+				D920312B1C91DF5300217562 /* Slider.cpp */,
+				D920312C1C91DF5300217562 /* Slider.h */,
+				D920312D1C91DF5300217562 /* SliderBehavior.h */,
+				D920312E1C91DF5300217562 /* TextInput.cpp */,
+				D920312F1C91DF5300217562 /* TextInput.h */,
+				D92031301C91DF5300217562 /* TextInputBehavior.cpp */,
+				D92031311C91DF5300217562 /* TextInputBehavior.h */,
+				D92031321C91DF5300217562 /* Widget.cpp */,
+				D92031331C91DF5300217562 /* Widget.h */,
+			);
+			path = GUI;
+			sourceTree = "<group>";
+		};
 		D9B069341C89CEDE00D10277 = {
 			isa = PBXGroup;
 			children = (
@@ -1711,6 +1770,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D920314F1C91EE8D00217562 /* Transform.h in Headers */,
+				D920313C1C91DF5300217562 /* GUI.h in Headers */,
 				D90362811C8BBC1E00E6AD07 /* Light2D.h in Headers */,
 				D903629D1C8BBC1F00E6AD07 /* Sprite.h in Headers */,
 				D90362751C8BBC1D00E6AD07 /* Entity.h in Headers */,
@@ -1728,16 +1789,17 @@
 				D90F47EA1C8EA3160018BE71 /* ConsoleVar.h in Headers */,
 				D903628D1C8BBC1E00E6AD07 /* ParticleSys.h in Headers */,
 				D90362B81C8BBC2100E6AD07 /* UITextInput.h in Headers */,
-				D90362AD1C8BBC2000E6AD07 /* UIHUD.h in Headers */,
 				D90362A51C8BBC1F00E6AD07 /* TextureManager.h in Headers */,
 				D90362851C8BBC1E00E6AD07 /* LightRenderer2D.h in Headers */,
 				D903625D1C8BBC1D00E6AD07 /* CoreTypes.h in Headers */,
 				D90362691C8BBC1D00E6AD07 /* Scene.h in Headers */,
 				D90362731C8BBC1D00E6AD07 /* Attribute.h in Headers */,
+				D920313A1C91DF5300217562 /* GUIConstants.h in Headers */,
 				D90362A11C8BBC1F00E6AD07 /* TextManager.h in Headers */,
 				D903625F1C8BBC1D00E6AD07 /* Dictionary.h in Headers */,
 				D90366271C8BCEEB00E6AD07 /* PathUtil.h in Headers */,
 				D90362A71C8BBC1F00E6AD07 /* VertexBuffer.h in Headers */,
+				D92031371C91DF5300217562 /* Button.h in Headers */,
 				D903662D1C8BCEEB00E6AD07 /* ThreadSafeMap.h in Headers */,
 				D90362BA1C8BBC2100E6AD07 /* UIWidget.h in Headers */,
 				D903627D1C8BBC1E00E6AD07 /* GFXDefines.h in Headers */,
@@ -1746,7 +1808,9 @@
 				D90362711C8BBC1D00E6AD07 /* SysCore.h in Headers */,
 				D90362A91C8BBC1F00E6AD07 /* UIButton.h in Headers */,
 				D90F47E91C8EA3160018BE71 /* ConsoleDefs.h in Headers */,
+				D92031451C91DF5300217562 /* TextInput.h in Headers */,
 				D903660B1C8BC2E500E6AD07 /* Input.h in Headers */,
+				D92031471C91DF5300217562 /* TextInputBehavior.h in Headers */,
 				D90366251C8BCEEB00E6AD07 /* FileUtil.h in Headers */,
 				D90366351C8BCF7100E6AD07 /* Log.h in Headers */,
 				D90362831C8BBC1E00E6AD07 /* Light3D.h in Headers */,
@@ -1759,12 +1823,14 @@
 				D90366301C8BCEEB00E6AD07 /* Timer.h in Headers */,
 				D90362721C8BBC1D00E6AD07 /* ThreadPool.h in Headers */,
 				D90362AB1C8BBC2000E6AD07 /* UIFileMenu.h in Headers */,
+				D92031421C91DF5300217562 /* Slider.h in Headers */,
 				D903628F1C8BBC1E00E6AD07 /* Rect2D.h in Headers */,
 				D90362A31C8BBC1F00E6AD07 /* Texture.h in Headers */,
 				D90362971C8BBC1E00E6AD07 /* Shader.h in Headers */,
 				D90366291C8BCEEB00E6AD07 /* Random.h in Headers */,
 				D90366D81C8BEE1200E6AD07 /* TypeMagic.h in Headers */,
 				D90362941C8BBC1E00E6AD07 /* RendererGLProg.h in Headers */,
+				D92031491C91DF5300217562 /* Widget.h in Headers */,
 				D90362AF1C8BBC2000E6AD07 /* UIManager.h in Headers */,
 				D903627F1C8BBC1E00E6AD07 /* GFXIncludes.h in Headers */,
 				D903629F1C8BBC1F00E6AD07 /* SpriteBatch.h in Headers */,
@@ -1776,11 +1842,14 @@
 				D903662A1C8BCEEB00E6AD07 /* RangeReverseAdapter.h in Headers */,
 				D90362B61C8BBC2000E6AD07 /* UISlider.h in Headers */,
 				D90362B21C8BBC2000E6AD07 /* UIMenuItem.h in Headers */,
+				D939DF121C92196500C7F3A2 /* Color.h in Headers */,
 				D903627E1C8BBC1E00E6AD07 /* GFXHelpers.h in Headers */,
 				D90362671C8BBC1D00E6AD07 /* Options.h in Headers */,
 				D90362601C8BBC1D00E6AD07 /* DictionaryHelpers.h in Headers */,
+				D92031391C91DF5300217562 /* ButtonBehavior.h in Headers */,
 				D903662E1C8BCEEB00E6AD07 /* ThreadSafeQueue.h in Headers */,
 				D90366231C8BCEEB00E6AD07 /* Base64.h in Headers */,
+				D92031431C91DF5300217562 /* SliderBehavior.h in Headers */,
 				D903626B1C8BBC1D00E6AD07 /* SceneManager.h in Headers */,
 				D90362991C8BBC1F00E6AD07 /* ShaderManager.h in Headers */,
 			);
@@ -1902,31 +1971,38 @@
 				D90362A41C8BBC1F00E6AD07 /* TextureManager.cpp in Sources */,
 				D90362881C8BBC1E00E6AD07 /* LightSystem3D.cpp in Sources */,
 				D903626A1C8BBC1D00E6AD07 /* SceneManager.cpp in Sources */,
+				D92031461C91DF5300217562 /* TextInputBehavior.cpp in Sources */,
 				D903629A1C8BBC1F00E6AD07 /* SkyDome.cpp in Sources */,
 				D90366241C8BCEEB00E6AD07 /* FileUtil.cpp in Sources */,
+				D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */,
 				D90362B01C8BBC2000E6AD07 /* UIMenu.cpp in Sources */,
 				D903660A1C8BC2E500E6AD07 /* Input.cpp in Sources */,
+				D92031361C91DF5300217562 /* Button.cpp in Sources */,
 				D90362931C8BBC1E00E6AD07 /* RendererGLProg.cpp in Sources */,
 				D903662F1C8BCEEB00E6AD07 /* Timer.cpp in Sources */,
+				D920314E1C91EE8D00217562 /* Transform.cpp in Sources */,
 				D90F47E71C8EA3160018BE71 /* Console.cpp in Sources */,
 				D90362A21C8BBC1F00E6AD07 /* Texture.cpp in Sources */,
-				D90362AC1C8BBC2000E6AD07 /* UIHUD.cpp in Sources */,
 				D90366AC1C8BDE1B00E6AD07 /* Window.cpp in Sources */,
 				D90362701C8BBC1D00E6AD07 /* SysCore.cpp in Sources */,
 				D903662B1C8BCEEB00E6AD07 /* StringUtil.cpp in Sources */,
 				D90362741C8BBC1D00E6AD07 /* Entity.cpp in Sources */,
+				D920313B1C91DF5300217562 /* GUI.cpp in Sources */,
 				D90362961C8BBC1E00E6AD07 /* Shader.cpp in Sources */,
 				D903626C1C8BBC1D00E6AD07 /* Serialise.cpp in Sources */,
 				D90366101C8BCEDD00E6AD07 /* CommandProcessor.cpp in Sources */,
 				D90362AE1C8BBC2000E6AD07 /* UIManager.cpp in Sources */,
 				D90362821C8BBC1E00E6AD07 /* Light3D.cpp in Sources */,
+				D92031441C91DF5300217562 /* TextInput.cpp in Sources */,
 				D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */,
 				D90362A81C8BBC1F00E6AD07 /* UIButton.cpp in Sources */,
 				D90362B71C8BBC2100E6AD07 /* UITextInput.cpp in Sources */,
 				D90362841C8BBC1E00E6AD07 /* LightRenderer2D.cpp in Sources */,
 				D903629E1C8BBC1F00E6AD07 /* SpriteBatch.cpp in Sources */,
+				D92031411C91DF5300217562 /* Slider.cpp in Sources */,
 				D90362611C8BBC1D00E6AD07 /* HyperVisor.cpp in Sources */,
 				D90366221C8BCEEB00E6AD07 /* Base64.cpp in Sources */,
+				D92031481C91DF5300217562 /* Widget.cpp in Sources */,
 				D90362B51C8BBC2000E6AD07 /* UISlider.cpp in Sources */,
 				D90366341C8BCF7100E6AD07 /* Log.cpp in Sources */,
 				D903628E1C8BBC1E00E6AD07 /* Rect2D.cpp in Sources */,

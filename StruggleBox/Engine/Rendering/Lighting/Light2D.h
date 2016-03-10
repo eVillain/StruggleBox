@@ -1,15 +1,8 @@
-//
-//  Light2D.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 11/01/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
+#ifndef LIGHT2D_H
+#define LIGHT2D_H
 
-#ifndef NGN_LIGHT2D_H
-#define NGN_LIGHT2D_H
-
-#include "GFXDefines.h"
+#include "Color.h"
+#include <glm/glm.hpp>
 
 class Light2D {
 public:

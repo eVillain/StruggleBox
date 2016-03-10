@@ -11,6 +11,7 @@
 #include "DictionaryHelpers.h"
 #include "Rect2D.h"
 #include "GFXDefines.h"
+#include "Color.h"
 
 enum DictDataType {
     DD_Bool = 1,

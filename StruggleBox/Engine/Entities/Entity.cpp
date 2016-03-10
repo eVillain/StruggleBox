@@ -2,6 +2,7 @@
 #include "EntityComponent.h"
 #include "GFXDefines.h"
 #include "GFXHelpers.h"
+#include "Color.h"
 
 int Entity::_nextEntityID = 1;
 

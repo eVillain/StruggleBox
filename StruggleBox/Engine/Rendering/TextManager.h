@@ -1,15 +1,7 @@
-//
-//  TextManager.h
-//  NeverEngine
-//
-//  Created by Ville-Veikko Urrila on 9/4/12.
-//  Copyright (c) 2012 The Drudgerist. All rights reserved.
-//
+#ifndef TEXT_MANAGER_H
+#define TEXT_MANAGER_H
 
-#ifndef NGN_TEXT_MANAGER_H
-#define NGN_TEXT_MANAGER_H
-
-#include "GFXDefines.h"
+#include "Color.h"
 #include "FontAtlas.h"
 #include <map>
 #include <vector>

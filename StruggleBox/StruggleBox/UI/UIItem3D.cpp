@@ -34,10 +34,10 @@ UIItem3D::~UIItem3D() {
 
 void UIItem3D::Draw( Renderer* renderer ) {
     // Pixel perfect outer border (should render with 1px shaved off corners)
-    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,y+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // L
-    renderer->Buffer2DLine(glm::vec2(x,y+h), glm::vec2(x+w-1,y+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // T
-    renderer->Buffer2DLine(glm::vec2(x+w,y+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // R
-    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
+    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // L
+    renderer->Buffer2DLine(glm::vec2(x,y+h), glm::vec2(x+w-1,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // T
+    renderer->Buffer2DLine(glm::vec2(x+w,y+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // R
+    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
     renderer->Render2DLines();
     Entity* m_owner = m_manager->GetEntity(m_ownerID);
     if ( m_owner != NULL ) {

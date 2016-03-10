@@ -1,19 +1,14 @@
-#ifndef NGN_SPRITE_H
-#define NGN_SPRITE_H
+#ifndef SPRITE_H
+#define SPRITE_H
 
-#include <string>
 #include "CoreTypes.h"
 #include "GFXDefines.h"
 #include "Rect2D.h"
-//#include "Vector2D.h"
+#include "Color.h"
+#include <string>
 
-/**
- * Sprite class for NeverEngine
- *
- *
- */
-class Sprite {
-private:
+class Sprite
+{
 public:
     Sprite( Texture * tex, float w, float h, glm::vec2 position = glm::vec2(), Rect2D rect = Rect2D(), Color col = COLOR_WHITE );
     Sprite( SpriteBatch* batch, std::string frame, glm::vec2 position = glm::vec2(), Color col = COLOR_WHITE );

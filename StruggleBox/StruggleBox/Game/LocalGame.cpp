@@ -347,7 +347,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             _locator.Get<Options>()->getOption<bool>("r_renderMap") = !_locator.Get<Options>()->getOption<bool>("r_renderMap");
         } else if ( theEvent == INPUT_START ) {
             if ( world ) {
-                world->Explosion(cursorWorldPos, 4.0f, 4.0f);
+                world->AddSkeleton(cursorNewPos+glm::vec3(0,2,0));
             }
         } else if (theEvent == INPUT_GRAB) {
             if ( world ) {
@@ -400,6 +400,10 @@ bool LocalGame::OnEvent(const std::string &theEvent,
         _locator.Get<Camera>()->shakeAmount += 1.0f;
     } else if ( theEvent == INPUT_LOOK_LEFT ) {
     } else if ( theEvent == INPUT_LOOK_RIGHT ) {
+    } else if (theEvent == INPUT_SCROLL_Y) {
+        if ( _locator.Get<Camera>()->thirdPerson ) {
+            _locator.Get<Camera>()->distance += amount;
+        }
     }
     return false;
 }
@@ -432,12 +436,6 @@ bool LocalGame::OnMouse(const glm::ivec2 &coord)
         cursorScrnPos.y = midWindowY-coord.y;
     }
     return false;
-}
-
-void LocalGame::HandleMouseWheel( double mWx, double mWy ) {
-    if ( _locator.Get<Camera>()->thirdPerson ) {
-        _locator.Get<Camera>()->distance += mWy;
-    }
 }
 
 void LocalGame::HandleJoyAxis(int axis, float value)

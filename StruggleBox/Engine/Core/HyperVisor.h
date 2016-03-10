@@ -42,12 +42,10 @@ private:
     std::unique_ptr<Options> _options;      // Engine and game options interface, just an autosaving dictionary
 
     TextManager* m_textMan;                 // Text renderer, should become part of renderer
-    UIManager* m_uiMan;                     // User interface manager, could also be part of renderer
     
     Input* m_inputMan;                      // User input manager
         
     Camera* m_camera;                       // Camera system
-    StatTracker* m_statTracker;             // Statistics tracker
     
     void initThreadPool();
     void initCommandProcessor();

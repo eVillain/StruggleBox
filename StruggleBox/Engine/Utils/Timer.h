@@ -11,6 +11,13 @@ public:
     static double Milliseconds();
     static double Seconds();
     static std::string TimeStamp();
+    
+    static double RunTimeSeconds();
+protected:
+    friend class HyperVisor;
+    static void StartRunTime();
+private:
+    static double _startTime;
 };
 
 #endif /* TIMER_H */

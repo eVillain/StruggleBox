@@ -72,16 +72,16 @@ void UITextInputBase::CursorHover(const glm::ivec2 coord, bool highlight)
 void UITextInputBase::Draw( Renderer* renderer )
 {
     // Pixel perfect outer border (should render with 1px shaved off corners)
-    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,y+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // L
-    renderer->Buffer2DLine(glm::vec2(x,y+h), glm::vec2(x+w-1,y+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // T
-    renderer->Buffer2DLine(glm::vec2(x+w,y+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // R
-    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
-    renderer->Buffer2DLine(glm::vec2(x+w-1,y+TEXTSIZE+4), glm::vec2(x,y+TEXTSIZE+4), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
+    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // L
+    renderer->Buffer2DLine(glm::vec2(x,y+h), glm::vec2(x+w-1,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // T
+    renderer->Buffer2DLine(glm::vec2(x+w,y+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // R
+    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
+    renderer->Buffer2DLine(glm::vec2(x+w-1,y+TEXTSIZE+4), glm::vec2(x,y+TEXTSIZE+4), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
     // Inner gradient fill
-    renderer->DrawGradientY(Rect2D((float)x, (float)y+1, (float)w-1, (float)h-1), COLOR_UI_GRADIENT1, COLOR_UI_GRADIENT2);
+    renderer->DrawGradientY(Rect2D((float)x, (float)y+1, (float)w-1, (float)h-1), COLOR_UI_GRADIENT_TOP, COLOR_UI_GRADIENT_BOTTOM);
     // Inside border
     glEnable(GL_BLEND);
-    renderer->Draw2DRect(Rect2D(x+1,y+1,w-2,h-2), COLOR_UI_BORDER2, COLOR_NONE);
+    renderer->Draw2DRect(Rect2D(x+1,y+1,w-2,h-2), COLOR_UI_BORDER_INNER, COLOR_NONE);
     
     // Render blinking cursor
     if ( grabKeyboardInput ) {
@@ -200,17 +200,20 @@ bool UITextInputBase::OnEvent(const std::string& event,
 
                     UpdateTextInput();
                 }
+                return true;
             }
         }
-    } else if ( amount == -1.0f ) {
-        if ( event == INPUT_BACK ) {
+    } else if (amount == -1.0f) {
+        if (event == INPUT_BACK) {
             StopTextInput();
-        } else if ( event == INPUT_START ||
+            return true;
+        } else if (event == INPUT_START ||
                    event == INPUT_JUMP) {
-            //            StopTextInput();
             DoCallBack();
+            return true;
         } else if ( event == INPUT_ERASE_LEFT ) {
             lastBackSpace = 0;
+            return true;
         }
     }
     return false;

@@ -1,7 +1,7 @@
 #ifndef CONSOLE_DEFS_H
 #define CONSOLE_DEFS_H
 
-#include "GFXDefines.h"
+#include "Color.h"
 #include <string>
 
 class Label;

@@ -3,6 +3,7 @@
 
 #include "GFXIncludes.h"
 #include "GFXDefines.h"
+#include "Color.h"
 #include "Rect2D.h"
 #include <string>
 #include <vector>

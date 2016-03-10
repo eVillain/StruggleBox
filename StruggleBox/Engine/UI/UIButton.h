@@ -46,12 +46,12 @@ public:
     // Default destructor
     virtual ~ButtonBase( void );
     
-    static ButtonBase* CreateButton( std::string buttonLabel,
+    static ButtonBase* CreateButton(std::string buttonLabel,
                                     int posX, int posY,
                                     int width, int height,
                                     int buttonType = BUTTON_TYPE_DEFAULT,
                                     bool canToggle = false );
-    static ButtonBase* CreateButton( std::string buttonLabel,
+    static ButtonBase* CreateButton(std::string buttonLabel,
                                     int posX, int posY,
                                     int width, int height,
                                     bool canToggle = false,
@@ -369,15 +369,15 @@ public:
     };
 };
 
-// Last addition, the lambda button
-// As the name implies this button stores a lambda code block
-// And of course executes it when pressed
-class UIButtonLambda : private ButtonBase {
+/// As the name implies this button stores a lambda code block
+/// And of course executes it when pressed
+class UIButtonLambda : private ButtonBase
+{
     std::function<void()> function;
     
     
 public:
-    UIButtonLambda( std::string buttonLabel,
+    UIButtonLambda(std::string buttonLabel,
                    int posX, int posY,
                    int width,int height,
                    std::function<void()> func,
@@ -392,7 +392,7 @@ public:
     function(func)
     { };
     
-    static UIButtonLambda* CreateButton( std::string buttonLabel,
+    static UIButtonLambda* CreateButton(std::string buttonLabel,
                                         int posX, int posY,
                                         int width, int height,
                                         std::function<void()> func,

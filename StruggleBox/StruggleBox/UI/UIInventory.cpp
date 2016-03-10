@@ -130,20 +130,20 @@ void UIInventory::Draw(Renderer* renderer) {
     if ( closeButton ) {
         vY -= 24;
         vH += 24;
-        renderer->Buffer2DLine(glm::vec2(x+w-1,vY+22+4), glm::vec2(x,vY+22+4), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
+        renderer->Buffer2DLine(glm::vec2(x+w-1,vY+22+4), glm::vec2(x,vY+22+4), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
     }
     // Pixel perfect outer border (should render with 1px shaved off corners)
-    renderer->Buffer2DLine(glm::vec2(x,vY+1), glm::vec2(x,vY+vH), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // L
-    renderer->Buffer2DLine(glm::vec2(x,vY+vH), glm::vec2(x+w-1,vY+vH), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // T
-    renderer->Buffer2DLine(glm::vec2(x+w,vY+vH), glm::vec2(x+w,vY+1), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // R
-    renderer->Buffer2DLine(glm::vec2(x+w-1,vY), glm::vec2(x,vY), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
+    renderer->Buffer2DLine(glm::vec2(x,vY+1), glm::vec2(x,vY+vH), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // L
+    renderer->Buffer2DLine(glm::vec2(x,vY+vH), glm::vec2(x+w-1,vY+vH), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // T
+    renderer->Buffer2DLine(glm::vec2(x+w,vY+vH), glm::vec2(x+w,vY+1), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // R
+    renderer->Buffer2DLine(glm::vec2(x+w-1,vY), glm::vec2(x,vY), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
     if ( closeButton ) {
     }
     // Inner gradient fill
-    renderer->DrawGradientY(Rect2D((float)x, (float)vY+1, (float)w-1, (float)vH-1), COLOR_UI_GRADIENT1, COLOR_UI_GRADIENT2);
+    renderer->DrawGradientY(Rect2D((float)x, (float)vY+1, (float)w-1, (float)vH-1), COLOR_UI_GRADIENT_TOP, COLOR_UI_GRADIENT_BOTTOM);
     // Inside border
     glEnable(GL_BLEND);
-    renderer->Draw2DRect(Rect2D(x+1,vY+1,w-2,vH-2), COLOR_UI_BORDER2, COLOR_NONE);
+    renderer->Draw2DRect(Rect2D(x+1,vY+1,w-2,vH-2), COLOR_UI_BORDER_INNER, COLOR_NONE);
     renderer->Render2DLines();
     glDepthMask(GL_TRUE);   // Need depth mask for 3D object display
     

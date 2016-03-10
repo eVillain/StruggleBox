@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Renderer.h"
+#include "Color.h"
 
 UIFileMenuBase::UIFileMenuBase( int posX, int posY,
                                int width, int height,
@@ -218,18 +219,19 @@ void UIFileMenuBase::Draw( Renderer *renderer ) {
     }
     float yc = (float)(y+contentHeight);
     // Pixel perfect outer border (should render with 1px shaved off corners)
-    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,yc+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // L
-    renderer->Buffer2DLine(glm::vec2(x,yc+h), glm::vec2(x+w-1,yc+h), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // T
-    renderer->Buffer2DLine(glm::vec2(x+w,yc+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER1, COLOR_UI_BORDER1);   // R
-    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
-    renderer->Buffer2DLine(glm::vec2(x+w-1,yc), glm::vec2(x,yc), COLOR_UI_BORDER1, COLOR_UI_BORDER1);       // B
+    renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,yc+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // L
+    renderer->Buffer2DLine(glm::vec2(x,yc+h), glm::vec2(x+w-1,yc+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // T
+    renderer->Buffer2DLine(glm::vec2(x+w,yc+h), glm::vec2(x+w,y+1), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // R
+    renderer->Buffer2DLine(glm::vec2(x+w-1,y), glm::vec2(x,y), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
+    renderer->Buffer2DLine(glm::vec2(x+w-1,yc), glm::vec2(x,yc), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // B
     // Inner gradient fill
-    Color gradCol1 = COLOR_UI_GRADIENT1; gradCol1.a = 0.5f;
-    Color gradCol2 = COLOR_UI_GRADIENT2; gradCol2.a = 0.5f;
+    Color gradCol1 = COLOR_UI_GRADIENT_TOP; gradCol1.a = 0.5f;
+    Color gradCol2 = COLOR_UI_GRADIENT_BOTTOM; gradCol2.a = 0.5f;
     renderer->DrawGradientY(Rect2D((float)x, (float)yc+1, (float)w-1, (float)h-1), gradCol1, gradCol2);
     // Inside border
     glEnable(GL_BLEND);
-    renderer->Draw2DRect(Rect2D(x+0.5f,yc+1.5f,w-2,h-2), COLOR_UI_BORDER2, COLOR_NONE);
+    renderer->Draw2DRect(Rect2D(x+0.5f,yc+1.5f,w-2,h-2),
+                         COLOR_UI_BORDER_INNER, COLOR_NONE);
     renderer->DrawGradientY(Rect2D((float)x, (float)y+1, (float)w-1, (float)contentHeight-1), gradCol1, gradCol2);
     renderer->Render2DLines();
 }

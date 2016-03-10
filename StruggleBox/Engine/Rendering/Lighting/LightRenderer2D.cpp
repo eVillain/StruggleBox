@@ -344,7 +344,7 @@ void LightRenderer2D::RenderCircleShadow(glm::vec2 center1, glm::vec2 center2,
     
     glVertexPointer(2, GL_FLOAT, 0, vertices);
     glPushMatrix(); {
-        glColorFromColor(shadowColor);
+        glColor4fv((GLfloat *)&shadowColor);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 2*shadowSegs+2);
         //            Renderer::SetRenderedTris( Renderer::GetRenderedTris()+2*shadowSegs+2 );
         renderedTris += 2*shadowSegs+2;

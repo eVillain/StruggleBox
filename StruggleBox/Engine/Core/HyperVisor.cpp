@@ -1,5 +1,6 @@
 #include "HyperVisor.h"
 #include "FileUtil.h"
+#include "Timer.h"
 #include "ThreadPool.h"
 
 #include "SysCore.h"
@@ -9,6 +10,7 @@
 #include "Scene.h"
 #include "Input.h"
 #include "UIManager.h"
+#include "GUI.h"
 #include "Options.h"
 #include "RendererGLProg.h"
 #include "LightSystem2D.h"
@@ -30,12 +32,12 @@ lastFrameTime(0.0),
 lastUpdateTime(0.0),
 frames(0)
 {
+    Timer::StartRunTime();
+
     _options = nullptr;
     m_inputMan = NULL;
-    m_uiMan = NULL;
     m_textMan = NULL;
     m_camera = NULL;
-    m_statTracker = NULL;
 }
 
 void HyperVisor::Initialize(const std::string title,
@@ -50,21 +52,17 @@ void HyperVisor::Initialize(const std::string title,
     SysCore::SetRelativePath(); // TODO: Get rid of SysCore entirely
 
     initCommandProcessor();
-    
     initOptions();
-    
 	if ( _options->getOption<bool>("h_multiThreading") ) {
         initThreadPool();
     }
-    
     initAppContext(title);
     
-    m_statTracker = new StatTracker(_locator);
+    StatTracker* m_statTracker = new StatTracker(_locator);
     _locator.MapInstance<StatTracker>(m_statTracker);
     
     // Try to load renderer, exit on fail
     initRenderer();
-
     initConsole();
     
     // Init managers and hook pointers
@@ -76,9 +74,13 @@ void HyperVisor::Initialize(const std::string title,
     m_inputMan->Initialize();
     m_inputMan->RegisterEventObserver(this);
 
-    m_uiMan = new UIManager();
+    UIManager* m_uiMan = new UIManager();
     m_uiMan->Initialize(_locator);
     _locator.MapInstance<UIManager>(m_uiMan);
+    
+    GUI* gui = new GUI();
+    gui->Initialize(_locator);
+    _locator.MapInstance<GUI>(gui);
     
     ParticleManager* m_particleMan = new ParticleManager( this );
     _locator.MapInstance<ParticleManager>(m_particleMan);
@@ -103,8 +105,12 @@ void HyperVisor::Run()
     Renderer* renderer = _locator.Get<Renderer>();
     SceneManager* sceneManager = _locator.Get<SceneManager>();
     ThreadPool* threadPool = _locator.Get<ThreadPool>();
+    UIManager* uiMan = _locator.Get<UIManager>();
+    GUI* gui = _locator.Get<GUI>();
+    StatTracker* statTracker = _locator.Get<StatTracker>();
     
-    while( !_quit ) {
+    while( !_quit )
+    {
         // Get frame time
         double timeNow = SysCore::GetSeconds();
         double deltaTime = timeNow - lastFrameTime;
@@ -128,13 +134,14 @@ void HyperVisor::Run()
         }
 
         // Render UI widgets
-        m_uiMan->RenderWidgets();
-
-        if ( m_statTracker->IsVisible() ) {
-            m_statTracker->SetRFrameDelta(deltaTime);
-            m_statTracker->SetRFPS(1.0/deltaTime);
-            m_statTracker->SetTNumJobs((int)threadPool->NumJobs());
-            m_statTracker->UpdateStats(renderer);
+        uiMan->RenderWidgets();
+        gui->Draw(renderer);
+        
+        if (statTracker->IsVisible() ) {
+            statTracker->SetRFrameDelta(deltaTime);
+            statTracker->SetRFPS(1.0/deltaTime);
+            statTracker->SetTNumJobs((int)threadPool->NumJobs());
+            statTracker->UpdateStats(renderer);
         }
         
         // Render console on top of everything
@@ -194,9 +201,14 @@ void HyperVisor::Terminate()
     }
     
     // Clean up any UI elements left behind
-    m_uiMan->Terminate();
-    delete  m_uiMan;
-    m_uiMan = NULL;
+    if (_locator.Satisfies<UIManager>()) {
+        delete _locator.Get<UIManager>();
+        _locator.UnMap<UIManager>();
+    }
+    if (_locator.Satisfies<GUI>()) {
+        delete _locator.Get<GUI>();
+        _locator.UnMap<GUI>();
+    }
     
     delete m_textMan;
     m_textMan = NULL;
@@ -213,9 +225,11 @@ void HyperVisor::Terminate()
         _locator.UnMap<Renderer>();
     }
     
-    delete m_statTracker;
-    m_statTracker = NULL;
-
+    if (_locator.Satisfies<StatTracker>()) {
+        delete _locator.Get<StatTracker>();
+        _locator.UnMap<GUI>();
+    }
+    
     if (_locator.Satisfies<SceneManager>()) {
         _locator.UnMap<ParticleManager>();
     }
@@ -256,7 +270,7 @@ void HyperVisor::initCommandProcessor()
     CommandProcessor::AddCommand("exit", Command<>([=](){ Stop(); }));
     
     CommandProcessor::AddCommand("stats", Command<>([&]() {
-        m_statTracker->ToggleStats();
+        _locator.Get<StatTracker>()->ToggleStats();
     }));
     CommandProcessor::AddCommand("console", Command<>([&]() {
         Console::ToggleVisibility();

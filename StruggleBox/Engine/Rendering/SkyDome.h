@@ -1,16 +1,10 @@
-//
-//  SkyDome.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 31/12/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #ifndef NGN_SKY_DOME_H
 #define NGN_SKY_DOME_H
 
 #include "GFXDefines.h"
 #include "VertexBuffer.h"
+#include "Color.h"
+
 class Renderer;
 class Shader;
 class Camera;
@@ -66,7 +60,7 @@ public:
     static float fogDensity;
     static float sunTilt;
 
-    static inline glm::vec3 GetSunPos( void ) {
+    static inline glm::vec3 GetSunPos() {
 		float time = float((timeOfDay*timeFactor) - M_PI_2);
         return glm::vec3(-cosf(time), sinf(time), sunTilt);
     }

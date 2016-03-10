@@ -1,13 +1,15 @@
-
-#include <algorithm>
 #include "Sprite.h"
 #include "SpriteBatch.h"
 #include "Texture.h"
 #include "TextureManager.h"
+#include <algorithm>
 
 
-Sprite::Sprite( Texture * tex, float w, float h,
-               glm::vec2 position, Rect2D rect, Color col ) :
+Sprite::Sprite(Texture * tex,
+               float w, float h,
+               glm::vec2 position,
+               Rect2D rect,
+               Color col) :
 texture(tex),
 rect(position.x,position.y,w,h),
 z(0),
@@ -20,7 +22,11 @@ batchID(-1)
 {
     texture->refCount++;
 }
-Sprite::Sprite( SpriteBatch* batch, std::string frame, glm::vec2 position, Color col )
+
+Sprite::Sprite(SpriteBatch* batch,
+               std::string frame,
+               glm::vec2 position,
+               Color col)
 {
     if ( batch == NULL ) {
         printf( "Failing to init sprite, no batch for frame: %s\n", frame.c_str() );

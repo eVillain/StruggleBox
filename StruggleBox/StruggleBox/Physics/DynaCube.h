@@ -1,24 +1,15 @@
-//
-//  DynaCube.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/14/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef DYNACUBE_H
+#define DYNACUBE_H
 
-#ifndef NGN_DYNACUBE_H
-#define NGN_DYNACUBE_H
 #include "GFXDefines.h"
 #include "Physics.h"
+#include "Color.h"
 
 class Renderer;
 class World3D;
 
-class DynaCube {
-    btCollisionShape* cubeShape;
-    btRigidBody* cubeRigidBody;
-    World3D* m_world;
-    
+class DynaCube
+{
 public:
     Color color;
     float cubeSize;
@@ -31,7 +22,10 @@ public:
     void SetPos(btVector3& pos);
     void SetVelocity(btVector3& vel);
     void SetRotation(btQuaternion& rot);
-
+private:
+    btCollisionShape* cubeShape;
+    btRigidBody* cubeRigidBody;
+    World3D* m_world;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "Random.h"
 #include "Timer.h"
 #include "Console.h"
+#include "Button.h"
 
 #include "UIButton.h"
 #include "TextureManager.h"
@@ -68,10 +69,9 @@ void MainMenu::Release()
     Scene::Release();
 //    RemoveMainMenu();
 }
+
 void MainMenu::ShowMainMenu()
 {
-//    m_hyperVisor.GetInputManager()->RegisterEventObserver((EventFunctorBase*)&eventReceiverFunc);
-
     // Check what the previous engine state was
     std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
 
@@ -110,6 +110,7 @@ void MainMenu::ShowMainMenu()
         buttonVect.push_back((ButtonBase*)btn);
         btnY-=btnHeight;
     } else {
+        
         btn = UIButton<MainMenu>::CreateButton(("Load Level"), btnX,btnY,btnWidth,btnHeight,
                                          this, &MainMenu::LoadLevelButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
         buttonVect.push_back((ButtonBase*)btn);

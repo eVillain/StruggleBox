@@ -1240,9 +1240,9 @@ bool Object3DEditor::OnMouse( const glm::ivec2& coord )
 {
     double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
     double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
-        
-        float mouseSensitivity = 0.1f;
+    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor"))
+    {
+        float mouseSensitivity = 0.01f;
         float rotationX = (midWindowX-coord.x)*mouseSensitivity;
         float rotationY = (midWindowY-coord.y)*mouseSensitivity;
         

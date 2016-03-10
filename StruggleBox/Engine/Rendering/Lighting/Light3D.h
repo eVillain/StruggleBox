@@ -1,15 +1,8 @@
-//
-//  Light3D.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 11/01/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_LIGHT3D_H
-#define NGN_LIGHT3D_H
+#ifndef LIGHT3D_H
+#define LIGHT3D_H
 
 #include "GFXDefines.h"
+#include "Color.h"
 
 enum Light3DType {
     Light3D_None = 0,
@@ -40,5 +33,5 @@ public:
     bool rayCaster;                 // Does it cast visible light rays?
 };
 
-#endif /* defined(NGN_LIGHT3D_H) */
+#endif /* LIGHT3D_H */
 

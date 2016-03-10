@@ -15,6 +15,8 @@
 #include <sys/types.h>      // Creating folders
 #include <sstream>          // string stream
 
+double Timer::_startTime = 0;
+
 #if defined(_WIN32)
 long Timer::Microseconds()
 {
@@ -83,4 +85,15 @@ std::string Timer::TimeStamp()
     output << nowtm->tm_hour << ":" << nowtm->tm_min << ":" << nowtm->tm_sec;
     return output.str();
 }
+
+double Timer::RunTimeSeconds()
+{
+    return Seconds() - _startTime;
+}
+
+void Timer::StartRunTime()
+{
+    _startTime = Seconds();
+}
+
 #endif

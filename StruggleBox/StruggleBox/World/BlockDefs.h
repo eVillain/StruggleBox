@@ -1,16 +1,9 @@
-//
-//  BlockDefs.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 7/18/13.
-//
-//
-
 #ifndef BWO_BLOCK_DEFS_H
 #define BWO_BLOCK_DEFS_H
 
-#include <string>
 #include "GFXDefines.h"
+#include "Color.h"
+#include <string>
 
 #define BLOCK_HEADER "BWBlk"
 #define BLOCK_RADIUS 0.25
