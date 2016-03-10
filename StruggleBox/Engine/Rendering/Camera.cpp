@@ -1,19 +1,11 @@
-//
-//  Camera.cpp
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/18/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include <iostream>
 #include "Camera.h"
 #include <glm/gtx/rotate_vector.hpp>
-
 #include <time.h>       /* time */
 #include "SysCore.h"
 
-Camera::Camera() {
+Camera::Camera()
+{
     fieldOfView = 70.0f;
     nearDepth = 0.1f;
     farDepth = 250.1f;
@@ -46,12 +38,14 @@ Camera::Camera() {
     maxDistance = 20.0f;
     height = 1.0f;
 }
-Camera::~Camera() {
-    
-}
-void Camera::Update( double delta ) {
+
+Camera::~Camera()
+{ }
+
+void Camera::Update(double delta)
+{
     if ( delta <= 0.0 ) return;
-    if ( delta >= 1.0 ) return;
+//    if ( delta >= 1.0 ) return;
 
     if ( shakeVect.x != 0.0f || shakeVect.y != 0.0f ) {
         position -= shakeVect;
@@ -82,17 +76,17 @@ void Camera::Update( double delta ) {
             glm::vec3 behindTarget = targetPosition + zPos;
             behindTarget.y += height;
             
-            glm::vec3 move = behindTarget - position;
-            float dist = glm::length(move);
-            if ( dist > 20.0f ) {
-                move = glm::normalize(move)*20.0f;
-            }
-            speed = move*(elasticity*0.1f)*float(delta);
+//            glm::vec3 move = behindTarget - position;
+//            float dist = glm::length(move);
+//            if ( dist > 20.0f ) {
+//                move = glm::normalize(move)*20.0f;
+//            }
+//            speed = move*(elasticity*0.1f)*float(delta);
             
             if ( physicsClip && physicsFunc ) {
-                physicsFunc(*this);
+                position = physicsFunc(targetPosition, behindTarget);
             } else {
-                position = position+speed;
+                position = behindTarget;
             }
         } else {
             glm::vec3 move = targetPosition - position;
@@ -110,7 +104,15 @@ void Camera::Update( double delta ) {
             zPos = glm::rotateZ(zPos, -rotation.z);
             glm::vec3 behindTarget = targetPosition + zPos;
             behindTarget.y += height;
-            position = behindTarget;
+            float dist = glm::distance(position, behindTarget);
+            
+            if (physicsClip &&
+                physicsFunc &&
+                dist > 0.001f) {
+                position = physicsFunc(targetPosition, behindTarget);
+            } else {
+                position = behindTarget;
+            }
         } else {
             position = targetPosition;
         }

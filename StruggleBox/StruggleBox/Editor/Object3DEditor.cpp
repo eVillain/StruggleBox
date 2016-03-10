@@ -664,7 +664,7 @@ void Object3DEditor::UpdateEditCursor() {
     if ( editObject ) {
         if ( editInstance ) {
             // Selected object highlight display
-            glm::vec3 chunkCenter = editInstance->position;
+//            glm::vec3 chunkCenter = editInstance->position;
             float cubeWidth = editObject->cubes->GetWidth()*BLOCK_RADIUS;
             float cubeHeight = editObject->cubes->GetHeight()*BLOCK_RADIUS;
             glm::vec3 size = glm::vec3(cubeWidth,cubeHeight,cubeWidth);

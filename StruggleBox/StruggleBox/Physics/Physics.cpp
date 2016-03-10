@@ -193,36 +193,47 @@ void Physics::SetRenderer( Renderer *renderer ) {
     debugDraw->m_renderer = renderer;
 }
 
-void Physics::CameraCollisions( Camera& cam ) {
-    if ( g_physics == NULL ) return;
+const glm::vec3 Physics::CameraCollisions(const glm::vec3& fromPos,
+                                          const glm::vec3& toPos)
+{
+    if ( g_physics == NULL ) return toPos;
     
-    btVector3 cameraPosition = btVector3( cam.position.x+cam.speed.x,
-                                         cam.position.y+cam.speed.y,
-                                         cam.position.z+cam.speed.z );
+    btVector3 cameraPosition = btVector3(fromPos.x,
+                                         fromPos.y,
+                                         fromPos.z);
     // OPTIONAL
     //use the convex sweep test to find a safe position for the camera (not blocked by static geometry)
     btSphereShape cameraSphere(0.1f);
     btTransform cameraFrom,cameraTo;
     cameraFrom.setIdentity();
-    cameraFrom.setOrigin(btVector3(cam.targetPosition.x,cam.targetPosition.y,cam.targetPosition.z));
+    cameraFrom.setOrigin(cameraPosition);
     cameraTo.setIdentity();
-    cameraTo.setOrigin(cameraPosition);
+    cameraTo.setOrigin(btVector3(toPos.x,
+                                 toPos.y,
+                                 toPos.z));
     // Check if path to wanted new position is clear
-    btCollisionWorld::ClosestConvexResultCallback cb( cameraFrom.getOrigin(), cameraTo.getOrigin() );
+    btCollisionWorld::ClosestConvexResultCallback cb(cameraFrom.getOrigin(),
+                                                     cameraTo.getOrigin());
     cb.m_collisionFilterMask = btBroadphaseProxy::StaticFilter;
     g_physics->dynamicsWorld->convexSweepTest(&cameraSphere,cameraFrom,cameraTo,cb);
-    if (cb.hasHit()) {
+    if (cb.hasHit())
+    {
         // Path is blocked, try to move camera closer to wanted position instead
-        btScalar minFraction = btMax(btScalar(0.3),cb.m_closestHitFraction);//btMax(btScalar(0.3),cb.m_closestHitFraction);
-        cameraPosition.setInterpolate3(cameraFrom.getOrigin(),cameraTo.getOrigin(),minFraction);
-        cam.position = glm::vec3(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
-    } else {
-        cam.position = cam.position+cam.speed;
+        btScalar minFraction = btMax(btScalar(0.25),cb.m_closestHitFraction);
+        cameraPosition.setInterpolate3(cameraFrom.getOrigin(),
+                                       cameraTo.getOrigin(),
+                                       minFraction);
+        return glm::vec3(cameraPosition.x(),
+                         cameraPosition.y(),
+                         cameraPosition.z());
     }
+    return toPos;
 }
+
 struct ExplosionInfo {
     float radius, force;
 };
+
 struct ExplosionSensorCallback : public btCollisionWorld::ContactResultCallback {
     
 	//! Constructor, pass whatever context you want to have available when processing contacts

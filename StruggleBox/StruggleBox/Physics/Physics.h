@@ -1,16 +1,9 @@
-//
-//  Physics.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/13/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
-#ifndef Bloxelizer_Physics_h
-#define Bloxelizer_Physics_h
+#ifndef PHYSICS_H
+#define PHYSICS_H
 
 #include "btBulletDynamicsCommon.h"
 #include "PhysicsDebug.h"
+#include <glm/glm.hpp>
 #include <vector>
 
 enum PhysicsMode {
@@ -33,17 +26,8 @@ enum Collision_Types {
 
 class Camera;
 
-class Physics {
-private:
-    btBroadphaseInterface* broadphase;
-    btDefaultCollisionConfiguration* collisionConfiguration;
-    btCollisionDispatcher* dispatcher;
-    btSequentialImpulseConstraintSolver* solver;
-    
-    double deltaAccumulator;            // Time accumulator
-    PhysicsDebug* debugDraw;            // Debug draw interface
-    
-    std::vector<btPairCachingGhostObject*> explosions;
+class Physics
+{
 public:
     static bool physicsCCD;             // Continuous collision detection
     static bool fixedTime;              // Use a fixed time step
@@ -68,9 +52,18 @@ public:
     void SetRenderer( Renderer* renderer );
     
     static Physics* g_physics;
-    static void CameraCollisions( Camera& cam );
+    static const glm::vec3 CameraCollisions(const glm::vec3& fromPos,
+                                            const glm::vec3& toPos);
+private:
+    btBroadphaseInterface* broadphase;
+    btDefaultCollisionConfiguration* collisionConfiguration;
+    btCollisionDispatcher* dispatcher;
+    btSequentialImpulseConstraintSolver* solver;
     
+    double deltaAccumulator;            // Time accumulator
+    PhysicsDebug* debugDraw;            // Debug draw interface
     
+    std::vector<btPairCachingGhostObject*> explosions;
 };
 
 

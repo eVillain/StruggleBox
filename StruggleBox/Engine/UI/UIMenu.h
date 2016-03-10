@@ -220,4 +220,4 @@ protected:
     int                             scrollPos;      // Scrolling position in list
 };
 
-#endif */ UI_MENU_H */
+#endif /* UI_MENU_H */

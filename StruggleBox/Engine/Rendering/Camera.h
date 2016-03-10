@@ -1,20 +1,14 @@
-//
-//  Camera.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/18/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef CAMERA_H
+#define CAMERA_H
 
-#ifndef NGN_CAMERA_H
-#define NGN_CAMERA_H
 #include "GFXDefines.h"
 #include "GFXHelpers.h"
 
-class Camera {
-private:
-    typedef void (*PhysicsCallback)(Camera& cam);
-    PhysicsCallback physicsFunc;               // Pointer to a static callback function
+typedef const glm::vec3 (*PhysicsCallback)(const glm::vec3& fromPos,
+                                           const glm::vec3& toPos);
+
+class Camera
+{
 public:
     Camera();
     ~Camera();
@@ -65,6 +59,8 @@ public:
     GLboolean debugLens;            // Show debug focal point and range
     bool autoFocus;                 // Automatically focus to center
 
+private:
+    PhysicsCallback physicsFunc;               // Pointer to a static callback function
 };
 
 #endif

@@ -415,4 +415,4 @@ public:
     };
 };
 
-#endif */ UI_BUTTON_H */
+#endif /* UI_BUTTON_H */
