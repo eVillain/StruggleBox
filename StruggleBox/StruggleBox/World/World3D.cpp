@@ -70,13 +70,16 @@ _locator(locator)
     // Build room floor
     for (int x = -16; x < 16; x++) {
         for (int z = -16; z < 16; z++) {
+            double tileRandomness = Random::RandomDouble();
             double posX = (x * 2.0) + 1.0;
             double posZ = (z * 2.0) + 1.0;
-            double posY = -2.0 + (Random::RandomDouble() * 0.05);
+            double posY = -2.0 + (tileRandomness * 0.05);
+            double floorGrey = 0.05 + (tileRandomness * 0.05);
+            Color floorColor = RGBAColor(floorGrey, floorGrey, floorGrey, 1.0);
             StaticCube* floorCube = new StaticCube(btVector3(posX, posY, posZ),
                                                    btVector3(1.0, 1.0, 1.0),
                                                    this,
-                                                   COLOR_GREY);
+                                                   floorColor);
             staticCubes.push_back(floorCube);
         }
     }
@@ -84,13 +87,16 @@ _locator(locator)
     // Build room ceiling
     for (int x = -4; x < 4; x++) {
         for (int z = -4; z < 4; z++) {
+            double tileRandomness = Random::RandomDouble();
             double posX = (x * 8.0) + 4.0;
             double posZ = (z * 8.0) + 4.0;
-            double posY = 32.0 + (Random::RandomDouble() * 0.1);
+            double posY = 12.0 - (tileRandomness * 0.5);
+            double ceilingGrey = (tileRandomness * 0.15);
+            Color ceilingColor = RGBAColor(ceilingGrey, ceilingGrey, ceilingGrey, 1.0);
             StaticCube* ceilingCube = new StaticCube(btVector3(posX, posY, posZ),
                                                    btVector3(4.0, 4.0, 4.0),
                                                    this,
-                                                   COLOR_GREY);
+                                                   ceilingColor);
             staticCubes.push_back(ceilingCube);
         }
     }
@@ -425,6 +431,17 @@ void World3D::Update(double delta)
     for (it = cubejects.begin(); it != cubejects.end(); it++) {
         it->second->Update(delta);
     }
+    // Funky floor colors
+//    double timeNow = Timer::RunTimeSeconds();
+//    for (int i=0; i < 1024 ; i++) {
+//        StaticCube* cube = staticCubes[i];
+//        btVector3 pos = cube->GetPos() * 0.5;
+//        double tileRandomness = 0.05+glm::perlin(glm::vec4(pos.x(), pos.y(), pos.z(), timeNow))*0.05;
+//        cube->color = RGBAColor(tileRandomness,
+//                                tileRandomness,
+//                                tileRandomness,
+//                                1.0f);
+//    }
 }
 
 void World3D::UpdateLabels(Renderer* renderer)
