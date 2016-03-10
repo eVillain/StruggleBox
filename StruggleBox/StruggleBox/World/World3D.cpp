@@ -23,10 +23,12 @@
 #include "StatTracker.h"
 #include "TextManager.h"
 #include "FileUtil.h"
+#include "Timer.h"
+#include "Random.h"
+
 #include "Console.h"
 #include "ShaderManager.h"
 #include "ParticleManager.h"
-#include "Timer.h"
 
 #include "Physics.h"
 #include "SkyDome.h"
@@ -64,6 +66,56 @@ _locator(locator)
     // Start up physics engine
     worldPhysics = new Physics();
     refreshPhysics = false;
+
+    // Build room floor
+    for (int x = -16; x < 16; x++) {
+        for (int z = -16; z < 16; z++) {
+            double posX = (x * 2.0) + 1.0;
+            double posZ = (z * 2.0) + 1.0;
+            double posY = -2.0 + (Random::RandomDouble() * 0.05);
+            StaticCube* floorCube = new StaticCube(btVector3(posX, posY, posZ),
+                                                   btVector3(1.0, 1.0, 1.0),
+                                                   this,
+                                                   COLOR_GREY);
+            staticCubes.push_back(floorCube);
+        }
+    }
+    
+    // Build room ceiling
+    for (int x = -4; x < 4; x++) {
+        for (int z = -4; z < 4; z++) {
+            double posX = (x * 8.0) + 4.0;
+            double posZ = (z * 8.0) + 4.0;
+            double posY = 32.0 + (Random::RandomDouble() * 0.1);
+            StaticCube* ceilingCube = new StaticCube(btVector3(posX, posY, posZ),
+                                                   btVector3(4.0, 4.0, 4.0),
+                                                   this,
+                                                   COLOR_GREY);
+            staticCubes.push_back(ceilingCube);
+        }
+    }
+    
+    StaticCube* leftWall = new StaticCube(btVector3(-64.0, 0.0, 0.0),
+                                          btVector3(32.0, 32.0, 32.0),
+                                          this,
+                                          COLOR_GREY_DARK);
+    StaticCube* rightWall = new StaticCube(btVector3(64.0, 0.0, 0.0),
+                                          btVector3(32.0, 32.0, 32.0),
+                                          this,
+                                          COLOR_GREY_DARK);
+    StaticCube* backWall = new StaticCube(btVector3(0.0, 0.0, -64.0),
+                                          btVector3(32.0, 32.0, 32.0),
+                                          this,
+                                          COLOR_GREY_DARK);
+    StaticCube* frontWall = new StaticCube(btVector3(0.0, 0.0, 64.0),
+                                          btVector3(32.0, 32.0, 32.0),
+                                          this,
+                                          COLOR_GREY_DARK);
+    staticCubes.push_back(leftWall);
+    staticCubes.push_back(rightWall);
+    staticCubes.push_back(frontWall);
+    staticCubes.push_back(backWall);
+    
     _locator.Get<Camera>()->SetPhysicsCallback(worldPhysics->CameraCollisions);
     
     playerCoord = Coord3D(0,3,0);
@@ -76,6 +128,7 @@ _locator(locator)
 		FileUtil::CreateFolder(dirName + worldName + "/");
     }
     
+    sunLight = nullptr;
     playerLight = NULL;
     if (_locator.Satisfies<LightSystem3D>())
     {
@@ -106,7 +159,6 @@ _locator(locator)
         playerLight->shadowCaster = true;
     }
 
-    //    playerLight = NULL;
     // Start up entity systems
     entityMan = new EntityManager(_locator, this);
     _locator.MapInstance<EntityManager>(entityMan);
@@ -177,12 +229,6 @@ _locator(locator)
         suckernade->GetAttributeDataPtr<glm::vec3>("position") = objPos;
         objPos.z -= 1.0f;
 //    }
-
-    // Build room
-    StaticCube* cube = new StaticCube(btVector3(0.0, -40.0, 0.0),
-                                      btVector3(30.0, 30.0, 30.0),
-                                      this, COLOR_GREY);
-    staticCubes.push_back(cube);
 }
 
 World3D::~World3D()
