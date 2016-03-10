@@ -561,9 +561,8 @@ void HumanoidComponent::Wield( Entity *wieldObject ) {
     if ( light3DComp ) light3DComp->Activate();
     
     rightHandItem = wieldObject;
-    const int ownerID = m_owner->GetAttributeDataPtr<int>("ID");
     const int itemID = rightHandItem->GetAttributeDataPtr<int>("ID");
-    rightHandItem->GetAttributeDataPtr<int>("ownerID") = ownerID;
+    rightHandItem->GetAttributeDataPtr<int>("ownerID") = m_ownerID;
     m_owner->GetAttributeDataPtr<int>("rightHandItemID") = itemID;
 }
 void HumanoidComponent::Grab( Entity* grabbedObject ) {

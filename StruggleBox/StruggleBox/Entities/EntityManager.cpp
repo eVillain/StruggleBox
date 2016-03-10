@@ -329,7 +329,9 @@ void EntityManager::SetComponent( const int entityID, EntityComponent *component
         printf("[EntityManager] ERROR: Setting unknown component type %s\n", family.c_str());
     }
 }
-EntityComponent* EntityManager::GetComponent( const int entityID, const std::string componentFamily ) {
+EntityComponent* EntityManager::GetComponent(const int entityID,
+                                             const std::string componentFamily)
+{
     if ( componentFamily == "Actor" && _ActorComponents.find(entityID) != _ActorComponents.end() ) {
         return _ActorComponents[entityID];
     } else if ( componentFamily == "Cube" && _CubeComponents.find(entityID) != _CubeComponents.end() ) {
@@ -355,7 +357,10 @@ EntityComponent* EntityManager::GetComponent( const int entityID, const std::str
     }
     return NULL;
 }
-void EntityManager::RemoveComponent( const int entityID, EntityComponent* component ) {
+
+void EntityManager::RemoveComponent(const int entityID,
+                                    EntityComponent* component)
+{
     const std::string componentFamily = component->GetFamily();
     if ( componentFamily == "Actor" && _ActorComponents.find(entityID) != _ActorComponents.end() ) {
         _ActorComponents.erase(entityID);
@@ -381,7 +386,9 @@ void EntityManager::RemoveComponent( const int entityID, EntityComponent* compon
         //        printf("[EntityManager] ERROR: Erasing unknown component type %s for %i\n", componentFamily.c_str(), entityID);
     }
 }
-void EntityManager::RemoveEntity( const int entityID ) {
+
+void EntityManager::RemoveEntity(const int entityID)
+{
     std::map<int, Entity*>::iterator it = entityMap.find(entityID);
     if ( it != entityMap.end() ) {
         // Clear out components first
@@ -429,10 +436,14 @@ void EntityManager::RemoveEntity( const int entityID ) {
         entityMap.erase(it);
     }
 }
-void EntityManager::KillEntity( const int entityID ) {
+
+void EntityManager::KillEntity(const int entityID)
+{
     eraseQueue.push(entityID);
 }
-Entity* EntityManager::GetEntity( const int entityID ) {
+
+Entity* EntityManager::GetEntity(const int entityID)
+{
     std::map<int, Entity*>::iterator it;
     it = entityMap.find(entityID);
     if ( it != entityMap.end() ) {
@@ -442,18 +453,24 @@ Entity* EntityManager::GetEntity( const int entityID ) {
 }
 
 Entity* EntityManager::GetNearestEntity(const glm::vec3 position,
-                                        const Entity* ignore)
+                                        const int ignoreID,
+                                        const EntityType filterType,
+                                        const float radius)
 {
-    float nearestDist = 16.0f;      // Start off with maximum radius
+    float nearestDist = radius;
     Entity* nearestEnt = NULL;
     std::map<int, Entity*>::iterator it;
     for (it=entityMap.begin(); it != entityMap.end(); it++) {
-        if ( it->second==ignore ) continue;
         Entity* ent = it->second;
-        if ( ent->HasAttribute("position") ) {
+        if (ignoreID != ENTITY_NONE &&
+            (ent->GetID() == ignoreID ||
+            ent->GetAttributeDataPtr<int>("ownerID") == ignoreID)) continue;
+        if (filterType != ENTITY_NONE &&
+            ent->GetAttributeDataPtr<int>("type") != filterType) continue;
+        if (ent->HasAttribute("position")) {
             glm::vec3 entPos = ent->GetAttributeDataPtr<glm::vec3>("position");
             float dist = glm::distance(position, entPos);
-            if ( dist <= nearestDist ) {
+            if (dist <= nearestDist) {
                 nearestDist = dist;
                 nearestEnt = ent;
             }
@@ -463,14 +480,19 @@ Entity* EntityManager::GetNearestEntity(const glm::vec3 position,
 }
 
 std::map<int, Entity*> EntityManager::GetNearbyEntities(const glm::vec3 position,
-                                                        const Entity* ignore,
+                                                        const int ignoreID,
+                                                        const EntityType filterType,
                                                         const float radius)
 {
     std::map<int, Entity*> nearbyEnts;
     std::map<int, Entity*>::iterator it;
     for (it=entityMap.begin(); it != entityMap.end(); it++) {
-        if ( it->second==ignore ) continue;
         Entity* ent = it->second;
+        if (ignoreID != ENTITY_NONE &&
+            (ent->GetID() == ignoreID ||
+             ent->GetAttributeDataPtr<int>("ownerID") == ignoreID)) continue;
+        if (filterType != ENTITY_NONE &&
+            ent->GetAttributeDataPtr<int>("type") != filterType) continue;
         if ( ent->HasAttribute("position") ) {
             glm::vec3 entPos = ent->GetAttributeDataPtr<glm::vec3>("position");
             float dist = glm::distance(position, entPos);
@@ -480,28 +502,4 @@ std::map<int, Entity*> EntityManager::GetNearbyEntities(const glm::vec3 position
         }
     }
     return nearbyEnts;
-}
-
-Entity* EntityManager::GetNearestEntityByType(const glm::vec3 position,
-                                              const int ignoreID,
-                                              const EntityType type)
-{
-    float nearestDist = 16.0f;      // Start off with maximum radius
-    Entity* nearestEnt = NULL;
-    std::map<int, Entity*>::iterator it;
-    for (it=entityMap.begin(); it != entityMap.end(); it++) {
-        Entity* ent = it->second;
-        if (ent->GetID() == ignoreID ||
-            ent->GetAttributeDataPtr<int>("ownerID") == ignoreID ||
-            ent->GetAttributeDataPtr<int>("type") != type) continue;
-        if ( ent->HasAttribute("position") ) {
-            glm::vec3 entPos = ent->GetAttributeDataPtr<glm::vec3>("position");
-            float dist = glm::distance(position, entPos);
-            if ( dist <= nearestDist ) {
-                nearestDist = dist;
-                nearestEnt = ent;
-            }
-        }
-    }
-    return nearestEnt;
 }

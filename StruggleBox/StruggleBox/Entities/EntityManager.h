@@ -6,6 +6,8 @@
 #include <map>
 #include <queue>
 
+const float ENTITY_SEARCH_RADIUS = 8.0f;
+
 class Locator;
 class Entity;
 class EntityComponent;
@@ -40,12 +42,17 @@ public:
     void KillEntity( const int entityID );
     Entity* GetEntity( const int entityID );
     
-    Entity* GetNearestEntity( const glm::vec3 position, const Entity* ignore=NULL );
-    std::map<int, Entity*> GetNearbyEntities( const glm::vec3 position, const Entity* ignore=NULL, const float radius=16.0f );
-    std::map<int, Entity*>& GetEntities( void ) { return entityMap; };
-    Entity* GetNearestEntityByType(const glm::vec3 position,
-                                   const int ignoreID,
-                                   const EntityType type);
+    Entity* GetNearestEntity(const glm::vec3 position,
+                             const int ignoreID = ENTITY_NONE,
+                             const EntityType filterType = ENTITY_NONE,
+                             const float radius = ENTITY_SEARCH_RADIUS);
+
+    std::map<int, Entity*> GetNearbyEntities(const glm::vec3 position,
+                                             const int ignoreID = ENTITY_NONE,
+                                             const EntityType filterType = ENTITY_NONE,
+                                             const float radius = ENTITY_SEARCH_RADIUS);
+
+    std::map<int, Entity*>& GetEntities() { return entityMap; };
     World3D* world;
 private:
     Locator& _locator;

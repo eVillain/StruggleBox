@@ -390,22 +390,18 @@ void World3D::UpdateLabels(Renderer* renderer)
         TextManager * textMan = _locator.Get<TextManager>();
         Entity* player = entityMan->GetEntity(playerID);
         glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
-        Entity* nearestEntity = entityMan->GetNearestEntityByType(playerPos,
-                                                                  playerID,
-                                                                  ENTITY_ITEM);
+        Entity* nearestEntity = entityMan->GetNearestEntity(playerPos,
+                                                            playerID,
+                                                            ENTITY_ITEM);
         std::map<int, Entity*> nearbyEnts = entityMan->GetNearbyEntities(playerPos,
-                                                                         player,
-                                                                         8.0f);
+                                                                         playerID,
+                                                                         ENTITY_ITEM);
         std::map<int, Entity*>::iterator it = nearbyEnts.begin();
         
         while (it != nearbyEnts.end())
         {
             const int instIDAttr = it->second->GetAttributeDataPtr<int>("instanceID");
-            const int ownerID = it->second->GetAttributeDataPtr<int>("ownerID");
-            const int type = it->second->GetAttributeDataPtr<int>("type");
-            if (instIDAttr != -1 &&
-                ownerID != -1 &&
-                type == ENTITY_ITEM)
+            if (instIDAttr != -1)
             {
                 Color textColor = COLOR_WHITE;
                 if (it->second == nearestEntity) {
