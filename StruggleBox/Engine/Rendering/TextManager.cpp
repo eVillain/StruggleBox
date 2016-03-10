@@ -284,7 +284,9 @@ std::string TextManager::GetFontFileName( FontName theFont ) {
  Sees if the font atlas at that size was generated. If not, generates it.
  Should always return a valid font atlas if filename is legit and size isn't whack
  */
-FontAtlas* TextManager::GetAtlas( std::string filename, int size ) {
+FontAtlas* TextManager::GetAtlas(std::string filename,
+                                 int size)
+{
     char buf[256];
 #ifdef _WIN32
     sprintf_s(buf, "%s%i", filename.c_str(), size);
@@ -308,7 +310,7 @@ FontAtlas* TextManager::GetAtlas( std::string filename, int size ) {
         fprintf(stderr, "Could not open font %s\n", path.c_str() );
         return NULL;
     }
-    fAtlas = new FontAtlas(face, size, shadersAvailable);
+    fAtlas = new FontAtlas(face, size);
     // Clean up face
     FT_Done_Face(face);
     // Store newly created atlas
@@ -316,7 +318,8 @@ FontAtlas* TextManager::GetAtlas( std::string filename, int size ) {
     return fAtlas;
 }
 
-void TextManager::RenderBlob( TextBlob b ) {
+void TextManager::RenderBlob(TextBlob b)
+{
     std::string fontFile = GetFontFileName(b.font);
     float width = 0.0f;
     float height = 0.0f;
@@ -365,6 +368,7 @@ void TextManager::RenderBlob( TextBlob b ) {
         glDisable(GL_TEXTURE_2D);
     }
 }
+
 /**
  * Render text using the currently loaded font and currently set font size.
  */

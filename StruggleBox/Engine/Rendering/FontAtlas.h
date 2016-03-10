@@ -1,28 +1,21 @@
-//
-//  FontAtlas.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 1/17/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef FONT_ATLAS_H
+#define FONT_ATLAS_H
+
 /**
  * The atlas class holds a texture that contains the visible US-ASCII characters
  * of a certain font rendered with a certain character height.
  * It also contains an array that contains all the information necessary to
  * generate the appropriate vertex and texture coordinates for each character.
  *
- * After the constructor is run, you don't need to use any FreeType functions anymore.
+ * After the constructor no FreeType functions are called.
  */
-
-#ifndef NGN_FONT_ATLAS_H
-#define NGN_FONT_ATLAS_H
 
 #include "GFXDefines.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <string>
 
-// Maximum texture width
+// Maximum texture width - TODO: Get this at runtime from opengl context
 #define MAX_ATLAS_WIDTH 1024
 
 typedef struct GlyphInfo {
@@ -39,26 +32,23 @@ typedef struct GlyphInfo {
 		float ty;       // y offset of glyph in texture coordinates
 } GlyphInfo;
 
-class FontAtlas {
-private:
-    
-	GLuint texID;       // texture object
-    
-	int w;              // width of texture in pixels
-	int h;              // height of texture in pixels
-    
-	GlyphInfo gInfo[128];    // character information
-
+class FontAtlas
+{
 public:
-    // Constructor
-    FontAtlas(FT_Face face, int height, bool shaders);
-    // Destructor
-    ~FontAtlas( void );
+    FontAtlas(FT_Face face,
+              int height);
+    ~FontAtlas();
     
-    GLuint GetTextureID( void ) { return texID; };
-    int GetWidth( void ) { return w; };
-    int GetHeight( void ) { return h; };
-    GlyphInfo* GetGlyphInfo( void ) { return gInfo; };
+    GLuint GetTextureID() { return _texID; };
+    int GetWidth() { return _width; };
+    int GetHeight() { return _height; };
+    GlyphInfo* GetGlyphInfo() { return _glyphInfo; };
+
+private:
+    int _width;     // in pixels
+    int _height;    // in pixels
+    GlyphInfo _glyphInfo[128];   // character information
+    GLuint _texID;  // GL texture object handle
 };
 
 #endif

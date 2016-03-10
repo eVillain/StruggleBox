@@ -1,5 +1,5 @@
-#ifndef NGN_GFX_HELPERS_H
-#define NGN_GFX_HELPERS_H
+#ifndef GFX_HELPERS_H
+#define GFX_HELPERS_H
 
 #include "GFXIncludes.h"
 #include <sstream>
