@@ -40,8 +40,6 @@ private:
     int frames;                             // Number of rendered frames (TODO: MOVE TO RENDERER)
     
     std::unique_ptr<Options> _options;      // Engine and game options interface, just an autosaving dictionary
-
-    TextManager* m_textMan;                 // Text renderer, should become part of renderer
     
     Input* m_inputMan;                      // User input manager
         

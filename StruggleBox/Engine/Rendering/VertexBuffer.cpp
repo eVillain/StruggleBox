@@ -1,16 +1,10 @@
-//
-//  VertexBuffer.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 28/01/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer( const int newID,  RenderType type ) :
+VertexBuffer::VertexBuffer(const int newID,
+                           RenderType type) :
 hwID(newID),
-bufferType(type) {
+bufferType(type)
+{
     n_verts = NULL;
     c_verts = NULL;
     p_verts = NULL;
@@ -19,7 +13,8 @@ bufferType(type) {
     updated = false;
 }
 
-VertexBuffer::~VertexBuffer() {
+VertexBuffer::~VertexBuffer()
+{
     instances.clear();
     if ( n_verts != NULL ) {
         delete [] n_verts;

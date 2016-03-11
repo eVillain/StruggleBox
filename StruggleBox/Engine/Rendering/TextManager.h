@@ -83,12 +83,10 @@ private:
     // Container for fonts
     AtlasList atlases;
     
-    
     // Counter for each frame
     int blobsRendered;
     
     bool initialized = false;
-    bool shadersAvailable = false;
     FT_Library ft;
     
     // Shader mode vars

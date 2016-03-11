@@ -18,6 +18,7 @@
 #include "Camera.h"
 #include "StatTracker.h"
 #include "TextManager.h"
+#include "Text.h"
 #include "TextureManager.h"
 #include "ParticleManager.h"
 #include <iostream>
@@ -36,7 +37,6 @@ frames(0)
 
     _options = nullptr;
     m_inputMan = NULL;
-    m_textMan = NULL;
     m_camera = NULL;
 }
 
@@ -108,7 +108,9 @@ void HyperVisor::Run()
     UIManager* uiMan = _locator.Get<UIManager>();
     GUI* gui = _locator.Get<GUI>();
     StatTracker* statTracker = _locator.Get<StatTracker>();
-    
+    TextManager* textManager = _locator.Get<TextManager>();
+    Text* text = _locator.Get<Text>();
+
     while( !_quit )
     {
         // Get frame time
@@ -145,13 +147,12 @@ void HyperVisor::Run()
         }
         
         // Render console on top of everything
-        if ( Console::isVisible() ) {
-            Console::Draw( deltaTime );
-        }
-
+        Console::Draw(deltaTime);
+        
         // Render any text in UI
-        m_textMan->RenderLabels();
-
+        textManager->RenderLabels();
+        text->Draw();
+        
         renderer->EndDraw();
         
         _context->GetWindow()->SwapBuffers();
@@ -160,7 +161,7 @@ void HyperVisor::Run()
         CommandProcessor::Update(deltaTime);
         
         // Check if window was closed
-        _quit = _quit || ( renderer->shouldClose );
+        _quit = _quit || renderer->shouldClose;
 
         // Increase frame count
         frames ++;
@@ -210,9 +211,15 @@ void HyperVisor::Terminate()
         _locator.UnMap<GUI>();
     }
     
-    delete m_textMan;
-    m_textMan = NULL;
-    
+    if (_locator.Satisfies<TextManager>()) {
+        delete _locator.Get<TextManager>();
+        _locator.UnMap<TextManager>();
+    }
+    if (_locator.Satisfies<Text>()) {
+        delete _locator.Get<Text>();
+        _locator.UnMap<Text>();
+    }
+
     delete m_camera;
     m_camera = NULL;
 
@@ -227,7 +234,7 @@ void HyperVisor::Terminate()
     
     if (_locator.Satisfies<StatTracker>()) {
         delete _locator.Get<StatTracker>();
-        _locator.UnMap<GUI>();
+        _locator.UnMap<StatTracker>();
     }
     
     if (_locator.Satisfies<SceneManager>()) {
@@ -310,11 +317,15 @@ void HyperVisor::initRenderer()
     RendererGLProg* renderer = new RendererGLProg();
     _locator.MapInstanceToInterface<RendererGLProg, Renderer>(renderer);
     
-    m_textMan = new TextManager();
+    TextManager* m_textMan = new TextManager();
     _locator.MapInstance<TextManager>(m_textMan);
+    
+    Text* text = new Text();
+    _locator.MapInstance<Text>(text);
     
     renderer->Initialize(_locator);
     m_textMan->Initialize(_locator);
+    text->Initialize(_locator);
     m_lightSys3D->HookRenderer(renderer);   // TODO: Make this an init function
     
     if (!renderer->initialized)

@@ -217,7 +217,7 @@ void Input::ProcessInput()
         }
         else if ( input.length() )   // Regular events
         {
-          printf("Input: %s\n", input.c_str());
+//          printf("Input: %s\n", input.c_str());
             if ( _inputBindings.find(input) != _inputBindings.end() )
             {
                 if (_textInputListener && input != "Escape" && input != "Return")

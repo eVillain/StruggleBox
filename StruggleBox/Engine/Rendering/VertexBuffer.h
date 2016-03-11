@@ -39,7 +39,7 @@ enum RenderType {
 class VertexBuffer {
     int hwID;          // Buffer hardware ID
 public:
-    VertexBuffer( int newID, RenderType type );
+    VertexBuffer(int newID, RenderType type );
     ~VertexBuffer();
     const int GetID() { return hwID; };
     void SetID( const int newID ) { hwID = newID; };

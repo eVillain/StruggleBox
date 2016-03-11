@@ -39,10 +39,10 @@ public:
               int height);
     ~FontAtlas();
     
-    GLuint GetTextureID() { return _texID; };
-    int GetWidth() { return _width; };
-    int GetHeight() { return _height; };
-    GlyphInfo* GetGlyphInfo() { return _glyphInfo; };
+    const GLuint GetTextureID() const { return _texID; };
+    const int GetWidth() const { return _width; };
+    const int GetHeight() const { return _height; };
+    const GlyphInfo* GetGlyphInfo() const { return _glyphInfo; };
 
 private:
     int _width;     // in pixels

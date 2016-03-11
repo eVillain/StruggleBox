@@ -32,8 +32,6 @@
 		D90362761C8BBC1D00E6AD07 /* EntityComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = D903620E1C8BBC1D00E6AD07 /* EntityComponent.h */; settings = {ASSET_TAGS = (); }; };
 		D90362771C8BBC1D00E6AD07 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362101C8BBC1D00E6AD07 /* Camera.cpp */; settings = {ASSET_TAGS = (); }; };
 		D90362781C8BBC1D00E6AD07 /* Camera.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362111C8BBC1D00E6AD07 /* Camera.h */; settings = {ASSET_TAGS = (); }; };
-		D90362791C8BBC1D00E6AD07 /* FontAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362121C8BBC1D00E6AD07 /* FontAtlas.cpp */; settings = {ASSET_TAGS = (); }; };
-		D903627A1C8BBC1D00E6AD07 /* FontAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362131C8BBC1D00E6AD07 /* FontAtlas.h */; settings = {ASSET_TAGS = (); }; };
 		D903627B1C8BBC1E00E6AD07 /* Frustum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362141C8BBC1D00E6AD07 /* Frustum.cpp */; settings = {ASSET_TAGS = (); }; };
 		D903627C1C8BBC1E00E6AD07 /* Frustum.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362151C8BBC1D00E6AD07 /* Frustum.h */; settings = {ASSET_TAGS = (); }; };
 		D903627D1C8BBC1E00E6AD07 /* GFXDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362161C8BBC1D00E6AD07 /* GFXDefines.h */; settings = {ASSET_TAGS = (); }; };
@@ -292,7 +290,6 @@
 		D92031371C91DF5300217562 /* Button.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031211C91DF5300217562 /* Button.h */; settings = {ASSET_TAGS = (); }; };
 		D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031221C91DF5300217562 /* ButtonBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
 		D92031391C91DF5300217562 /* ButtonBehavior.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031231C91DF5300217562 /* ButtonBehavior.h */; settings = {ASSET_TAGS = (); }; };
-		D920313A1C91DF5300217562 /* GUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031241C91DF5300217562 /* GUIConstants.h */; settings = {ASSET_TAGS = (); }; };
 		D920313B1C91DF5300217562 /* GUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031251C91DF5300217562 /* GUI.cpp */; settings = {ASSET_TAGS = (); }; };
 		D920313C1C91DF5300217562 /* GUI.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031261C91DF5300217562 /* GUI.h */; settings = {ASSET_TAGS = (); }; };
 		D92031411C91DF5300217562 /* Slider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D920312B1C91DF5300217562 /* Slider.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -307,6 +304,20 @@
 		D920314E1C91EE8D00217562 /* Transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D920314C1C91EE8D00217562 /* Transform.cpp */; settings = {ASSET_TAGS = (); }; };
 		D920314F1C91EE8D00217562 /* Transform.h in Headers */ = {isa = PBXBuildFile; fileRef = D920314D1C91EE8D00217562 /* Transform.h */; settings = {ASSET_TAGS = (); }; };
 		D939DF121C92196500C7F3A2 /* Color.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF111C92196500C7F3A2 /* Color.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF201C927DBC00C7F3A2 /* FontAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF141C927DBC00C7F3A2 /* FontAtlas.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF211C927DBC00C7F3A2 /* FontAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF151C927DBC00C7F3A2 /* FontAtlas.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF221C927DBC00C7F3A2 /* FontAtlasPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF161C927DBC00C7F3A2 /* FontAtlasPool.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF231C927DBC00C7F3A2 /* FontAtlasPool.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF171C927DBC00C7F3A2 /* FontAtlasPool.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF241C927DBC00C7F3A2 /* IText.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF181C927DBC00C7F3A2 /* IText.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF251C927DBC00C7F3A2 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF191C927DBC00C7F3A2 /* Label.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF261C927DBC00C7F3A2 /* Label.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF1A1C927DBC00C7F3A2 /* Label.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF271C927DBC00C7F3A2 /* TextConstants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF1B1C927DBC00C7F3A2 /* TextConstants.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF281C927DBC00C7F3A2 /* TextConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF1C1C927DBC00C7F3A2 /* TextConstants.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF291C927DBC00C7F3A2 /* TextDefaults.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF1D1C927DBC00C7F3A2 /* TextDefaults.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF2A1C927DBC00C7F3A2 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF1E1C927DBC00C7F3A2 /* Text.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF2B1C927DBC00C7F3A2 /* Text.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF1F1C927DBC00C7F3A2 /* Text.h */; settings = {ASSET_TAGS = (); }; };
+		D939DF321C929AF700C7F3A2 /* TextVertBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF301C929AF700C7F3A2 /* TextVertBuffer.cpp */; settings = {ASSET_TAGS = (); }; };
+		D939DF331C929AF700C7F3A2 /* TextVertBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF311C929AF700C7F3A2 /* TextVertBuffer.h */; settings = {ASSET_TAGS = (); }; };
 		D98BC5491C8D4CE200FAC522 /* StaticCube.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */; settings = {ASSET_TAGS = (); }; };
 		D98BC54B1C8D4FBE00FAC522 /* Arrow.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367021C8BF75C00E6AD07 /* Arrow.bwo */; };
 		D98BC54C1C8D4FBE00FAC522 /* Arrow2.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367031C8BF75C00E6AD07 /* Arrow2.bwo */; };
@@ -620,8 +631,6 @@
 		D903620E1C8BBC1D00E6AD07 /* EntityComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntityComponent.h; sourceTree = "<group>"; };
 		D90362101C8BBC1D00E6AD07 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Camera.cpp; sourceTree = "<group>"; };
 		D90362111C8BBC1D00E6AD07 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Camera.h; sourceTree = "<group>"; };
-		D90362121C8BBC1D00E6AD07 /* FontAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontAtlas.cpp; sourceTree = "<group>"; };
-		D90362131C8BBC1D00E6AD07 /* FontAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontAtlas.h; sourceTree = "<group>"; };
 		D90362141C8BBC1D00E6AD07 /* Frustum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Frustum.cpp; sourceTree = "<group>"; };
 		D90362151C8BBC1D00E6AD07 /* Frustum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Frustum.h; sourceTree = "<group>"; };
 		D90362161C8BBC1D00E6AD07 /* GFXDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GFXDefines.h; sourceTree = "<group>"; };
@@ -1005,7 +1014,6 @@
 		D92031211C91DF5300217562 /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		D92031221C91DF5300217562 /* ButtonBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonBehavior.cpp; sourceTree = "<group>"; };
 		D92031231C91DF5300217562 /* ButtonBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonBehavior.h; sourceTree = "<group>"; };
-		D92031241C91DF5300217562 /* GUIConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GUIConstants.h; sourceTree = "<group>"; };
 		D92031251C91DF5300217562 /* GUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GUI.cpp; sourceTree = "<group>"; };
 		D92031261C91DF5300217562 /* GUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GUI.h; sourceTree = "<group>"; };
 		D920312B1C91DF5300217562 /* Slider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Slider.cpp; sourceTree = "<group>"; };
@@ -1020,6 +1028,20 @@
 		D920314C1C91EE8D00217562 /* Transform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Transform.cpp; sourceTree = "<group>"; };
 		D920314D1C91EE8D00217562 /* Transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transform.h; sourceTree = "<group>"; };
 		D939DF111C92196500C7F3A2 /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
+		D939DF141C927DBC00C7F3A2 /* FontAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontAtlas.cpp; sourceTree = "<group>"; };
+		D939DF151C927DBC00C7F3A2 /* FontAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontAtlas.h; sourceTree = "<group>"; };
+		D939DF161C927DBC00C7F3A2 /* FontAtlasPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontAtlasPool.cpp; sourceTree = "<group>"; };
+		D939DF171C927DBC00C7F3A2 /* FontAtlasPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontAtlasPool.h; sourceTree = "<group>"; };
+		D939DF181C927DBC00C7F3A2 /* IText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IText.h; sourceTree = "<group>"; };
+		D939DF191C927DBC00C7F3A2 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Label.cpp; sourceTree = "<group>"; };
+		D939DF1A1C927DBC00C7F3A2 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Label.h; sourceTree = "<group>"; };
+		D939DF1B1C927DBC00C7F3A2 /* TextConstants.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextConstants.cpp; sourceTree = "<group>"; };
+		D939DF1C1C927DBC00C7F3A2 /* TextConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextConstants.h; sourceTree = "<group>"; };
+		D939DF1D1C927DBC00C7F3A2 /* TextDefaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextDefaults.h; sourceTree = "<group>"; };
+		D939DF1E1C927DBC00C7F3A2 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Text.cpp; sourceTree = "<group>"; };
+		D939DF1F1C927DBC00C7F3A2 /* Text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Text.h; sourceTree = "<group>"; };
+		D939DF301C929AF700C7F3A2 /* TextVertBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextVertBuffer.cpp; sourceTree = "<group>"; };
+		D939DF311C929AF700C7F3A2 /* TextVertBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextVertBuffer.h; sourceTree = "<group>"; };
 		D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticCube.cpp; sourceTree = "<group>"; };
 		D98BC5481C8D4CE200FAC522 /* StaticCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticCube.h; sourceTree = "<group>"; };
 		D9B0693D1C89CEDE00D10277 /* StruggleBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StruggleBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1073,6 +1095,7 @@
 				D90366061C8BC2E500E6AD07 /* Input */,
 				D90366311C8BCF7100E6AD07 /* Log */,
 				D903620F1C8BBC1D00E6AD07 /* Rendering */,
+				D939DF131C927DBC00C7F3A2 /* Text */,
 				D90362421C8BBC1D00E6AD07 /* UI */,
 				D90366121C8BCEEB00E6AD07 /* Utils */,
 			);
@@ -1126,8 +1149,6 @@
 				D90362101C8BBC1D00E6AD07 /* Camera.cpp */,
 				D90362111C8BBC1D00E6AD07 /* Camera.h */,
 				D939DF111C92196500C7F3A2 /* Color.h */,
-				D90362121C8BBC1D00E6AD07 /* FontAtlas.cpp */,
-				D90362131C8BBC1D00E6AD07 /* FontAtlas.h */,
 				D90362141C8BBC1D00E6AD07 /* Frustum.cpp */,
 				D90362151C8BBC1D00E6AD07 /* Frustum.h */,
 				D90362161C8BBC1D00E6AD07 /* GFXDefines.h */,
@@ -1703,7 +1724,6 @@
 				D92031211C91DF5300217562 /* Button.h */,
 				D92031221C91DF5300217562 /* ButtonBehavior.cpp */,
 				D92031231C91DF5300217562 /* ButtonBehavior.h */,
-				D92031241C91DF5300217562 /* GUIConstants.h */,
 				D92031251C91DF5300217562 /* GUI.cpp */,
 				D92031261C91DF5300217562 /* GUI.h */,
 				D920312B1C91DF5300217562 /* Slider.cpp */,
@@ -1717,6 +1737,27 @@
 				D92031331C91DF5300217562 /* Widget.h */,
 			);
 			path = GUI;
+			sourceTree = "<group>";
+		};
+		D939DF131C927DBC00C7F3A2 /* Text */ = {
+			isa = PBXGroup;
+			children = (
+				D939DF141C927DBC00C7F3A2 /* FontAtlas.cpp */,
+				D939DF151C927DBC00C7F3A2 /* FontAtlas.h */,
+				D939DF161C927DBC00C7F3A2 /* FontAtlasPool.cpp */,
+				D939DF171C927DBC00C7F3A2 /* FontAtlasPool.h */,
+				D939DF181C927DBC00C7F3A2 /* IText.h */,
+				D939DF191C927DBC00C7F3A2 /* Label.cpp */,
+				D939DF1A1C927DBC00C7F3A2 /* Label.h */,
+				D939DF1E1C927DBC00C7F3A2 /* Text.cpp */,
+				D939DF1F1C927DBC00C7F3A2 /* Text.h */,
+				D939DF1B1C927DBC00C7F3A2 /* TextConstants.cpp */,
+				D939DF1C1C927DBC00C7F3A2 /* TextConstants.h */,
+				D939DF1D1C927DBC00C7F3A2 /* TextDefaults.h */,
+				D939DF301C929AF700C7F3A2 /* TextVertBuffer.cpp */,
+				D939DF311C929AF700C7F3A2 /* TextVertBuffer.h */,
+			);
+			path = Text;
 			sourceTree = "<group>";
 		};
 		D9B069341C89CEDE00D10277 = {
@@ -1773,6 +1814,7 @@
 				D920314F1C91EE8D00217562 /* Transform.h in Headers */,
 				D920313C1C91DF5300217562 /* GUI.h in Headers */,
 				D90362811C8BBC1E00E6AD07 /* Light2D.h in Headers */,
+				D939DF241C927DBC00C7F3A2 /* IText.h in Headers */,
 				D903629D1C8BBC1F00E6AD07 /* Sprite.h in Headers */,
 				D90362751C8BBC1D00E6AD07 /* Entity.h in Headers */,
 				D903626F1C8BBC1D00E6AD07 /* StatTracker.h in Headers */,
@@ -1780,12 +1822,12 @@
 				D90366AD1C8BDE1B00E6AD07 /* Window.h in Headers */,
 				D90362891C8BBC1E00E6AD07 /* LightSystem3D.h in Headers */,
 				D90362B41C8BBC2000E6AD07 /* UIScrollerList.h in Headers */,
-				D903627A1C8BBC1D00E6AD07 /* FontAtlas.h in Headers */,
 				D90362781C8BBC1D00E6AD07 /* Camera.h in Headers */,
 				D90362951C8BBC1E00E6AD07 /* RendererNULL.h in Headers */,
 				D903662C1C8BCEEB00E6AD07 /* StringUtil.h in Headers */,
 				D90362761C8BBC1D00E6AD07 /* EntityComponent.h in Headers */,
 				D903627C1C8BBC1E00E6AD07 /* Frustum.h in Headers */,
+				D939DF281C927DBC00C7F3A2 /* TextConstants.h in Headers */,
 				D90F47EA1C8EA3160018BE71 /* ConsoleVar.h in Headers */,
 				D903628D1C8BBC1E00E6AD07 /* ParticleSys.h in Headers */,
 				D90362B81C8BBC2100E6AD07 /* UITextInput.h in Headers */,
@@ -1794,10 +1836,11 @@
 				D903625D1C8BBC1D00E6AD07 /* CoreTypes.h in Headers */,
 				D90362691C8BBC1D00E6AD07 /* Scene.h in Headers */,
 				D90362731C8BBC1D00E6AD07 /* Attribute.h in Headers */,
-				D920313A1C91DF5300217562 /* GUIConstants.h in Headers */,
 				D90362A11C8BBC1F00E6AD07 /* TextManager.h in Headers */,
+				D939DF231C927DBC00C7F3A2 /* FontAtlasPool.h in Headers */,
 				D903625F1C8BBC1D00E6AD07 /* Dictionary.h in Headers */,
 				D90366271C8BCEEB00E6AD07 /* PathUtil.h in Headers */,
+				D939DF211C927DBC00C7F3A2 /* FontAtlas.h in Headers */,
 				D90362A71C8BBC1F00E6AD07 /* VertexBuffer.h in Headers */,
 				D92031371C91DF5300217562 /* Button.h in Headers */,
 				D903662D1C8BCEEB00E6AD07 /* ThreadSafeMap.h in Headers */,
@@ -1806,6 +1849,7 @@
 				D90366D61C8BEE1200E6AD07 /* Container.h in Headers */,
 				D90F47E81C8EA3160018BE71 /* Console.h in Headers */,
 				D90362711C8BBC1D00E6AD07 /* SysCore.h in Headers */,
+				D939DF261C927DBC00C7F3A2 /* Label.h in Headers */,
 				D90362A91C8BBC1F00E6AD07 /* UIButton.h in Headers */,
 				D90F47E91C8EA3160018BE71 /* ConsoleDefs.h in Headers */,
 				D92031451C91DF5300217562 /* TextInput.h in Headers */,
@@ -1823,6 +1867,8 @@
 				D90366301C8BCEEB00E6AD07 /* Timer.h in Headers */,
 				D90362721C8BBC1D00E6AD07 /* ThreadPool.h in Headers */,
 				D90362AB1C8BBC2000E6AD07 /* UIFileMenu.h in Headers */,
+				D939DF331C929AF700C7F3A2 /* TextVertBuffer.h in Headers */,
+				D939DF2B1C927DBC00C7F3A2 /* Text.h in Headers */,
 				D92031421C91DF5300217562 /* Slider.h in Headers */,
 				D903628F1C8BBC1E00E6AD07 /* Rect2D.h in Headers */,
 				D90362A31C8BBC1F00E6AD07 /* Texture.h in Headers */,
@@ -1831,6 +1877,7 @@
 				D90366D81C8BEE1200E6AD07 /* TypeMagic.h in Headers */,
 				D90362941C8BBC1E00E6AD07 /* RendererGLProg.h in Headers */,
 				D92031491C91DF5300217562 /* Widget.h in Headers */,
+				D939DF291C927DBC00C7F3A2 /* TextDefaults.h in Headers */,
 				D90362AF1C8BBC2000E6AD07 /* UIManager.h in Headers */,
 				D903627F1C8BBC1E00E6AD07 /* GFXIncludes.h in Headers */,
 				D903629F1C8BBC1F00E6AD07 /* SpriteBatch.h in Headers */,
@@ -1956,11 +2003,13 @@
 				D903626E1C8BBC1D00E6AD07 /* StatTracker.cpp in Sources */,
 				D90362681C8BBC1D00E6AD07 /* Scene.cpp in Sources */,
 				D903629C1C8BBC1F00E6AD07 /* Sprite.cpp in Sources */,
+				D939DF251C927DBC00C7F3A2 /* Label.cpp in Sources */,
 				D903627B1C8BBC1E00E6AD07 /* Frustum.cpp in Sources */,
+				D939DF271C927DBC00C7F3A2 /* TextConstants.cpp in Sources */,
 				D90362AA1C8BBC1F00E6AD07 /* UIFileMenu.cpp in Sources */,
-				D90362791C8BBC1D00E6AD07 /* FontAtlas.cpp in Sources */,
 				D90362771C8BBC1D00E6AD07 /* Camera.cpp in Sources */,
 				D903628C1C8BBC1E00E6AD07 /* ParticleSys.cpp in Sources */,
+				D939DF221C927DBC00C7F3A2 /* FontAtlasPool.cpp in Sources */,
 				D90366A81C8BDE1200E6AD07 /* AppContext.cpp in Sources */,
 				D90362B31C8BBC2000E6AD07 /* UIScrollerList.cpp in Sources */,
 				D90362801C8BBC1E00E6AD07 /* Light2D.cpp in Sources */,
@@ -1971,6 +2020,8 @@
 				D90362A41C8BBC1F00E6AD07 /* TextureManager.cpp in Sources */,
 				D90362881C8BBC1E00E6AD07 /* LightSystem3D.cpp in Sources */,
 				D903626A1C8BBC1D00E6AD07 /* SceneManager.cpp in Sources */,
+				D939DF321C929AF700C7F3A2 /* TextVertBuffer.cpp in Sources */,
+				D939DF2A1C927DBC00C7F3A2 /* Text.cpp in Sources */,
 				D92031461C91DF5300217562 /* TextInputBehavior.cpp in Sources */,
 				D903629A1C8BBC1F00E6AD07 /* SkyDome.cpp in Sources */,
 				D90366241C8BCEEB00E6AD07 /* FileUtil.cpp in Sources */,
@@ -1994,6 +2045,7 @@
 				D90362AE1C8BBC2000E6AD07 /* UIManager.cpp in Sources */,
 				D90362821C8BBC1E00E6AD07 /* Light3D.cpp in Sources */,
 				D92031441C91DF5300217562 /* TextInput.cpp in Sources */,
+				D939DF201C927DBC00C7F3A2 /* FontAtlas.cpp in Sources */,
 				D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */,
 				D90362A81C8BBC1F00E6AD07 /* UIButton.cpp in Sources */,
 				D90362B71C8BBC2100E6AD07 /* UITextInput.cpp in Sources */,

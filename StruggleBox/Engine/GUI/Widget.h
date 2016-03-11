@@ -38,9 +38,10 @@ public:
     virtual const void Update()
     { /* printf("[Widget] update called, override me!\n"); */ };
     
-    inline const bool IsActive() const { return _active; };
-    inline const bool IsVisible() const { return _visible; };
-    inline const bool HasFocus() const { return _focus; };
+    Transform& GetTransform() { return _transform; };
+    const bool IsActive() const { return _active; };
+    const bool IsVisible() const { return _visible; };
+    const bool HasFocus() const { return _focus; };
     
 protected:
     Widget();

@@ -15,7 +15,7 @@ GUI::GUI()
 
 bool GUI::Initialize(Locator& locator)
 {
-    Log::Info("GUI initializing...");
+    Log::Info("[GUI] initializing...");
     _input = locator.Get<Input>();
     _input->RegisterEventObserver(this);
     _input->RegisterMouseObserver(this);
@@ -27,26 +27,20 @@ bool GUI::Initialize(Locator& locator)
 
 bool GUI::Terminate()
 {
-    Log::Info("GUI terminating...");
+    Log::Info("[GUI] terminating...");
     _input->UnRegisterEventObserver(this);
     _input->UnRegisterMouseObserver(this);
     return true;
 }
 
-void GUI::AddChild(std::shared_ptr<Widget> widget)
+void GUI::DestroyWidget(std::shared_ptr<Widget> widget)
 {
-    _widgets.push_back(widget);
-}
-
-void GUI::RemoveChild(std::shared_ptr<Widget> widget)
-{
-    std::vector<std::shared_ptr<Widget>>::iterator it;
-    it = std::find(_widgets.begin(), _widgets.end(), widget);
+    auto it = std::find(_widgets.begin(), _widgets.end(), widget);
     if ( it != _widgets.end() )
     {
         _widgets.erase(it);
     } else {
-        Log::Warn("GUI tried to remove a non-existent widget!");
+        Log::Debug("[GUI] tried to destroy a non-existent widget!");
     }
 }
 
@@ -144,10 +138,18 @@ bool GUI::OnEvent(const std::string& event,
 
 bool GUI::OnMouse(const glm::ivec2& coord)
 {
-    _currentMouseCoord.x = coord.x;
-    _currentMouseCoord.y = coord.y;
+    _currentMouseCoord = ConvertSDLCoordToScreen(coord);
+    
     if ( _mouseDrag) {
         return OnCursorDrag(coord);
     }
     return OnCursorHover(_currentMouseCoord);
+}
+
+const glm::ivec2 GUI::ConvertSDLCoordToScreen(const glm::ivec2& coord) const
+{
+    glm::ivec2 windowSize = glm::ivec2(_renderer->windowWidth,
+                                       _renderer->windowHeight);
+    return glm::ivec2(coord.x - windowSize.x*0.5,
+                      windowSize.y*0.5 - coord.y);
 }

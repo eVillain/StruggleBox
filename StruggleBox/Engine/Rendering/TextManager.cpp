@@ -1,14 +1,11 @@
-#include <string>
-
 #include "TextManager.h"
-#include "HyperVisor.h"
-
+#include "Locator.h"
 #include "Renderer.h"
 #include "FileUtil.h"
 #include "Options.h"
-
 #include "ShaderManager.h"
-#include <glm/gtc/matrix_transform.hpp>     // glm::translate, glm::rotate, glm::scale
+#include <glm/gtc/matrix_transform.hpp>
+#include <string>
 
 static Renderer* g_renderer = NULL;
 // Vector of text blobs to render
@@ -19,26 +16,9 @@ static TextBlobVector textLabels;
 /**********************************************************************
  * Default shader programs
  *********************************************************************/
-const GLchar *text_vertex_shader21[] = {
-    "#version 120\n"
-    "attribute vec4 coord;"
-    "varying vec2 texcoord;"
-    "void main(void) {"
-    "gl_Position = vec4(coord.xy, 0, 1);"
-    "texcoord = coord.zw;"
-    "}"
-};
-const GLchar *text_frag_shader21[] = {
-    "#version 120\n"
-    "varying vec2 texcoord;"
-    "uniform sampler2D tex;"
-    "uniform vec4 color;"
-    "void main(void) {"
-    "gl_FragColor = vec4(1, 1, 1, texture2D(tex, texcoord).r) * color;"
-    "}"
-};
-const GLchar *text_vertex_shader32[] = {
-    "#version 330 core\n"
+
+const GLchar *text_vertex_shader[] = {
+    "#version 400 core\n"
     "layout(location = 0) in vec4 vCoord;"
     "layout(location = 1) in vec2 tCoord;"
     "uniform mat4 MVP;"
@@ -48,8 +28,8 @@ const GLchar *text_vertex_shader32[] = {
     "texCoord = tCoord;"
     "}"
 };
-const GLchar *text_frag_shader32[] = {
-    "#version 330 core\n"
+const GLchar *text_frag_shader[] = {
+    "#version 400 core\n"
     "in vec2 texCoord;"
     "out vec4 fragColor;"
     "uniform sampler2D tex;"
@@ -68,7 +48,6 @@ TextManager::TextManager()
     blobsRendered = 0;
     
     initialized = false;
-    shadersAvailable = false;
     
     // Shader mode vars TODO:MOVE TO RENDERER
     textShader = NULL;
@@ -87,30 +66,27 @@ void TextManager::Initialize(Locator& locator)
         printf("[TextMan] ERROR: No renderer hooked on init");
         return;
     }
-    // Check if shaders available
-    if ( locator.Get<Options>()->getOption<bool>("r_useShaders") ) {
-        shadersAvailable = true;
-        textShader = new Shader();
-        textShader->InitFromSource(text_vertex_shader32, text_frag_shader32);
-        if ( textShader->GetProgram() == 0 ) {
-            printf("[TextMan] failed to load text shader program\n");
-            return;
-        }
-        printf("[TextMan] generating vertex arrays\n");
-        // Create vertex array object
-        glGenVertexArrays(1, &vertexArrayID);
-        glBindVertexArray(vertexArrayID);
-        // Create the vertex buffer object
-        glGenBuffers(1, &vertexBufferID);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-        
-        /* Set up the VBO for our vertex data */
-        glEnableVertexAttribArray( 0 );
-        glEnableVertexAttribArray( 1 );
-        glBindVertexArray(0);
-    } else {
-        shadersAvailable = false;
+    
+    // Load shader
+    textShader = new Shader();
+    textShader->InitFromSource(text_vertex_shader,
+                               text_frag_shader);
+    if ( textShader->GetProgram() == 0 ) {
+        printf("[TextMan] failed to load text shader program\n");
+        return;
     }
+    printf("[TextMan] generating vertex arrays\n");
+    // Create vertex array object
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID);
+    // Create the vertex buffer object
+    glGenBuffers(1, &vertexBufferID);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+    
+    /* Set up the VBO for our vertex data */
+    glEnableVertexAttribArray( 0 );
+    glEnableVertexAttribArray( 1 );
+    glBindVertexArray(0);
     
     // Initialize FreeType library
     if( FT_Init_FreeType(&ft) != 0 ) {
@@ -129,19 +105,19 @@ void TextManager::Terminate()
     atlases.clear();
     
     FT_Done_FreeType(ft);
-    if ( shadersAvailable ) {
-        glDeleteBuffers(1, &vertexBufferID);
-        glDeleteVertexArrays(1, &vertexArrayID);
-        printf("[TextMan] releasing vertex arrays\n");
-        delete textShader;
-        textShader = NULL;
-    }
+
+    glDeleteBuffers(1, &vertexBufferID);
+    glDeleteVertexArrays(1, &vertexArrayID);
+    printf("[TextMan] releasing vertex arrays\n");
+    delete textShader;
+    textShader = NULL;
     
     textLabels.clear();     // Empty out all blobs
     initialized = false;
 }
 
-void TextManager::Update( double delta ) {
+void TextManager::Update( double delta )
+{
     TextBlobVector::iterator it=textLabels.begin();
     while ( it != textLabels.end() ) {
         if ( it->timer != 0.0 ) {
@@ -160,29 +136,33 @@ void TextManager::Update( double delta ) {
         it++;
     }
 }
-void TextManager::RenderLabels( void ) {
+
+void TextManager::RenderLabels()
+{
     if ( !initialized ) return;
     blobsRendered = 0;
     /* Enable blending, necessary for our alpha texture */
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if ( shadersAvailable ) {
         // Bind our VAO and VBO
         glBindVertexArray(vertexArrayID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-    }
     for ( unsigned int i=0; i < textLabels.size(); i++ ) {
         TextBlob* label = &textLabels[i];
         RenderBlob( *label );
         blobsRendered++;
     }
-    if ( shadersAvailable ) {
-        glBindVertexArray(0);
-    }
 }
-int TextManager::AddText( std::string text, glm::vec3 position, bool UISpace, int size,
-                         FontName font, double timer, Color color, glm::vec3 rotation ) {
+int TextManager::AddText(std::string text,
+                         glm::vec3 position,
+                         bool UISpace,
+                         int size,
+                         FontName font,
+                         double timer,
+                         Color color,
+                         glm::vec3 rotation)
+{
     TextBlob newBlob = {position, rotation, color, size, font, 0, timer, UISpace, text};
     return AddBlob(newBlob);
 }
@@ -239,7 +219,7 @@ void TextManager::GetTextSize( unsigned int blobID, float &width, float &height 
         if ( textLabels[i].blobID == blobID ) {
             std::string fontFile = GetFontFileName( textLabels[i].font );
             FontAtlas* a = GetAtlas(fontFile, textLabels[i].size);
-            GlyphInfo* g = a->GetGlyphInfo();
+            const GlyphInfo* g = a->GetGlyphInfo();
             const uint8_t *p;
             /* Loop through all characters */
             for (p = (const uint8_t *)textLabels[i].text.c_str(); *p; p++) {
@@ -324,7 +304,6 @@ void TextManager::RenderBlob(TextBlob b)
     float width = 0.0f;
     float height = 0.0f;
     GetTextSize(b.blobID, width, height);
-    if ( shadersAvailable ) {
         FontAtlas* fAtlas = GetAtlas(fontFile, b.size);
         glm::mat4 mvp;
         if ( b.isUIBlob ) {
@@ -352,21 +331,6 @@ void TextManager::RenderBlob(TextBlob b)
         glBindBuffer( GL_ARRAY_BUFFER, vertexBufferID );
         Render(b, fAtlas);
         textShader->End();
-    } else {
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
-        FontAtlas* fAtlas = GetAtlas(fontFile, b.size);
-        /* Use the texture containing the atlas */
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture( GL_TEXTURE_2D, fAtlas->GetTextureID() );
-        // Render
-        Render(b, fAtlas);
-        // Set GL state back
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glDisable(GL_TEXTURE_2D);
-    }
 }
 
 /**
@@ -378,7 +342,7 @@ void TextManager::Render(TextBlob& b, FontAtlas * a) {
 	glm::vec4* coords = new glm::vec4[6 * length];
     glm::vec2* tCoords = new glm::vec2[6 * length];
     int c = 0;
-    GlyphInfo* g = a->GetGlyphInfo();
+    const GlyphInfo* g = a->GetGlyphInfo();
     float x = b.pos.x;
     float y = b.pos.y;
     float z = b.pos.z;
@@ -420,41 +384,22 @@ void TextManager::Render(TextBlob& b, FontAtlas * a) {
         tCoords[c] = glm::vec2(g[*p].tx + g[*p].bw / aw, g[*p].ty + g[*p].bh / ah);
 		coords[c++] = glm::vec4( x2+w, -y2-h, z, 1.0f );
     }
-    if ( shadersAvailable ) {
-        glVertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 0, 0 );
-        glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(glm::vec4)*6*length) );
-        /* Draw all the characters on the screen in one go */
-        glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::vec4)*6*length)+sizeof(glm::vec2)*6*length, NULL, GL_STATIC_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, (sizeof(glm::vec4) * 6 * length), coords);
-        glBufferSubData(GL_ARRAY_BUFFER, (sizeof(glm::vec4)*6*length), sizeof(glm::vec2)*6*length, tCoords);
-        glDrawArrays(GL_TRIANGLES, 0, c);
-    } else {
-        glPushMatrix(); {
-            
-            glColor4f(b.color.r, b.color.g, b.color.b, b.color.a);
-            //            glTranslatef(b.pos.x, b.pos.y, -b.pos.z);
-            glRotatef(b.rot.x, 1.0f, 0.0f, 0.0f);
-            glRotatef(b.rot.y, 0.0f, 1.0f, 0.0f);
-            glRotatef(b.rot.z, 0.0f, 0.0f, 1.0f);
-            if ( !b.isUIBlob ) {
-                glEnable(GL_DEPTH_TEST);
-                float r_scale = 1.0f/b.size;
-                glScalef(r_scale, r_scale, r_scale);
-            }
-            
-            glVertexPointer(4, GL_FLOAT, 0, coords);
-            glTexCoordPointer(2, GL_FLOAT, 0, tCoords);
-            
-            glDrawArrays(GL_TRIANGLES, 0, c);
-            
-        } glPopMatrix();
-    }
+    
+    glVertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 0, 0 );
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(glm::vec4)*6*length) );
+    /* Draw all the characters on the screen in one go */
+    glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::vec4)*6*length)+sizeof(glm::vec2)*6*length, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (sizeof(glm::vec4) * 6 * length), coords);
+    glBufferSubData(GL_ARRAY_BUFFER, (sizeof(glm::vec4)*6*length), sizeof(glm::vec2)*6*length, tCoords);
+    glDrawArrays(GL_TRIANGLES, 0, c);
+
 	delete[] coords;
 	delete[] tCoords;
 }
 
-    // Adds a new label and returns its index ID
-int TextManager::AddBlob( TextBlob& newBlob ) {
+/// Adds a new label and returns its index ID
+int TextManager::AddBlob( TextBlob& newBlob )
+{
     newBlob.blobID = _nextId++;
     textLabels.push_back(newBlob);
     return newBlob.blobID;
