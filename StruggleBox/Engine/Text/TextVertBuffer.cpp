@@ -112,7 +112,7 @@ void TextVertBuffer::Buffer(const std::string &text,
 void TextVertBuffer::Draw()
 {
     if (_count == 0) return;
-    printf("TextVertBuffer drawing %i verts...\n", _count);
+    
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glDrawArrays(GL_TRIANGLES, 0, _count);

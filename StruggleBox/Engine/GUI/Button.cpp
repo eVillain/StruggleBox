@@ -44,6 +44,7 @@ void Button::Draw(Renderer* renderer)
     // Inner gradient fill
     Color gradColTop = COLOR_UI_GRADIENT_TOP;
     Color gradColBottom = COLOR_UI_GRADIENT_BOTTOM;
+    
     if (_focus)
     {
         if (_pressed)
@@ -69,8 +70,10 @@ void Button::Draw(Renderer* renderer)
     renderer->Render2DLines();
 }
 
-const void Button::Update()
-{ }
+void Button::OnDrag(const glm::ivec2& coord)
+{
+    if (_pressed) { _focus = true; }
+}
 
 void Button::OnInteract(const bool interact,
                         const glm::ivec2& coord)

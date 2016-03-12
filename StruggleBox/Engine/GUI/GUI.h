@@ -25,6 +25,7 @@ public:
         _widgets.push_back(std::dynamic_pointer_cast<Widget>(widget));
         return widget;
     }
+    
     void DestroyWidget(std::shared_ptr<Widget> widget);
     
     void Draw(Renderer* renderer);
@@ -48,7 +49,7 @@ private:
     const glm::ivec2 ConvertSDLCoordToScreen(const glm::ivec2& coord) const;
 
     std::vector<std::shared_ptr<Widget>> _widgets;
-
+    
     // Dependencies
     Input* _input;
     Renderer* _renderer;

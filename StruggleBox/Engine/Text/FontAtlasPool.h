@@ -30,6 +30,4 @@ private:
     AtlasMap _atlases;
 };
 
-
-
 #endif /* FONT_ATLAS_POOL_H */

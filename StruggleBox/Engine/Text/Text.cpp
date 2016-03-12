@@ -95,13 +95,16 @@ void Text::Draw()
                 break;
         }
         
-         glm::mat4 labelMVP = label->getTransform().GetMatrix();
+        glm::mat4 labelMVP = label->getTransform().GetMatrix();
         labelMVP = glm::translate(labelMVP, labelOffset);
 
         TextVertBuffer* buffer = labelPair.second;
 
         if (label->isDirty())
         {
+            label->_size = CalculateTextSize(label->getText(),
+                                             label->getFont(),
+                                             label->getFontSize());
             buffer->Buffer(label->getText(),
                            *atlas.get(),
                            label->getFontSize());
@@ -109,7 +112,7 @@ void Text::Draw()
         }
 
         glBindTexture(GL_TEXTURE_2D, atlas->GetTextureID());
-        _textShader->setUniformM4fv("MVP", uiMVP);
+        _textShader->setUniformM4fv("MVP", uiMVP*labelMVP);
         _textShader->setUniform4fv("color", label->getColor());
         buffer->Draw();
     }
@@ -132,4 +135,56 @@ void Text::DestroyLabel(std::shared_ptr<Label> label)
         delete _labels3D[label];
         _labels3D.erase(label);
     }
+}
+
+glm::vec2 Text::CalculateTextSize(const std::string& text,
+                                  Fonts::FontID font,
+                                  const int fontSize)
+{
+    std::string fontName = Fonts::GetFileName(font);
+    std::shared_ptr<FontAtlas> atlas = _atlasFactory->GetAtlas(fontName,
+                                                               fontSize);
+    
+    const GlyphInfo* g = atlas->GetGlyphInfo();
+    
+    glm::vec2 returnSize;
+    
+    // Pre-calculate sizes and positions we will need
+    float height = 0;   // Holds total height of all lines
+    float width = 0;    // Holds width of current line
+    float widthMax = 0; // Holds width of widest line
+    const uint8_t *p;
+    
+    // Loop through all characters
+    for (p = (const uint8_t *)text.c_str(); *p; p++)
+    {
+        // Skip newline character
+        if (strncmp((const char*)p, "\n", 1) == 0)
+        {
+            // Size calculation
+            height += fontSize;
+            if (width > widthMax) { widthMax = width; }
+            width = 0;
+            
+            continue;
+        }
+        
+        float h = g[*p].bh;
+        
+        // Size calculation
+        width += g[*p].ax;
+        if (height < h) height = h;
+        
+        // Skip glyphs that have no pixels
+        if (!g[*p].bw || !h)
+        {
+            continue;
+        }
+    }
+    
+    /* Final size calculation */
+    if ( width > widthMax ) { widthMax = width; }
+    returnSize = glm::vec2(widthMax, height);
+    
+    return returnSize;
 }

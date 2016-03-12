@@ -318,6 +318,8 @@
 		D939DF2B1C927DBC00C7F3A2 /* Text.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF1F1C927DBC00C7F3A2 /* Text.h */; settings = {ASSET_TAGS = (); }; };
 		D939DF321C929AF700C7F3A2 /* TextVertBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D939DF301C929AF700C7F3A2 /* TextVertBuffer.cpp */; settings = {ASSET_TAGS = (); }; };
 		D939DF331C929AF700C7F3A2 /* TextVertBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = D939DF311C929AF700C7F3A2 /* TextVertBuffer.h */; settings = {ASSET_TAGS = (); }; };
+		D974852A1C937C3B007EAB65 /* ButtonLabeled.h in Headers */ = {isa = PBXBuildFile; fileRef = D97485291C937C3B007EAB65 /* ButtonLabeled.h */; settings = {ASSET_TAGS = (); }; };
+		D974852C1C939127007EAB65 /* ButtonLabeled.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D974852B1C939127007EAB65 /* ButtonLabeled.cpp */; settings = {ASSET_TAGS = (); }; };
 		D98BC5491C8D4CE200FAC522 /* StaticCube.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */; settings = {ASSET_TAGS = (); }; };
 		D98BC54B1C8D4FBE00FAC522 /* Arrow.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367021C8BF75C00E6AD07 /* Arrow.bwo */; };
 		D98BC54C1C8D4FBE00FAC522 /* Arrow2.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367031C8BF75C00E6AD07 /* Arrow2.bwo */; };
@@ -1042,6 +1044,8 @@
 		D939DF1F1C927DBC00C7F3A2 /* Text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Text.h; sourceTree = "<group>"; };
 		D939DF301C929AF700C7F3A2 /* TextVertBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextVertBuffer.cpp; sourceTree = "<group>"; };
 		D939DF311C929AF700C7F3A2 /* TextVertBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextVertBuffer.h; sourceTree = "<group>"; };
+		D97485291C937C3B007EAB65 /* ButtonLabeled.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonLabeled.h; sourceTree = "<group>"; };
+		D974852B1C939127007EAB65 /* ButtonLabeled.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonLabeled.cpp; sourceTree = "<group>"; };
 		D98BC5471C8D4CE200FAC522 /* StaticCube.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StaticCube.cpp; sourceTree = "<group>"; };
 		D98BC5481C8D4CE200FAC522 /* StaticCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StaticCube.h; sourceTree = "<group>"; };
 		D9B0693D1C89CEDE00D10277 /* StruggleBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StruggleBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1724,6 +1728,8 @@
 				D92031211C91DF5300217562 /* Button.h */,
 				D92031221C91DF5300217562 /* ButtonBehavior.cpp */,
 				D92031231C91DF5300217562 /* ButtonBehavior.h */,
+				D974852B1C939127007EAB65 /* ButtonLabeled.cpp */,
+				D97485291C937C3B007EAB65 /* ButtonLabeled.h */,
 				D92031251C91DF5300217562 /* GUI.cpp */,
 				D92031261C91DF5300217562 /* GUI.h */,
 				D920312B1C91DF5300217562 /* Slider.cpp */,
@@ -1887,6 +1893,7 @@
 				D90362621C8BBC1D00E6AD07 /* HyperVisor.h in Headers */,
 				D90366D71C8BEE1200E6AD07 /* Locator.h in Headers */,
 				D903662A1C8BCEEB00E6AD07 /* RangeReverseAdapter.h in Headers */,
+				D974852A1C937C3B007EAB65 /* ButtonLabeled.h in Headers */,
 				D90362B61C8BBC2000E6AD07 /* UISlider.h in Headers */,
 				D90362B21C8BBC2000E6AD07 /* UIMenuItem.h in Headers */,
 				D939DF121C92196500C7F3A2 /* Color.h in Headers */,
@@ -2009,6 +2016,7 @@
 				D90362AA1C8BBC1F00E6AD07 /* UIFileMenu.cpp in Sources */,
 				D90362771C8BBC1D00E6AD07 /* Camera.cpp in Sources */,
 				D903628C1C8BBC1E00E6AD07 /* ParticleSys.cpp in Sources */,
+				D974852C1C939127007EAB65 /* ButtonLabeled.cpp in Sources */,
 				D939DF221C927DBC00C7F3A2 /* FontAtlasPool.cpp in Sources */,
 				D90366A81C8BDE1200E6AD07 /* AppContext.cpp in Sources */,
 				D90362B31C8BBC2000E6AD07 /* UIScrollerList.cpp in Sources */,

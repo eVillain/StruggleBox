@@ -27,8 +27,9 @@ public:
     void DestroyLabel(std::shared_ptr<Label> label);
     
 protected:
-
-    
+    glm::vec2 CalculateTextSize(const std::string& text,
+                                Fonts::FontID font,
+                                const int fontSize);
 private:
     Renderer* _renderer;
     bool _initialized;

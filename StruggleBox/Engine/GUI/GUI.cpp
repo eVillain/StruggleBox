@@ -64,7 +64,7 @@ bool GUI::OnCursorPress(const glm::ivec2& coord)
 {
     for (std::shared_ptr<Widget> widget : _widgets)
     {
-        if( widget->Contains(coord) )
+        if(widget->Contains(coord))
         {
             widget->OnInteract(true, coord);
             return true;
@@ -75,28 +75,34 @@ bool GUI::OnCursorPress(const glm::ivec2& coord)
 
 bool GUI::OnCursorDrag(const glm::ivec2& coord)
 {
+    bool interacted = false;
     for (std::shared_ptr<Widget> widget : _widgets)
     {
-        if( widget->Contains(coord) )
+        if(widget->Contains(coord))
         {
             widget->OnDrag(coord);
-            return true;
+            interacted = true;
+        } else {
+            widget->SetFocus(false);
         }
     }
-    return false;
+    return interacted;
 }
 
 bool GUI::OnCursorRelease(const glm::ivec2& coord)
 {
+    bool interacted = false;
     for (std::shared_ptr<Widget> widget : _widgets)
     {
-        if( widget->Contains(coord) )
+        if(widget->Contains(coord))
         {
             widget->OnInteract(false, coord);
-            return true;
+            interacted = true;
+        } else {
+            widget->OnInteract(false, coord);
         }
     }
-    return false;
+    return interacted;
 }
 
 bool GUI::OnCursorHover(const glm::ivec2& coord)
@@ -104,7 +110,7 @@ bool GUI::OnCursorHover(const glm::ivec2& coord)
     bool overWidget = false;
     for (std::shared_ptr<Widget> widget : _widgets)
     {
-        if( widget->Contains(coord) )
+        if(widget->Contains(coord))
         {
             widget->SetFocus(true);
             overWidget = true;
@@ -112,7 +118,7 @@ bool GUI::OnCursorHover(const glm::ivec2& coord)
             widget->SetFocus(false);
         }
     }
-    if ( !overWidget ) { _mouseDrag = false; }
+    if (!overWidget) { _mouseDrag = false; }
     return overWidget;
 }
 
@@ -124,7 +130,7 @@ bool GUI::OnEvent(const std::string& event,
         if ( amount == 1 )
         {
             bool clickedWidget = OnCursorPress(_currentMouseCoord);
-            if ( clickedWidget ) { _mouseDrag = true; }
+            if (clickedWidget) { _mouseDrag = true; }
             return clickedWidget;
         }
         else if ( amount == -1 )
@@ -140,8 +146,8 @@ bool GUI::OnMouse(const glm::ivec2& coord)
 {
     _currentMouseCoord = ConvertSDLCoordToScreen(coord);
     
-    if ( _mouseDrag) {
-        return OnCursorDrag(coord);
+    if (_mouseDrag) {
+        return OnCursorDrag(_currentMouseCoord);
     }
     return OnCursorHover(_currentMouseCoord);
 }

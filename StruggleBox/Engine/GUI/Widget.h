@@ -23,13 +23,14 @@ public:
     
     /* Override these for different cursor events */
     /// Focus is true when the cursor is over a widget
-    virtual void SetFocus( const bool focus) { _focus = focus; };
+    virtual void SetFocus(const bool focus) { _focus = focus; };
     /// When clicked/pressed
-    virtual void OnInteract( const bool interact, const glm::ivec2& coord ) { };
+    virtual void OnInteract(const bool interact,
+                            const glm::ivec2& coord) { };
     /// When dragged with cursor, most widgets won't support this
-    virtual void OnDrag( const glm::ivec2& coord ) { };
+    virtual void OnDrag(const glm::ivec2& coord) { };
     /// Cursor over widget test, returns true if point is inside widget
-    virtual const bool Contains( const glm::ivec2& coord ) const;
+    virtual const bool Contains(const glm::ivec2& coord) const;
     
     // Override this for drawing different widgets
     virtual void Draw(Renderer* renderer);

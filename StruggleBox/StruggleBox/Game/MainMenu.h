@@ -5,6 +5,10 @@
 #include "CoreTypes.h"
 #include "Input.h"
 #include "UIMenu.h"
+#include "Text.h"
+#include <memory>
+
+class Widget;
 
 class MainMenu : public Scene
 {
@@ -25,13 +29,13 @@ public:
     void RemoveMainMenu( void );
     
 private:
-    // Main Menu texture IDs
-    unsigned int splashID, evLogoID, copyLeftID;
-    int particleSysID;
+    int _particleSysID;
     Sprite* testSprite;
-    std::vector<ButtonBase*> buttonVect;
-    UIFileMenuBase* fileSelectMenu;     // Open file menu
-    UIMenu* optionsMenu;                // Engine options menu
+    std::vector<std::shared_ptr<Widget>> _widgets;
+    UIFileMenuBase* fileSelectMenu; // Open file menu
+    UIMenu* optionsMenu;            // Engine options menu
+    
+    std::shared_ptr<Label> _mainMenuLabel;
     
     // Main Menu button callbacks
     void LoadLevelButtonCB( void*data );

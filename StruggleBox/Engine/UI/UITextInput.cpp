@@ -145,7 +145,7 @@ void UITextInputBase::CancelTextInput() {
         // Unregister keyboard input
         g_uiMan->GetInputManager()->UnRegisterEventObserver(this);
         g_uiMan->GetInputManager()->StopTextInput(this);
-        printf("TextInput cancelled\n");
+//        printf("TextInput cancelled\n");
     }
 }
 void UITextInputBase::Clear() {
@@ -221,7 +221,7 @@ bool UITextInputBase::OnEvent(const std::string& event,
 
 void UITextInputBase::OnTextInput(const std::string& text)
 {
-    printf("text %s\n", text.c_str());
+//    printf("text %s\n", text.c_str());
     if (grabKeyboardInput)
     {
         inputValue = text;
