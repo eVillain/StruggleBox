@@ -225,9 +225,11 @@ void Input::ProcessInput()
                     return;
                 }
 //           printf("Bound to: %s\n", _inputBindings[input].c_str());
-                for ( InputEventListener* listener : _inputEventListeners )
+                
+                // Reversed because latest added listener should get the event first
+                for (InputEventListener* listener : reverse_adapt_container(_inputEventListeners))
                 {
-                    bool swallowed = (*listener).OnEvent( _inputBindings[input], amount );
+                    bool swallowed = (*listener).OnEvent(_inputBindings[input], amount);
                     if ( swallowed )
                     { break; }  // Event was swallowed, don't propagate
                 }
