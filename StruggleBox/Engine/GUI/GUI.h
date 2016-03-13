@@ -26,14 +26,6 @@ public:
         return widget;
     }
     
-//    template <class WidgetType>
-//    std::shared_ptr<WidgetType> CreateWidget()
-//    {
-//        std::shared_ptr<WidgetType> widget = std::shared_ptr<WidgetType>(new WidgetType());
-//        _widgets.push_back(std::dynamic_pointer_cast<Widget>(widget));
-//        return widget;
-//    }
-    
     void DestroyWidget(std::shared_ptr<Widget> widget);
     
     void Draw(Renderer* renderer);

@@ -37,7 +37,7 @@ bool GUI::Terminate()
 void GUI::DestroyWidget(std::shared_ptr<Widget> widget)
 {
     auto it = std::find(_widgets.begin(), _widgets.end(), widget);
-    if ( it != _widgets.end() )
+    if (it != _widgets.end())
     {
         _widgets.erase(it);
     } else {
@@ -95,6 +95,10 @@ bool GUI::OnCursorRelease(const glm::ivec2& coord)
     bool interacted = false;
     for (std::shared_ptr<Widget> widget : _widgets)
     {
+        // Widgets can be removed during this loop execution so we have this
+        // ugly sanity check here
+        if (widget == nullptr) continue;
+        
         if(widget->Contains(coord))
         {
             widget->OnInteract(false, coord);
