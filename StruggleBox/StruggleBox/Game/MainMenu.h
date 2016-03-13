@@ -32,21 +32,11 @@ private:
     int _particleSysID;
     Sprite* testSprite;
     std::vector<std::shared_ptr<Widget>> _widgets;
-    UIFileMenuBase* fileSelectMenu; // Open file menu
     UIMenu* optionsMenu;            // Engine options menu
     
     std::shared_ptr<Label> _mainMenuLabel;
     
     // Main Menu button callbacks
-    void LoadLevelButtonCB( void*data );
-    void HostEditorWorldBtnCB( void*data );
-    void HostEditorObjectsBtnCB( void*data );
-    void HostEditorParticlesBtnCB( void*data );
-    void CloseMainMenuButtonCB( void*data );
-    void OpenOptionsButtonCB( void*data );
-    void StopGameButtonCB( void*data );
-    void QuitButtonCB( void*data );
-    
     void ShowOptionsMenu();
     void RemoveOptionsMenu();
 };

@@ -26,7 +26,6 @@
 MainMenu::MainMenu(Locator& locator) :
 Scene("MainMenu", locator),
 _particleSysID(-1),
-fileSelectMenu(nullptr),
 optionsMenu(nullptr)
 { }
 
