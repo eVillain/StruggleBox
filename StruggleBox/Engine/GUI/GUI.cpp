@@ -15,6 +15,7 @@ GUI::GUI()
 
 bool GUI::Initialize(Locator& locator)
 {
+    _locator = &locator;
     Log::Info("[GUI] initializing...");
     _input = locator.Get<Input>();
     _input->RegisterEventObserver(this);

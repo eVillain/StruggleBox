@@ -2,12 +2,15 @@
 #include "Locator.h"
 #include "Renderer.h"
 #include "Color.h"
+#include "Text.h"
+#include "Label.h"
 
-Button::Button()
-{
-    _pressed = false;
-    _behavior = nullptr;
-}
+Button::Button(Locator& locator) :
+Widget(locator),
+_label(nullptr),
+_behavior(nullptr),
+_pressed(false)
+{ }
 
 Button::~Button()
 {
@@ -68,6 +71,22 @@ void Button::Draw(Renderer* renderer)
                          COLOR_UI_BORDER_INNER,
                          COLOR_NONE);
     renderer->Render2DLines();
+    
+    // Label
+    if (_label) {
+        if (_focus)
+        {
+            _label->setColor(COLOR_UI_TEXT_HIGHLIGHT);
+        } else {
+            if (_pressed) {
+                _label->setColor(COLOR_UI_TEXT_ACTIVE);
+                _label->getTransform().SetPosition(_transform.GetPosition()+glm::vec3(-8,-8,0));
+            } else {
+                _label->setColor(COLOR_UI_TEXT);
+            }
+        }
+        _label->getTransform().SetPosition(_transform.GetPosition());
+    }
 }
 
 void Button::OnDrag(const glm::ivec2& coord)
@@ -86,4 +105,13 @@ void Button::OnInteract(const bool interact,
         if (_behavior) { _behavior->Trigger(); }
     }
     _pressed = interact;
+}
+
+void Button::setLabel(const std::string text)
+{
+    if (_label) {
+        _label->setText(text);
+    } else {
+        _label = _locator.Get<Text>()->CreateLabel(text);
+    }
 }

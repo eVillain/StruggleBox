@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+class Locator;
 class Renderer;
 class Texture;
 
@@ -45,9 +46,10 @@ public:
     const bool HasFocus() const { return _focus; };
     
 protected:
-    Widget();
+    Widget(Locator& locator);
     virtual ~Widget();
     
+    Locator& _locator;
     Transform _transform;
     glm::ivec2 _size;
     

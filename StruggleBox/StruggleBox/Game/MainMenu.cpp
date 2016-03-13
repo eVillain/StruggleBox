@@ -5,7 +5,7 @@
 #include "Timer.h"
 #include "Console.h"
 #include "GUI.h"
-#include "ButtonLabeled.h"
+#include "Button.h"
 
 #include "TextureManager.h"
 #include "Options.h"
@@ -85,17 +85,16 @@ void MainMenu::ShowMainMenu()
     glm::vec3 buttonPos = glm::vec3(0.0, 100.0, 0.0);
     
     GUI* gui = _locator.Get<GUI>();
-    std::shared_ptr<ButtonLabeled> button = gui->CreateWidget<ButtonLabeled>();
+    std::shared_ptr<Button> button = gui->CreateWidget<Button>();
     button->GetTransform().SetPosition(buttonPos);
     button->SetSize(buttonSize);
+    button->setLabel("Start Game");
     
     ButtonBehaviorLambda* startGameBehavior = new ButtonBehaviorLambda([=](){
         _locator.Get<SceneManager>()->AddActiveScene(new LocalGame(_locator));
     });
     button->SetBehavior(startGameBehavior);
     _widgets.push_back(button);
-    std::shared_ptr<Label> buttonLabel = _locator.Get<Text>()->CreateLabel("Start Game");
-    button->SetLabel(buttonLabel);
     
     // Create the buttons for the main menu
 //    if ( prevState == "Editor" ) {

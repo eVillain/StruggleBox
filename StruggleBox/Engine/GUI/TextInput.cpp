@@ -8,7 +8,8 @@
 #define TEXTSIZE 16
 #define CURSOR_BLINK_RATE 0.5
 
-TextInput::TextInput()
+TextInput::TextInput(Locator& locator) :
+Widget(locator)
 {
     _textInputActive = false;
     _behavior = nullptr;

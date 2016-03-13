@@ -31,7 +31,7 @@ public:
     // Attach a behavior to pass the input text somewhere
     void SetBehavior( TextInputBehavior* behavior ) { _behavior = behavior; };
 protected:
-    TextInput();
+    TextInput(Locator& locator);
     ~TextInput();
 private:
     TextInputBehavior* _behavior;

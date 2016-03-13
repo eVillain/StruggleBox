@@ -13,7 +13,7 @@ public:
 class ButtonBehaviorLambda : public ButtonBehavior
 {
 public:
-    ButtonBehaviorLambda( std::function<void()> func );
+    ButtonBehaviorLambda(std::function<void()> func);
     void Trigger();
 private:
     std::function<void()> function;
@@ -22,7 +22,7 @@ private:
 class ButtonBehaviorToggle : public ButtonBehavior
 {
 public:
-    ButtonBehaviorToggle( bool* clientData );
+    ButtonBehaviorToggle(bool* clientData);
     void Trigger();
 private:
     bool* toggleData;
@@ -32,7 +32,7 @@ template <class UnknownClass>
 class ButtonBehaviorMember {
 public:
     ButtonBehaviorMember(UnknownClass* objectPtr,
-                         void( UnknownClass::*func )( void* ),
+                         void(UnknownClass::*func)(void*),
                          void* clientData) :
     function(func),
     object(objectPtr),
@@ -45,9 +45,9 @@ public:
         }
     }
 private:
-    void ( UnknownClass::*function )( void* );  // Pointer to a member function
-    UnknownClass* object;                       // Pointer to an object instance
-    void* callBackData;                         // Data pointer to pass with callback
+    void (UnknownClass::*function)(void*);  // Pointer to a member function
+    UnknownClass* object;                   // Pointer to an object instance
+    void* callBackData;                     // Data pointer to pass with callback
 };
 
 template <typename UnknownType>
