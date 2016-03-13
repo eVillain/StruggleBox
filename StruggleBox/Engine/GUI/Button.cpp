@@ -19,6 +19,12 @@ Button::~Button()
         delete _behavior;
         _behavior = nullptr;
     }
+    
+    if (_label)
+    {
+        _locator.Get<Text>()->DestroyLabel(_label);
+        _label = nullptr;
+    }
 }
 
 void Button::Draw(Renderer* renderer)
