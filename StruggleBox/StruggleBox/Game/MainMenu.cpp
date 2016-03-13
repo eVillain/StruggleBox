@@ -85,73 +85,112 @@ void MainMenu::ShowMainMenu()
     glm::vec3 buttonPos = glm::vec3(0.0, 100.0, 0.0);
     
     GUI* gui = _locator.Get<GUI>();
-    std::shared_ptr<Button> button = gui->CreateWidget<Button>();
-    button->GetTransform().SetPosition(buttonPos);
-    button->SetSize(buttonSize);
-    button->setLabel("Start Game");
-    
-    ButtonBehaviorLambda* startGameBehavior = new ButtonBehaviorLambda([=](){
-        _locator.Get<SceneManager>()->AddActiveScene(new LocalGame(_locator));
-    });
-    button->SetBehavior(startGameBehavior);
-    _widgets.push_back(button);
     
     // Create the buttons for the main menu
-//    if ( prevState == "Editor" ) {
-//        btn = UIButton<MainMenu>::CreateButton(("Back to Editor"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::CloseMainMenuButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("Exit Editor"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::StopGameButtonCB, NULL, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//    } else if ( prevState == "Game" ) {
-//        btn = UIButton<MainMenu>::CreateButton(("Back to Game"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::CloseMainMenuButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("Exit Game"), btnX,btnY,btnWidth,btnHeight,
-//                                               this, &MainMenu::StopGameButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//    } else if ( prevState == "NetLobby" ) {
-//        btn = UIButton<MainMenu>::CreateButton(("Back to Lobby"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::CloseMainMenuButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("Exit Lobby"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::StopGameButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//    } else {
-//        
-//        btn = UIButton<MainMenu>::CreateButton(("Load Level"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::LoadLevelButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("World Editor"), btnX,btnY,btnWidth,btnHeight,
-//                                         this, &MainMenu::HostEditorWorldBtnCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("Object Editor"), btnX,btnY,btnWidth,btnHeight,
-//                                               this, &MainMenu::HostEditorObjectsBtnCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//        btn = UIButton<MainMenu>::CreateButton(("Particle Editor"), btnX,btnY,btnWidth,btnHeight,
-//                                               this, &MainMenu::HostEditorParticlesBtnCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//        buttonVect.push_back((ButtonBase*)btn);
-//        btnY-=btnHeight;
-//
-//        btnY-=btnHeight;
-//    }
-//    btn = UIButton<MainMenu>::CreateButton(("Game Options"), btnX,btnY,btnWidth,btnHeight,
-//                                     this, &MainMenu::OpenOptionsButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//    buttonVect.push_back((ButtonBase*)btn);
-//    btnY-=btnHeight;
-//    btn = UIButton<MainMenu>::CreateButton(("Quit To Desktop"), btnX,btnY,btnWidth,btnHeight,
-//                                     this, &MainMenu::QuitButtonCB, NULL, BUTTON_TYPE_DEFAULT, false);
-//    buttonVect.push_back((ButtonBase*)btn);
+    if (prevState == "Editor" ||
+        prevState == "Game")
+    {
+        std::string backToWhatever = "Back To " + prevState;
+        std::shared_ptr<Button> backToGameBtn = gui->CreateWidget<Button>();
+        backToGameBtn->SetSize(buttonSize);
+        backToGameBtn->setLabel(backToWhatever);
+        
+        std::string stopWhatever = "Stop " + prevState;
+        std::shared_ptr<Button> stopGameBtn = gui->CreateWidget<Button>();
+        stopGameBtn->SetSize(buttonSize);
+        stopGameBtn->setLabel(stopWhatever);
+        
+        ButtonBehaviorLambda* backToGameBehavior = new ButtonBehaviorLambda([=](){
+            std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
+            if ( !prevState.empty() ) {
+                _locator.Get<SceneManager>()->SetActiveScene(prevState);
+            }
+        });
+        backToGameBtn->SetBehavior(backToGameBehavior);
+        
+        ButtonBehaviorLambda* stopGameBehavior = new ButtonBehaviorLambda([=](){
+            const long numScenes = _locator.Get<SceneManager>()->NumScenes();
+            if ( numScenes > 1 ) {
+                _locator.Get<SceneManager>()->KillPreviousScene();
+                RemoveMainMenu();
+                ShowMainMenu();
+            }
+        });
+        stopGameBtn->SetBehavior(stopGameBehavior);
+        
+        backToGameBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y;
+        stopGameBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y * 2;
+        
+        _widgets.push_back(backToGameBtn);
+        _widgets.push_back(stopGameBtn);
+    }
+    else
+    {
+        std::shared_ptr<Button> startGameBtn = gui->CreateWidget<Button>();
+        startGameBtn->SetSize(buttonSize);
+        startGameBtn->setLabel("Start Game");
+        
+        std::shared_ptr<Button> editObjectsBtn = gui->CreateWidget<Button>();
+        editObjectsBtn->SetSize(buttonSize);
+        editObjectsBtn->setLabel("Edit Objects");
+        
+        std::shared_ptr<Button> editParticlesBtn = gui->CreateWidget<Button>();
+        editParticlesBtn->SetSize(buttonSize);
+        editParticlesBtn->setLabel("Edit Particles");
+        
+        ButtonBehaviorLambda* startGameBehavior = new ButtonBehaviorLambda([=](){
+            _locator.Get<SceneManager>()->AddActiveScene(new LocalGame(_locator));
+        });
+        startGameBtn->SetBehavior(startGameBehavior);
+
+        ButtonBehaviorLambda* editObjectsBehavior = new ButtonBehaviorLambda([=](){
+            _locator.Get<SceneManager>()->AddActiveScene(new Object3DEditor(_locator));
+        });
+        editObjectsBtn->SetBehavior(editObjectsBehavior);
+        
+        ButtonBehaviorLambda* editParticlesBehavior = new ButtonBehaviorLambda([=](){
+            _locator.Get<SceneManager>()->AddActiveScene(new Particle3DEditor(_locator));
+        });
+        editParticlesBtn->SetBehavior(editParticlesBehavior);
+        
+        startGameBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y;
+        editObjectsBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y;
+        editParticlesBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y * 2;
+        
+        _widgets.push_back(startGameBtn);
+        _widgets.push_back(editObjectsBtn);
+        _widgets.push_back(editParticlesBtn);
+    }
+    
+    std::shared_ptr<Button> optionsBtn = gui->CreateWidget<Button>();
+    optionsBtn->SetSize(buttonSize);
+    optionsBtn->setLabel("Options");
+    optionsBtn->GetTransform().SetPosition(buttonPos);
+    buttonPos.y -= buttonSize.y;
+
+    std::shared_ptr<Button> quitToDesktopBtn = gui->CreateWidget<Button>();
+    quitToDesktopBtn->SetSize(buttonSize);
+    quitToDesktopBtn->setLabel("Quit To Desktop");
+    quitToDesktopBtn->GetTransform().SetPosition(buttonPos);
+    buttonPos.y -= buttonSize.y;
+    
+    ButtonBehaviorLambda* optionsBehavior = new ButtonBehaviorLambda([=](){
+        ShowOptionsMenu();
+    });
+    optionsBtn->SetBehavior(optionsBehavior);
+    
+    ButtonBehaviorLambda* quitToDesktopBehavior = new ButtonBehaviorLambda([=](){
+        _locator.Get<HyperVisor>()->Stop();
+    });
+    quitToDesktopBtn->SetBehavior(quitToDesktopBehavior);
+    
+    _widgets.push_back(optionsBtn);
+    _widgets.push_back(quitToDesktopBtn);
 
     // Add random particle system
     int hH = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2;
@@ -208,47 +247,6 @@ void MainMenu::Draw()
     _locator.Get<ParticleManager>()->DrawLitParticles(renderer);
     renderer->RenderLighting(COLOR_FOG_DEFAULT);
     _locator.Get<ParticleManager>()->DrawUnlitParticles(renderer);
-}
-
-//========================================================================
-// Main menu Button callback functions
-//========================================================================
-void MainMenu::LoadLevelButtonCB(void*data)
-{
-    LocalGame * localGame = new LocalGame(_locator);
-    _locator.Get<SceneManager>()->AddActiveScene( localGame );
-}
-void MainMenu::HostEditorWorldBtnCB( void*data ) {
-//    World3DEditor* editor = new World3DEditor(_locator);
-//    _locator.Get<SceneManager>()->AddActiveScene( editor );
-}
-void MainMenu::HostEditorObjectsBtnCB( void*data ) {
-    Object3DEditor * editor = new Object3DEditor(_locator);
-    _locator.Get<SceneManager>()->AddActiveScene( editor );
-}
-void MainMenu::HostEditorParticlesBtnCB( void*data ) {
-    Particle3DEditor* editor = new Particle3DEditor(_locator);
-    _locator.Get<SceneManager>()->AddActiveScene( editor );
-}
-void MainMenu::CloseMainMenuButtonCB( void*data ) {
-    std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
-    if ( !prevState.empty() ) {
-        _locator.Get<SceneManager>()->SetActiveScene(prevState);
-    }
-}
-void MainMenu::OpenOptionsButtonCB( void*data ) {
-    ShowOptionsMenu();
-}
-void MainMenu::StopGameButtonCB(void *data) {
-    const long numScenes = _locator.Get<SceneManager>()->NumScenes();
-    if ( numScenes > 1 ) {
-        _locator.Get<SceneManager>()->KillPreviousScene();
-        RemoveMainMenu();
-        ShowMainMenu();
-    }
-}
-void MainMenu::QuitButtonCB( void*data ) {
-    _locator.Get<HyperVisor>()->Stop();
 }
 
 void MainMenu::ShowOptionsMenu()
