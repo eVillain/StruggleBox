@@ -328,13 +328,14 @@ bool LocalGame::OnEvent(const std::string &theEvent,
                 Console::ToggleVisibility();
             } else {
                 _locator.Get<Options>()->getOption<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
-//                glfwSetInputMode(m_hyperVisor.GetRenderer()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                SDL_ShowCursor(true);
                 // Show main menu
                 std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
                 if ( !prevState.empty() ) {
                     _locator.Get<SceneManager>()->SetActiveScene(prevState);
                 }
             }
+            return true;
         } else if ( theEvent == INPUT_EDIT_BLOCKS ) {
             if ( world ) {
                 // test exploding things
@@ -382,7 +383,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
         if ( amount == -1.0f ) {
             bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
-            SDL_ShowCursor(grabCursor);
+            SDL_ShowCursor(!grabCursor);
         }
     } else if ( theEvent == INPUT_JUMP ) {
         if ( world && world->playerID ) {
