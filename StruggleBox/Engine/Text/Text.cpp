@@ -80,17 +80,24 @@ void Text::Draw()
                                             label->getFontSize());
 
         glm::vec2 labelSize = label->getSize();
+        int fontSize = label->getFontSize();
         glm::vec3 labelOffset;
         switch (label->getAlignment())
         {
             case Align_Left:
-                labelOffset = glm::vec3(-labelSize.x, -labelSize.y*0.5f, 0.0f);
+                labelOffset = glm::vec3(0.0f,
+                                        -fontSize*0.5f,
+                                        0.0f);
                 break;
             case Align_Right:
-                labelOffset = glm::vec3(0.0f, -labelSize.y*0.5f, 0.0f);
+                labelOffset = glm::vec3(labelSize.x,
+                                        -fontSize*0.5f,
+                                        0.0f);
                 break;
             case Align_Center:
-                labelOffset = glm::vec3(-labelSize*0.5f, 0.0f);
+                labelOffset = glm::vec3(-labelSize.x*0.5f,
+                                        -fontSize*0.5f,
+                                        0.0f);
             default:
                 break;
         }
