@@ -5,6 +5,8 @@
 #include "Timer.h"
 #include "GUI.h"
 #include "Button.h"
+#include "Slider.h"
+
 #include "Options.h"
 #include "Renderer.h"
 #include "TextManager.h"
@@ -17,7 +19,7 @@
 MainMenu::MainMenu(Locator& locator) :
 Scene("MainMenu", locator),
 _particleSysID(-1),
-optionsMenu(nullptr)
+_optionsMenu(nullptr)
 { }
 
 MainMenu::~MainMenu()
@@ -241,13 +243,16 @@ void MainMenu::Draw()
 
 void MainMenu::ShowOptionsMenu()
 {
-    if ( optionsMenu == NULL ) {
-        int bW = 140;
-        int bH = 22;
-        int posX = 8+bW+8;
-        int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-30;
-
-        optionsMenu = new UIMenu(posX, posY, bW, bH, "Options");
+    if (_optionsMenu == nullptr)
+    {
+        GUI* gui = _locator.Get<GUI>();
+        const glm::ivec2 menuItemSize = glm::ivec2(140, 22);
+        glm::vec3 menuItemPos = glm::vec3(300, 300, 0);
+        _optionsMenu = gui->CreateWidget<Menu>();
+        _optionsMenu->setName("Options");
+        _optionsMenu->GetTransform().SetPosition(menuItemPos);
+        _optionsMenu->SetSize(menuItemSize);
+        
         // Get all the options and add them in to our menu
         std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
         std::map<const std::string, Attribute*>::iterator it;
@@ -260,28 +265,47 @@ void MainMenu::ShowOptionsMenu()
             else if ( it->first.substr(0, 2) == "i_" ) { category = "Input"; }
             else if ( it->first.substr(0, 2) == "r_" ) { category = "Renderer"; }
             if ( it->second->IsType<bool>()) {
-                optionsMenu->AddVar<bool>(it->first, &it->second->as<bool>(), category);
+                std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
+                slider->SetSize(menuItemSize);
+                slider->SetBehavior(new SliderBehavior<bool>(it->second->as<bool>()));
+                slider->setLabel(it->first);
+                _optionsMenu->addWidget(slider);
             } else if ( it->second->IsType<int>()) {
-                optionsMenu->AddSlider<int>(it->first, &it->second->as<int>(), 0, 100, category);
+                std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
+                slider->SetSize(menuItemSize);
+                slider->SetBehavior(new SliderBehavior<int>(it->second->as<int>(), 0, 100));
+                slider->setLabel(it->first);
+                _optionsMenu->addWidget(slider);
             } else if ( it->second->IsType<float>()) {
-                optionsMenu->AddSlider<float>(it->first, &it->second->as<float>(), 0.0f, 100.0f, category);
+                std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
+                slider->SetSize(menuItemSize);
+                slider->SetBehavior(new SliderBehavior<float>(it->second->as<float>(), 0.0f, 100.0f));
+                slider->setLabel(it->first);
+                _optionsMenu->addWidget(slider);
             } else if ( it->second->IsType<std::string>()) {
-                optionsMenu->AddVar<std::string>(it->first, &it->second->as<std::string>(), category);
+//                _optionsMenu->AddVar<std::string>(it->first, &it->second->as<std::string>(), category);
             }
         }
-        optionsMenu->AddButton("Defaults", ( [=]() {
+        auto defaultsBtn = _locator.Get<GUI>()->CreateWidget<Button>();
+        defaultsBtn->setLabel("Defaults");
+        defaultsBtn->SetBehavior(new ButtonBehaviorLambda([=](){
             _locator.Get<Options>()->setDefaults();
-        }  ) );
-        optionsMenu->AddButton("Save", ( [=]() {
+        }));
+        _optionsMenu->addWidget(defaultsBtn);
+
+        auto saveBtn = _locator.Get<GUI>()->CreateWidget<Button>();
+        saveBtn->setLabel("Save");
+        saveBtn->SetBehavior(new ButtonBehaviorLambda([=](){
             _locator.Get<Options>()->save();
-        }  ) );
-        optionsMenu->AddButton("Close", ( [=]() {
-            if ( optionsMenu != NULL ) {
-                delete optionsMenu;
-                optionsMenu = NULL;
-            }
-        }  ) );
-        optionsMenu->Sort();
+        }));
+        _optionsMenu->addWidget(saveBtn);
+
+        auto closeBtn = _locator.Get<GUI>()->CreateWidget<Button>();
+        closeBtn->setLabel("Close");
+        closeBtn->SetBehavior(new ButtonBehaviorLambda([=](){
+            RemoveOptionsMenu();
+        }));
+        _optionsMenu->addWidget(closeBtn);
     } else {
         RemoveOptionsMenu();
     }
@@ -289,9 +313,9 @@ void MainMenu::ShowOptionsMenu()
 
 void MainMenu::RemoveOptionsMenu()
 {
-    if (optionsMenu != NULL)
-    {
-        delete optionsMenu;
-        optionsMenu = NULL;
+    if (_optionsMenu) {
+        printf("Removing options...");
+        _locator.Get<GUI>()->DestroyWidget(_optionsMenu);
+        _optionsMenu = nullptr;
     }
 }

@@ -4,11 +4,12 @@
 #include "Scene.h"
 #include "CoreTypes.h"
 #include "Input.h"
-#include "UIMenu.h"
+#include "Menu.h"
 #include "Text.h"
 #include <memory>
 
 class Widget;
+class Menu;
 
 class MainMenu : public Scene
 {
@@ -32,8 +33,7 @@ private:
     int _particleSysID;
     Sprite* testSprite;
     std::vector<std::shared_ptr<Widget>> _widgets;
-    UIMenu* optionsMenu;            // Engine options menu
-    
+    std::shared_ptr<Menu> _optionsMenu;
     std::shared_ptr<Label> _mainMenuLabel;
     
     // Main Menu button callbacks
