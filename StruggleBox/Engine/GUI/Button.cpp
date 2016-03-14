@@ -33,23 +33,29 @@ void Button::Draw(Renderer* renderer)
     
     glm::ivec2 drawPos = glm::ivec2(_transform.GetPosition().x-(_size.x*0.5),
                                     _transform.GetPosition().y-(_size.y*0.5));
+    float z = _transform.GetPosition().z;
+
     // Pixel perfect outer border (should render with 1px shaved off corners)
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+1),
                            glm::vec2(drawPos.x, drawPos.y+_size.y-1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER  );   // Left
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Left
     renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x-1, drawPos.y+_size.y-1),
                            glm::vec2(drawPos.x+_size.x-1, drawPos.y+1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Right
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Right
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+_size.y-1),
                            glm::vec2(drawPos.x+_size.x-2, drawPos.y+_size.y-1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Top
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Top
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y),
                            glm::vec2(drawPos.x+_size.x-2, drawPos.y),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Bottom
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Bottom
     // Inner gradient fill
     Color gradColTop = COLOR_UI_GRADIENT_TOP;
     Color gradColBottom = COLOR_UI_GRADIENT_BOTTOM;
@@ -69,13 +75,15 @@ void Button::Draw(Renderer* renderer)
     }
     renderer->DrawGradientY(Rect2D(drawPos.x, drawPos.y+1, _size.x-1, _size.y-1),
                             gradColTop,
-                            gradColBottom);
+                            gradColBottom,
+                            z);
     // Inside border
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     renderer->Draw2DRect(Rect2D(drawPos.x+1, drawPos.y+1, _size.x-2, _size.y-2),
                          COLOR_UI_BORDER_INNER,
-                         COLOR_NONE);
+                         COLOR_NONE,
+                         z);
     renderer->Render2DLines();
     
     // Label
@@ -110,6 +118,14 @@ void Button::OnInteract(const bool interact,
         if (_behavior) { _behavior->Trigger(); }
     }
     _pressed = interact;
+}
+
+void Button::setVisibility(const bool visible)
+{
+    _visible = visible;
+    if (_label) {
+        _label->setVisible(_visible);
+    }
 }
 
 void Button::setLabel(const std::string text)

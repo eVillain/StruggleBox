@@ -269,19 +269,19 @@ void MainMenu::ShowOptionsMenu()
                 slider->SetSize(menuItemSize);
                 slider->SetBehavior(new SliderBehavior<bool>(it->second->as<bool>()));
                 slider->setLabel(it->first);
-                _optionsMenu->addWidget(slider);
+                _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<int>()) {
                 std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
                 slider->SetSize(menuItemSize);
                 slider->SetBehavior(new SliderBehavior<int>(it->second->as<int>(), 0, 100));
                 slider->setLabel(it->first);
-                _optionsMenu->addWidget(slider);
+                _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<float>()) {
                 std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
                 slider->SetSize(menuItemSize);
                 slider->SetBehavior(new SliderBehavior<float>(it->second->as<float>(), 0.0f, 100.0f));
                 slider->setLabel(it->first);
-                _optionsMenu->addWidget(slider);
+                _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<std::string>()) {
 //                _optionsMenu->AddVar<std::string>(it->first, &it->second->as<std::string>(), category);
             }

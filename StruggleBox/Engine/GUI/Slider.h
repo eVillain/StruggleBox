@@ -20,6 +20,8 @@ public:
     virtual void OnInteract(const bool interact,
                             const glm::ivec2& coord);
     virtual void OnDrag(const glm::ivec2& coord);
+    
+    virtual void setVisibility(const bool visible);
     // Attach a behavior to make the button do something when pressed
     void SetBehavior( ISliderBehavior* behavior ) { _behavior = behavior; };
     void setLabel(const std::string text);

@@ -20,6 +20,7 @@ public:
 
     virtual void OnInteract(const bool interact,
                             const glm::ivec2& coord);
+    virtual void setVisibility(const bool visible);
     
     /// Attaches a behavior to make the button do something when pressed
     void SetBehavior(ButtonBehavior* behavior) { _behavior = behavior; }

@@ -94,6 +94,14 @@ void Slider::OnDrag(const glm::ivec2& coord)
     CheckSliderPress(coord);
 }
 
+void Slider::setVisibility(const bool visible)
+{
+    _visible = visible;
+    if (_label) {
+        _label->setVisible(_visible);
+    }
+}
+
 void Slider::setLabel(const std::string text)
 {
     _name = text;

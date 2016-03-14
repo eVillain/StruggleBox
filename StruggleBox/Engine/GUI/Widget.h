@@ -25,6 +25,8 @@ public:
     /* Override these for different cursor events */
     /// Focus is true when the cursor is over a widget
     virtual void SetFocus(const bool focus) { _focus = focus; };
+    
+    virtual void setVisibility(const bool visible) { _visible = visible; }
     /// When clicked/pressed
     virtual void OnInteract(const bool interact,
                             const glm::ivec2& coord) { };
