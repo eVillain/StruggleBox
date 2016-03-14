@@ -1,5 +1,6 @@
 #include "TextVertBuffer.h"
 #include "FontAtlas.h"
+#include "Log.h"
 
 typedef struct {
     GLfloat x,y,z,w;
@@ -25,7 +26,7 @@ _size(0)
                           sizeof(TextVertexData),
                           (GLvoid*)(4*sizeof(GLfloat)));
     glBindVertexArray(0);
-    printf("TextVertBuffer generated...\n");
+    Log::Info("[TextVertBuffer] generated\n");
 }
 
 void TextVertBuffer::Buffer(const std::string &text,
@@ -33,8 +34,7 @@ void TextVertBuffer::Buffer(const std::string &text,
                             const int fontSize)
 {
     const GlyphInfo* g = atlas.GetGlyphInfo();
-    printf("TextVertBuffer buffering...\n");
-
+    
     // Cursor coordinates
     float x = 0;
     float y = 0;
@@ -99,7 +99,9 @@ void TextVertBuffer::Buffer(const std::string &text,
             g[*p].tx + g[*p].bw / aw, g[*p].ty + g[*p].bh / ah
         };
     }
-    
+    Log::Info("[TextVertBuffer] buffering %i verts (%i bytes) to GPU\n",
+              _count, sizeof(TextVertexData)*_count);
+
     // Upload verts
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
