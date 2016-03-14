@@ -86,17 +86,17 @@ void Text::Draw()
         {
             case Align_Left:
                 labelOffset = glm::vec3(0.0f,
-                                        -fontSize*0.5f,
+                                        -fontSize*0.35f,    // Magical 0.35f ;)
                                         0.0f);
                 break;
             case Align_Right:
                 labelOffset = glm::vec3(labelSize.x,
-                                        -fontSize*0.5f,
+                                        -fontSize*0.35f,    // Because reasons
                                         0.0f);
                 break;
             case Align_Center:
                 labelOffset = glm::vec3(-labelSize.x*0.5f,
-                                        -fontSize*0.5f,
+                                        -fontSize*0.35f,    // And looks better
                                         0.0f);
             default:
                 break;
