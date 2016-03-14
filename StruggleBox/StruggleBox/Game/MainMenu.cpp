@@ -3,20 +3,11 @@
 #include "FileUtil.h"
 #include "Random.h"
 #include "Timer.h"
-#include "Console.h"
 #include "GUI.h"
 #include "Button.h"
-
-#include "TextureManager.h"
 #include "Options.h"
 #include "Renderer.h"
-#include "RendererGLProg.h"
-#include "LightSystem3D.h"
-
 #include "TextManager.h"
-#include "Camera.h"
-#include "Physics.h"
-
 #include "SceneManager.h"
 #include "Object3DEditor.h"
 #include "LocalGame.h"
