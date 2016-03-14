@@ -201,6 +201,8 @@ void HyperVisor::Terminate()
         _locator.UnMap<SceneManager>();
     }
     
+    if (Console::isVisible()) Console::ToggleVisibility();
+    
     // Clean up any UI elements left behind
     if (_locator.Satisfies<UIManager>()) {
         delete _locator.Get<UIManager>();
