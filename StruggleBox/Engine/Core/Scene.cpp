@@ -20,7 +20,6 @@ void Scene::Initialize()
         _init = true;
         _paused = false;
     }
-    
 }
 
 void Scene::Release(void)

@@ -15,23 +15,23 @@ public:
 
     void AddActiveScene(Scene* theScene);
     void AddInactiveScene(Scene* theScene);
-    Scene& GetActiveScene(void);
-    void InactivateActiveScene(void);
-    void DropActiveScene(void);
-    void ResetActiveScene(void);
-    void RemoveActiveScene(void);
+    Scene& GetActiveScene();
+    void InactivateActiveScene();
+    void DropActiveScene();
+    void ResetActiveScene();
+    void RemoveActiveScene();
     void SetActiveScene(std::string theSceneID);
-    void Cleanup(void);
-    bool IsEmpty(void);
-    std::string GetPreviousSceneName(void);
-    void KillPreviousScene(void);
-    size_t NumScenes(void);
+    void Cleanup();
+    bool IsEmpty();
+    std::string GetPreviousSceneName();
+    void KillPreviousScene();
+    size_t NumScenes();
 private:
     Locator& _locator;
     // Stack to store the current and previously active scenes
-    std::vector<Scene*>   mStack;
+    std::vector<Scene*>   _stack;
     // Stack to store the dead scenes until they properly cleaned up
-    std::vector<Scene*>   mDead;
+    std::vector<Scene*>   _dead;
     
     SceneManager(const SceneManager&);              // Intentionally undefined
     SceneManager& operator=(const SceneManager&);   // Intentionally undefined

@@ -8,8 +8,8 @@ class Locator;
 class Scene
 {
 public:
-    Scene( const std::string sceneID,
-          Locator& locator );
+    Scene(const std::string sceneID,
+          Locator& locator);
     virtual ~Scene() {};
     const std::string GetID() const;
 
@@ -34,8 +34,8 @@ private:
     bool _init;
     bool _paused;
     
-    Scene( const Scene& );            // Intentionally undefined constructor
-    Scene& operator=( const Scene& ); // Intentionally undefined constructor
+    Scene(const Scene&);            // Intentionally undefined constructor
+    Scene& operator=(const Scene&); // Intentionally undefined constructor
 };
 
 #endif /* SCENE_H */

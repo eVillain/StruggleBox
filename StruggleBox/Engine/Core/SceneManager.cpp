@@ -13,12 +13,12 @@ _locator(locator)
 SceneManager::~SceneManager()
 {
     // Drop all active scenes
-    while( !mStack.empty() ) {
+    while( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
         
         // Pop the currently active scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -34,12 +34,12 @@ SceneManager::~SceneManager()
     }
     
     // Delete all our dropped scenes
-    while( !mDead.empty() ) {
+    while( !_dead.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = mDead.back();
+        Scene* aScene = _dead.back();
         
         // Pop the currently active scene off the stack
-        mDead.pop_back();
+        _dead.pop_back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -57,7 +57,7 @@ SceneManager::~SceneManager()
 
 bool SceneManager::IsEmpty()
 {
-    return mStack.empty();
+    return _stack.empty();
 }
 
 void SceneManager::AddActiveScene(Scene* theScene)
@@ -68,17 +68,17 @@ void SceneManager::AddActiveScene(Scene* theScene)
     printf("SceneManager: adding active scene - %s\n", theScene->GetID().c_str() );
 #endif
     // Is there a scene currently running? then Pause it
-    if(!mStack.empty()) {
+    if(!_stack.empty()) {
         // Pause the currently running scene since we are changing the
         // currently active scene to the one provided
-        mStack.back()->Pause();
+        _stack.back()->Pause();
     }
     
     // Add the active scene
-    mStack.push_back(theScene);
+    _stack.push_back(theScene);
     
     // Initialize the new active scene
-    mStack.back()->Initialize();
+    _stack.back()->Initialize();
 }
 
 void SceneManager::AddInactiveScene(Scene* theScene)
@@ -89,15 +89,15 @@ void SceneManager::AddInactiveScene(Scene* theScene)
     printf("SceneManager: adding inactive scene - %s\n", theScene->GetID().c_str() );
 #endif
     // Add the inactive scene to the bottom of the stack
-    mStack.insert(mStack.begin(), theScene);
+    _stack.insert(_stack.begin(), theScene);
 }
 
 Scene& SceneManager::GetActiveScene()
 {
-    if ( mStack.empty() ) {
+    if ( _stack.empty() ) {
         printf("[SceneManager] WARNING: no active scene to get!");
     }
-    return *mStack.back();
+    return *_stack.back();
 }
 
 void SceneManager::InactivateActiveScene()
@@ -106,18 +106,18 @@ void SceneManager::InactivateActiveScene()
     printf("SceneManager: inactivating active scene\n" );
 #endif
     // Is there no currently active scene to drop?
-    if(!mStack.empty()) {
+    if(!_stack.empty()) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
         
         // Pop the currently active scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         
         // Move this now inactive scene to the absolute back of our stack
-        mStack.insert(mStack.begin(), aScene);
+        _stack.insert(_stack.begin(), aScene);
         
         // Don't keep pointers around we don't need anymore
         aScene = NULL;
@@ -131,15 +131,15 @@ void SceneManager::InactivateActiveScene()
     }
     
     // Is there another scene to activate? then call Resume to activate it
-    if(!mStack.empty()) {
+    if(!_stack.empty()) {
         // Has this scene ever been initialized?
-        if( mStack.back()->IsInitialized() ) {
+        if( _stack.back()->IsInitialized() ) {
             // Resume the new active scene
-            mStack.back()->Resume();
+            _stack.back()->Resume();
         }
         else {
             // Initialize the new active scene
-            mStack.back()->Initialize();
+            _stack.back()->Initialize();
         }
     }
 }
@@ -150,9 +150,9 @@ void SceneManager::DropActiveScene()
     printf("SceneManager: dropping active scene\n" );
 #endif
     // Is there no currently active scene to drop?
-    if( !mStack.empty() ) {
+    if( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -163,10 +163,10 @@ void SceneManager::DropActiveScene()
         aScene->Release();
         
         // Pop the currently active scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         
         // Move this now inactive scene to the absolute back of our stack
-        mStack.insert(mStack.begin(), aScene);
+        _stack.insert(_stack.begin(), aScene);
         
         // Don't keep pointers around we don't need anymore
         aScene = NULL;
@@ -180,14 +180,14 @@ void SceneManager::DropActiveScene()
     }
     
     // Is there another scene to activate? then call Resume to activate it
-    if( !mStack.empty() ) {
+    if( !_stack.empty() ) {
         // Has this scene ever been initialized?
-        if( mStack.back()->IsInitialized() ) {
+        if( _stack.back()->IsInitialized() ) {
             // Resume the new active scene
-            mStack.back()->Resume();
+            _stack.back()->Resume();
         } else {
             // Initialize the new active scene
-            mStack.back()->Initialize();
+            _stack.back()->Initialize();
         }
     }
 }
@@ -198,9 +198,9 @@ void SceneManager::ResetActiveScene()
     printf("SceneManager: resetting active scene\n" );
 #endif
     // Is there no currently active scene to reset?
-    if(!mStack.empty()) {
+    if(!_stack.empty()) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
                 
         // Pause the currently active scene
         aScene->Pause();
@@ -229,9 +229,9 @@ void SceneManager::RemoveActiveScene()
     printf("SceneManager: remove active scene\n" );
 #endif
     // Is there no currently active scene to drop?
-    if( !mStack.empty() ) {
+    if( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -240,10 +240,10 @@ void SceneManager::RemoveActiveScene()
         aScene->Release();
         
         // Pop the currently active scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         
         // Move this scene to our dropped stack
-        mDead.push_back(aScene);
+        _dead.push_back(aScene);
         
         // Don't keep pointers around we don't need anymore
         aScene = NULL;
@@ -257,14 +257,14 @@ void SceneManager::RemoveActiveScene()
     }
     
     // Is there another scene to activate? then call Resume to activate it
-    if( !mStack.empty() ) {
+    if( !_stack.empty() ) {
         // Has this scene ever been initialized?
-        if(mStack.back()->IsInitialized()) {
+        if(_stack.back()->IsInitialized()) {
             // Resume the new active scene
-            mStack.back()->Resume();
+            _stack.back()->Resume();
         } else {
             // Initialize the new active scene
-            mStack.back()->Initialize();
+            _stack.back()->Initialize();
         }
     }
 }
@@ -276,7 +276,7 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
     std::vector<Scene*>::iterator it;
     
     // Find the scene that matches theSceneID
-    for( it=mStack.begin(); it != mStack.end(); it++ ) {
+    for( it=_stack.begin(); it != _stack.end(); it++ ) {
         // Does this scene match theSceneID? then activate it as the new
         // currently active scene
         if( (*it)->GetID() == theSceneID ) {
@@ -284,49 +284,49 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
             Scene* aScene = *it;
             
             // Erase it from the list of previously active scenes
-            mStack.erase(it);
+            _stack.erase(it);
             
             // Is there a scene currently running? then Pause it
-            if( !mStack.empty() ) {
+            if( !_stack.empty() ) {
                 // Pause the currently running scene since we are changing the
                 // currently active scene to the one specified by theSceneID
-                mStack.back()->Pause();
+                _stack.back()->Pause();
             }
             
             // Add the new active scene
-            mStack.push_back(aScene);
+            _stack.push_back(aScene);
             
             // Don't keep pointers we don't need around
             aScene = NULL;
             
             // Has this scene ever been initialized?
-            if( mStack.back()->IsInitialized() ) {
+            if( _stack.back()->IsInitialized() ) {
                 // Resume the new active scene
-                mStack.back()->Resume();
+                _stack.back()->Resume();
             } else {
                 // Initialize the new active scene
-                mStack.back()->Initialize();
+                _stack.back()->Initialize();
             }
             
             // Exit our find loop
             break;
         } // if((*it)->GetID() == theSceneID)
-    } // for(it=mStack.begin(); it < mStack.end(); it++)
+    } // for(it=_stack.begin(); it < _stack.end(); it++)
 }
 
 void SceneManager::Cleanup(void)
 {
     // Remove one of our dead scenes
-    if( !mDead.empty() ) {
+    if( !_dead.empty() ) {
         // Retrieve the dead scene
-        Scene* aScene = mDead.back();
+        Scene* aScene = _dead.back();
         assert(NULL != aScene && "SceneManagerager::HandleCleanup() invalid dropped scene pointer");
 #if DEBUGSCENES
         printf("SceneManager: cleaning up dead scene - %s\n", aScene->GetID().c_str() );
 #endif
         
         // Pop the dead scene off the stack
-        mDead.pop_back();
+        _dead.pop_back();
         
         // Call the DeInit if it hasn't been called yet
         if( aScene->IsInitialized() ) {
@@ -341,7 +341,7 @@ void SceneManager::Cleanup(void)
     }
     
     // Make sure we still have an active scene
-    if( NULL == mStack.back() ) {
+    if( NULL == _stack.back() ) {
         // There are no scenes on the stack, exit the program
         if(_locator.Satisfies<HyperVisor>()) {
             printf("SceneManager: stack was empty on cleanup\n");
@@ -350,33 +350,33 @@ void SceneManager::Cleanup(void)
     }
 }
 std::string SceneManager::GetPreviousSceneName(void) {
-    if ( mStack.size() > 1 ) {
-        std::string theSceneID = (*(mStack.begin()+mStack.size()-2))->GetID();
+    if ( _stack.size() > 1 ) {
+        std::string theSceneID = (*(_stack.begin()+_stack.size()-2))->GetID();
         return theSceneID;
     }
     return "";
 }
 void SceneManager::KillPreviousScene(void) {
-    if ( mStack.size() > 1 ) {
+    if ( _stack.size() > 1 ) {
         // Retrieve the currently active scene
-        Scene* aScene = mStack.back();
+        Scene* aScene = _stack.back();
         // Pop the currently active scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         // Retrieve the previous scene
-        Scene* bScene = mStack.back();
+        Scene* bScene = _stack.back();
         // Pop the previous scene off the stack
-        mStack.pop_back();
+        _stack.pop_back();
         // Pause the currently active scene
         bScene->Pause();
         // Deinitialize the currently active scene before we pop it off the stack
         bScene->Release();
         // Move this scene to our dropped stack
-        mDead.push_back(bScene);
+        _dead.push_back(bScene);
         // Put current scene back
-        mStack.push_back(aScene);
+        _stack.push_back(aScene);
     }
 }
 
 size_t SceneManager::NumScenes(void) {
-    return mStack.size();
+    return _stack.size();
 }
