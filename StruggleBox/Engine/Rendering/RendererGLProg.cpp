@@ -2389,10 +2389,10 @@ void RendererGLProg::DrawPolygon( const int count, const glm::vec2 *verts,
 void RendererGLProg::Draw2DRect( Rect2D rect,
                                Color lineColor, Color fillColor, float z ) {
     GLfloat verts[] = {
-        rect.x          , rect.y,           z, 1,
-        rect.x + rect.w , rect.y,           z, 1,
-        rect.x + rect.w , rect.y + rect.h,  z, 1,
-        rect.x          , rect.y + rect.h,  z, 1,
+        rect.x           , rect.y,           z, 1,
+        rect.x + rect.w-1, rect.y,           z, 1,
+        rect.x + rect.w-1, rect.y + rect.h-1,  z, 1,
+        rect.x           , rect.y + rect.h-1,  z, 1,
     };
     DrawPolygon(4, verts, lineColor, fillColor, 0.0f);
 }
@@ -2452,14 +2452,14 @@ void RendererGLProg::Draw2DProgressBar(glm::vec3 center, float width, float heig
 }
 void RendererGLProg::DrawGradientY( Rect2D rect, Color topColor, Color btmColor, float z ) {
     ColorVertexData vertices[] = {
-        rect.x          , rect.y,           z, 1.0f,
-        btmColor.r, btmColor.g, btmColor.b, btmColor.a,
-        rect.x + rect.w , rect.y,           z, 1.0f,
-        btmColor.r, btmColor.g, btmColor.b, btmColor.a,
-        rect.x + rect.w , rect.y + rect.h,  z, 1.0f,
-        topColor.r, topColor.g, topColor.b, topColor.a,
-        rect.x          , rect.y + rect.h,  z, 1.0f,
-        topColor.r, topColor.g, topColor.b, topColor.a,
+        rect.x                 , rect.y,           z, 1.0f,
+        btmColor.r, btmColor.g , btmColor.b, btmColor.a,
+        rect.x + rect.w-1      , rect.y,           z, 1.0f,
+        btmColor.r, btmColor.g , btmColor.b, btmColor.a,
+        rect.x + rect.w-1      , rect.y + rect.h-1,  z, 1.0f,
+        topColor.r, topColor.g , topColor.b, topColor.a,
+        rect.x                 , rect.y + rect.h-1,  z, 1.0f,
+        topColor.r, topColor.g , topColor.b, topColor.a,
     };
     f_shaderUI_vColor->Begin();
     f_shaderUI_vColor->setUniformM4fv("MVP", mvp2D);
