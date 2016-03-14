@@ -14,7 +14,6 @@ static const int CONSOLE_TEXT_HEIGHT=22;
 
 typedef struct {
     std::string text;
-    int blobID;
     Color color;
     double timeStamp;
 } ConsoleLine;

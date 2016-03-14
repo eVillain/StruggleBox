@@ -45,74 +45,49 @@ void Widget::Draw(Renderer* renderer)
 {
     if ( !_visible ) return;
     
-    //        Rect2D rect = Rect2D(x,y,w,h);
-    //        if ( _texture ) {
-    //            Rect2D texRect;
-    //            if ( _active && !_frameActive.empty() ) {
-    //                texRect = g_uiMan->GetBatch()->GetTexRectForFrame( frameActive );
-    //            } else if ( highlighted && !_framePressed.empty() ) {
-    //                texRect = g_uiMan->GetBatch()->GetTexRectForFrame( framePressed );
-    //            } else {
-    //                texRect = g_uiMan->GetBatch()->GetTexRectForFrame( frameDefault );
-    //            }
-    //            //        const GLint texVerts[] = {
-    //            //            (GLint)texRect.x                , (GLint)(texRect.y - texRect.h),
-    //            //            (GLint)(texRect.x + texRect.w)  , (GLint)(texRect.y - texRect.h),
-    //            //            (GLint)(texRect.x + texRect.w)  , (GLint)texRect.y,
-    //            //            (GLint)texRect.x                , (GLint)texRect.y
-    //            //        };
-    //            renderer->DrawTexture( rect, texRect, texture->GetID() );
-    //        } else {
-    //            Color col = RGBAColor(0.6f,0.6f,0.6f, 1.0f);;
-    //            Color lineCol = COLOR_GREY;
-    //            if ( active ) {
-    //                col = RGBAColor(0.3f,0.3f,0.3f,1.0f);
-    //                lineCol = RGBAColor(0.2f,0.2f,0.2f, 1.0f);
-    //            }
-    //            renderer->Draw2DRect(rect, lineCol, col);
-    //        }
-    //
-    glm::ivec2 drawPos = glm::ivec2(_transform.GetPosition().x-(_size.x*0.5), _transform.GetPosition().y-(_size.y*0.5));
-    //
-    //        // Pixel perfect outer border (should render with 1px shaved off corners)
-    //        primitives.Line(glm::vec2(drawPos.x,drawPos.y),
-    //                        glm::vec2(drawPos.x,drawPos.y+_size.y),
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        _transform.GetPosition().z);  // L
-    //        primitives.Line(glm::vec2(drawPos.x,drawPos.y+_size.y),
-    //                        glm::vec2(drawPos.x+_size.x,drawPos.y+_size.y),
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        _transform.GetPosition().z);  // T
-    //        primitives.Line(glm::vec2(drawPos.x+_size.x+1,drawPos.y+_size.y),
-    //                        glm::vec2(drawPos.x+_size.x+1,drawPos.y),
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        _transform.GetPosition().z);  // R
-    //        primitives.Line(glm::vec2(drawPos.x+_size.x,drawPos.y-1),
-    //                        glm::vec2(drawPos.x,drawPos.y-1),
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        COLOR_UI_BORDER_OUTER,
-    //                        _transform.GetPosition().z);  // B
-    
+    glm::ivec2 drawPos = glm::ivec2(_transform.GetPosition().x-(_size.x*0.5),
+                                    _transform.GetPosition().y-(_size.y*0.5));
+
+    // Pixel perfect outer border (should render with 1px shaved off corners)
+    renderer->Buffer2DLine(glm::vec2(drawPos.x,drawPos.y),
+                           glm::vec2(drawPos.x,drawPos.y+_size.y),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER);   // Left
+    renderer->Buffer2DLine(glm::vec2(drawPos.x,drawPos.y+_size.y),
+                           glm::vec2(drawPos.x+_size.x,drawPos.y+_size.y),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER);   // Top
+    renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x+1,drawPos.y+_size.y),
+                           glm::vec2(drawPos.x+_size.x+1,drawPos.y),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER);   // Right
+    renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x,drawPos.y-1),
+                           glm::vec2(drawPos.x,drawPos.y-1),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER);   // Bottom
     // Inner gradient fill
-    //        Color gradColTop = COLOR_UI_GRADIENT_TOP;
-    //        Color gradColBottom = COLOR_UI_GRADIENT_BOTTOM;
-    //        if ( !_active)
-    //        {
-    //            gradColTop *= 0.9;
-    //            gradColBottom *= 0.9;
-    //        }
-    //        else if (_focus)
-    //        {
-    //            gradColTop *= 1.1;
-    //            gradColBottom *= 1.1;
-    //        }
-    //
-    //        primitives.RectangleGradientY(glm::vec2(_transform.GetPosition().x,_transform.GetPosition().y),
-    //                                      glm::vec2(_size.x,_size.y),
-    //                                      gradColTop,
-    //                                      gradColBottom,
-    //                                      _transform.GetPosition().z);
+    Color gradColTop = COLOR_UI_GRADIENT_TOP;
+    Color gradColBottom = COLOR_UI_GRADIENT_BOTTOM;
+    
+    if ( !_active)
+    {
+        gradColTop *= 0.8;
+        gradColBottom *= 0.8;
+    }
+    else if (_focus)
+    {
+        gradColTop *= 1.1;
+        gradColBottom *= 1.1;
+    }
+
+    renderer->DrawGradientY(Rect2D(drawPos.x, drawPos.y+1, _size.x-1, _size.y-1),
+                            gradColTop,
+                            gradColBottom);
+    // Inside border
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    renderer->Draw2DRect(Rect2D(drawPos.x+1, drawPos.y+1, _size.x-2, _size.y-2),
+                         COLOR_UI_BORDER_INNER,
+                         COLOR_NONE);
+    renderer->Render2DLines();
 }

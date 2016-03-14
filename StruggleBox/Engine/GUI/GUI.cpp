@@ -49,7 +49,7 @@ void GUI::Update(const double deltaTime)
 {
     for (std::shared_ptr<Widget> widget : _widgets)
     {
-        widget->Update();
+        widget->Update(deltaTime);
     }
 }
 

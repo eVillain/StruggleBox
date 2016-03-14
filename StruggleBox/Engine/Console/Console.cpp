@@ -3,10 +3,11 @@
 #include "Renderer.h"
 #include "CommandProcessor.h"
 #include "Options.h"
-#include "TextManager.h"
 #include "FileUtil.h"
 #include "Timer.h"
-#include "UITextInput.h"
+#include "Text.h"
+#include "GUI.h"
+#include "TextInput.h"
 #include <cstdarg>
 #include <iostream>
 #include <sstream>
@@ -14,12 +15,14 @@
 
 std::map<std::string, ConsoleVar*> Console::_cvars;
 std::vector<ConsoleLine> Console::_textLines;
+std::vector<std::shared_ptr<Label>> Console::_textLabels;
 bool Console::_visible;
-UITextInputSCB* Console::_textWidget;
+std::shared_ptr<TextInput> Console::_textInput;
 Locator* Console::_locator = nullptr;
+static std::string _lastInput;
 
 // This thing is just there to force the templates to be compiled
-inline void VarLoadGuard( void )
+inline void VarLoadGuard()
 {
     bool b = true;
     int i = 1;
@@ -37,7 +40,7 @@ void Console::Initialize(Locator& locator)
     PrintString("Console initialized, good times ahead", COLOR_GREEN);
     CommandProcessor::AddCommand("toggleConsole", Command<>(ToggleVisibility));
     CommandProcessor::AddCommand("vars", Command<>([&](){
-        Print("Print vars (%l)", _cvars.size());
+        Print("Console variables: (count %l)", _cvars.size());
         std::map<std::string, ConsoleVar*>::const_iterator it;
         for ( it = _cvars.begin(); it != _cvars.end(); it++ ) {
             PrintString( it->first, COLOR_GREEN );
@@ -47,7 +50,7 @@ void Console::Initialize(Locator& locator)
 
 bool Console::isVisible() { return _visible; };
 
-void Console::Process( std::string command )
+void Console::Process(std::string command)
 {
     // Try to tokenize input text
     std::vector<std::string> tokens;
@@ -115,8 +118,10 @@ void Console::Process( std::string command )
     if ( !wasCVar ) {   // Pass input to command processor
         CommandProcessor::Buffer(command);
     }
-    _textWidget->Clear();
+//    _textWidget->Clear();
+    _textInput->ClearText();
 }
+
 // The mother lode! Parses arguments almost like a real printf()
 // True monkey coding at its best - throw shit at it until something sticks...
 void Console::Print( const char * str, ... ) {
@@ -186,7 +191,10 @@ void Console::Print( const char * str, ... ) {
     // Finally we have a string to dump into the console output
     PrintString( output.str() );
 }
-void Console::PrintString( std::string text, Color col ) {
+
+void Console::PrintString(std::string text,
+                          Color col)
+{
     // No parsing necessary just add timestamp
     std::string timeS = Timer::TimeStamp();
     timeS.append(" - ");
@@ -197,8 +205,7 @@ void Console::PrintString( std::string text, Color col ) {
 void Console::AddMessage(std::string text,
                          Color col)
 {
-    int newLabelID = -1;
-    ConsoleLine newLine = { text, newLabelID, col, 0.0 };
+    ConsoleLine newLine = { text, col, 0.0 };
     _textLines.push_back(newLine);
     Refresh();
 }
@@ -254,69 +261,73 @@ void Console::Show()
     int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
     std::string consoleInfo = "Console:  Ingenium v.";
     consoleInfo.append(_locator->Get<Options>()->getOption<std::string>("version"));
-    _textWidget = new UITextInputSCB(-winWidth/2,
-                                    1.0,
-                                    winWidth-1,
-                                    22,
-                                    CONSOLE_TEXT_DEPTH,
-                                    consoleInfo,
-                                    &Console::OnTextInput);
-    _textWidget->StartTextInput();
+    _textInput = _locator->Get<GUI>()->CreateWidget<TextInput>();
+    _textInput->GetTransform().SetPosition(glm::vec3(0, 11, CONSOLE_TEXT_DEPTH));
+    _textInput->SetSize(glm::ivec2(winWidth-1, 22));
+    _textInput->setDefaultText(consoleInfo);
+    TextInputBehavior* textInputBehavior = new TextInputBehaviorStaticCallback(&Console::OnTextInput);
+    _textInput->SetBehavior(textInputBehavior);
+    _textInput->StartTextInput();
     _visible = true;
     Refresh();
 }
 
 void Console::Hide()
 {
-    TextManager* tMan = _locator->Get<TextManager>();
-    if ( !tMan ) {
-        return;
+    Text* text = _locator->Get<Text>();
+    
+    for (auto label : _textLabels) {
+        text->DestroyLabel(label);
+        label = nullptr;
     }
-    for (size_t i = 0; i < _textLines.size(); i++) {
-        tMan->RemoveText(_textLines[i].blobID);
-        _textLines[i].blobID = -1;
-    }
+    _textLabels.clear();
+    _textLines.clear();
+    
+    _locator->Get<GUI>()->DestroyWidget(_textInput);
+    _textInput = nullptr;
     
     _visible = false;
-    delete _textWidget;
-    _textWidget = NULL;
 }
 
 void Console::Refresh()
 {
-    TextManager* tMan = _locator->Get<TextManager>();
+    if (!_visible) return;
     
+    Text* text = _locator->Get<Text>();
+
     int msgCount = (int)_textLines.size();
-    if (_visible) {
-        int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
-        double labelPosX = -winWidth / 2 + 8;    // left edge of screen
-        double labelPosY = 22+(msgCount + 2)*CONSOLE_FONT_SIZE;
-        // Move existing labels up
-        for (int i = 0; i < msgCount; i++) {
-            if (_textLines[i].blobID != -1) {  // Move text
-                tMan->UpdateTextPos(_textLines[i].blobID,
-                                    glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH));
-            } else {                            // Add line
-                _textLines[i].blobID = tMan->AddText(_textLines[i].text,
-                                                     glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH),
-                                                     true,
-                                                     CONSOLE_FONT_SIZE,
-                                                     FONT_PIXEL,
-                                                     0.0,
-                                                     _textLines[i].color);
-            }
-            labelPosY -= CONSOLE_FONT_SIZE;
+    int winWidth = _locator->Get<Options>()->getOption<int>("r_resolutionX");
+//    int winHeight = _locator->Get<Options>()->getOption<int>("r_resolutionY");
+//    int maxMessages = winHeight / CONSOLE_FONT_SIZE;
+    double labelPosX = -(winWidth / 2) + 8;    // left edge of screen
+    double labelPosY = 22+(msgCount + 2)*CONSOLE_FONT_SIZE;
+    
+    // Move existing labels up
+    for (int i = 0; i < msgCount; i++) {
+        if (_textLabels.size() > i) {
+            // Move text
+            _textLabels[i]->getTransform().SetPosition(glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH));
+        } else {
+            // Add line
+            auto label = text->CreateLabel(_textLines[i].text);
+            label->setFont(Fonts::FONT_PIXEL);
+            label->setFontSize(CONSOLE_FONT_SIZE);
+            label->setAlignment(Align_Left);
+            label->setColor(_textLines[i].color);
+            label->getTransform().SetPosition(glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH));
+            _textLabels.push_back(label);
         }
+        labelPosY -= CONSOLE_FONT_SIZE;
     }
 }
 
-
-void Console::OnTextInput(std::string input)
+void Console::OnTextInput(const std::string& input)
 {
+    _lastInput = input;
     Process(input);
-    _textWidget->Clear();
-    _textWidget->StopTextInput();
-    _textWidget->StartTextInput();
+    _textInput->ClearText();
+    _textInput->StopTextInput();
+    _textInput->StartTextInput();
 }
 
 void Console::Tokenize(const std::string& input,

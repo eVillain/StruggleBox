@@ -37,7 +37,7 @@ public:
     virtual void Draw(Renderer* renderer);
     
     // Update - Unused for most widgets but some will need it
-    virtual const void Update()
+    virtual const void Update(const double deltaTime)
     { /* printf("[Widget] update called, override me!\n"); */ };
     
     Transform& GetTransform() { return _transform; };

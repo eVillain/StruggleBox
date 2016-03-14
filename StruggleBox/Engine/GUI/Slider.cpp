@@ -108,11 +108,6 @@ void Slider::Draw(Renderer* renderer)
     //        }
 }
 
-const void Slider::Update()
-{
-    
-}
-
 // When clicked/pressed
 void Slider::OnInteract( const bool interact, const glm::ivec2& coord )
 {

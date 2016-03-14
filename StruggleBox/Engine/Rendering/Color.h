@@ -53,6 +53,7 @@ const Color COLOR_BROWN = {0.59f, 0.29f, 0.0f, 1.0f};
 const Color COLOR_UI_TEXT = {0.5f,0.5f,0.5f,1.0f};
 const Color COLOR_UI_TEXT_ACTIVE = {0.5f,0.5f,0.8f,1.0f};
 const Color COLOR_UI_TEXT_HIGHLIGHT = {0.8f,0.8f,1.0f,1.0f};
+const Color COLOR_UI_TEXT_INACTIVE = {0.4f,0.4f,0.6f,1.0f};
 
 const Color COLOR_UI_BORDER_OUTER = {0.0f,0.0f,0.0f,1.0f};
 const Color COLOR_UI_BORDER_INNER = {1.0f,1.0f,1.0f,0.25f};

@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Input.h"
 #include "Timer.h"
+#include "Text.h"
 #include <SDL2/SDL.h>
 
 #define TEXTSIZE 16
@@ -13,19 +14,19 @@ Widget(locator)
 {
     _textInputActive = false;
     _behavior = nullptr;
-    
+    _label = _locator.Get<Text>()->CreateLabel("");
     _lastCursorBlink = 0;
 }
 
 TextInput::~TextInput()
 {
-    
+    _locator.Get<Text>()->DestroyLabel(_label);
 }
 
 void TextInput::OnTextInput( const std::string& inputText )
 {
     _inputText = inputText;
-    //        _label->SetText(_inputText);
+    _label->setText(_inputText);
 }
 
 bool TextInput::OnEvent( const std::string& theEvent, const float& amount )
@@ -53,67 +54,37 @@ bool TextInput::OnEvent( const std::string& theEvent, const float& amount )
     return false;
 }
 
-const void TextInput::Draw() const
+void TextInput::Draw(Renderer* renderer)
 {
     if ( !_visible ) return;
-    //        Widget::Draw();
-    //
-    //        Primitives2D& primitives = *Locator::getRenderer().DrawPrimitives2D();
+    Widget::Draw(renderer);
     
-    //        glm::ivec2 drawPos = glm::ivec2(_position.x-(_size.x*0.5), _position.y-(_size.y*0.5));
+    glm::vec2 textSize = _label->getSize();
+    float leftEdge = _transform.GetPosition().x - _size.x*0.5;
+    float cursorX = leftEdge + 8 + textSize.x + 4;
+    unsigned int halfFontHeight = _label->getFontSize() / 2;
+    float labelY = _transform.GetPosition().y;
+    _label->getTransform().SetPositionX(leftEdge + 8);
+    _label->getTransform().SetPositionY(labelY);
+
+    _label->setAlignment(Align_Left);
     
-    //        // Pixel perfect outer border (should render with 1px shaved off corners)
-    //        primitives.Line(glm::vec2(drawPos.x,drawPos.y), glm::vec2(drawPos.x,drawPos.y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER, z);  // L
-    //        primitives.Line(glm::vec2(drawPos.x,drawPos.y+h), glm::vec2(drawPos.x+w,drawPos.y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER, z);  // T
-    //        primitives.Line(glm::vec2(drawPos.x+w+1,drawPos.y+h), glm::vec2(drawPos.x+w+1,drawPos.y), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER, z);  // R
-    //        primitives.Line(glm::vec2(drawPos.x+w,drawPos.y-1), glm::vec2(drawPos.x,drawPos.y-1), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER, z);  // B
-    //
-    //        // Inner gradient fill
-    //        Color gradColTop = COLOR_UI_GRADIENT_TOP;
-    //        Color gradColBottom = COLOR_UI_GRADIENT_BOTTOM;
-    //        if ( _focus)
-    //        {
-    //            if ( _textInputActive )
-    //            {
-    //                gradColTop *= 0.9;
-    //                gradColBottom *= 0.9;
-    //            }
-    //            else
-    //            {
-    //                gradColTop *= 1.1;
-    //                gradColBottom *= 1.1;
-    //            }
-    //        }
-    //        primitives.RectangleGradientY(glm::vec2(_position.x,_position.y),
-    //                                      glm::vec2(_size.x,_size.y),
-    //                                      gradColTop,
-    //                                      gradColBottom,
-    //                                      _position.z);
-    //
-    //        // Inside border
-    //        glEnable(GL_BLEND);
-    //        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //        primitives.RectOutline(glm::vec2(_position.x,_position.y),
-    //                               glm::vec2(_size.x-2,_size.y-2),
-    //                               COLOR_UI_BORDER_INNER,
-    //                               _position.z+1);
-    //
-    //        // Render blinking cursor
-    //        if ( _textInputActive ) {
-    //            if (_cursorBlink)
-    //            {
-    //                // Draw cursor
-    //                glm::vec2 textSize = _label->GetSize();
-    //                Primitives2D& primitives = *Locator::getRenderer().DrawPrimitives2D();
-    //                float cursorX = _label->position.x+textSize.x + 4;
-    //                primitives.Line(glm::vec2(cursorX, _position.y-8+(_size.y-TEXTSIZE)*0.6f),
-    //                                glm::vec2(cursorX , _position.y-8+_size.y-(_size.y-TEXTSIZE)*0.6f),
-    //                                COLOR_WHITE, COLOR_WHITE, _position.z);
-    //            }
-    //        }
+    // Render blinking cursor
+    if ( _textInputActive ) {
+        if (_cursorBlink)
+        {
+            // Draw cursor
+            renderer->Buffer2DLine(glm::vec2(cursorX, _transform.GetPosition().y + halfFontHeight),
+                                   glm::vec2(cursorX, _transform.GetPosition().y - halfFontHeight),
+                                   COLOR_WHITE,
+                                   COLOR_WHITE,
+                                   _transform.GetPosition().z-1);
+        }
+    }
+    renderer->Render2DLines();
 }
 
-const void TextInput::Update()
+const void TextInput::Update(const double deltaTime)
 {
     double timeNow = Timer::Seconds();
     double cursorBlinkDelta = timeNow - _lastCursorBlink;
@@ -151,11 +122,20 @@ void TextInput::SetVisible( const bool visible )
     _visible = visible;
 }
 
-// When clicked/pressed
+void TextInput::setDefaultText(const std::string text)
+{
+    _defaultText = text;
+    if (_inputText.length() == 0)
+    {
+        _label->setText(_defaultText);
+        _label->setColor(COLOR_UI_TEXT_INACTIVE);
+    }
+}
+
 void TextInput::OnInteract( const bool interact, const glm::ivec2& coord )
 {
-    if ( !_focus ) return;
-    if ( !interact && !_textInputActive )
+    if (!_focus) return;
+    if (!interact && !_textInputActive)
     {
         StartTextInput();
     }
@@ -163,27 +143,28 @@ void TextInput::OnInteract( const bool interact, const glm::ivec2& coord )
 
 void TextInput::StartTextInput()
 {
-    if ( _textInputActive ) return;
-    //        Locator::getInput().StartTextInput(this);
-    //        Locator::getInput().RegisterEventObserver(this);
+    if (_textInputActive) return;
+    _locator.Get<Input>()->StartTextInput(this);
+    _locator.Get<Input>()->RegisterEventObserver(this);
     
     _textInputActive = true;
-    if ( _inputText == _defaultText )
+    if (_inputText.length() == 0)
     {
-        ClearText();
+        _label->setText("");
+        _label->setColor(COLOR_UI_TEXT_ACTIVE);
     }
 }
 
 void TextInput::StopTextInput()
 {
-    if ( !_textInputActive ) return;
+    if (!_textInputActive) return;
     _textInputActive = false;
-    //        Locator::getInput().StopTextInput(this);
-    //        Locator::getInput().UnRegisterEventObserver(this);
+    _locator.Get<Input>()->StopTextInput(this);
+    _locator.Get<Input>()->UnRegisterEventObserver(this);
 }
 
 void TextInput::ClearText()
 {
     _inputText.clear();
-    //        _label->SetText(_inputText);
+    _label->setText("");
 }

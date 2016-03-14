@@ -34,20 +34,20 @@ void Button::Draw(Renderer* renderer)
     glm::ivec2 drawPos = glm::ivec2(_transform.GetPosition().x-(_size.x*0.5),
                                     _transform.GetPosition().y-(_size.y*0.5));
     // Pixel perfect outer border (should render with 1px shaved off corners)
-    renderer->Buffer2DLine(glm::vec2(drawPos.x,drawPos.y),
-                           glm::vec2(drawPos.x,drawPos.y+_size.y),
+    renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+1),
+                           glm::vec2(drawPos.x, drawPos.y+_size.y-1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Left
-    renderer->Buffer2DLine(glm::vec2(drawPos.x,drawPos.y+_size.y),
-                           glm::vec2(drawPos.x+_size.x,drawPos.y+_size.y),
-                           COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Top
-    renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x+1,drawPos.y+_size.y),
-                           glm::vec2(drawPos.x+_size.x+1,drawPos.y),
+                           COLOR_UI_BORDER_OUTER  );   // Left
+    renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x-1, drawPos.y+_size.y-1),
+                           glm::vec2(drawPos.x+_size.x-1, drawPos.y+1),
                            COLOR_UI_BORDER_OUTER,
                            COLOR_UI_BORDER_OUTER);   // Right
-    renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x,drawPos.y-1),
-                           glm::vec2(drawPos.x,drawPos.y-1),
+    renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+_size.y-1),
+                           glm::vec2(drawPos.x+_size.x-2, drawPos.y+_size.y-1),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER);   // Top
+    renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y),
+                           glm::vec2(drawPos.x+_size.x-2, drawPos.y),
                            COLOR_UI_BORDER_OUTER,
                            COLOR_UI_BORDER_OUTER);   // Bottom
     // Inner gradient fill
@@ -80,8 +80,8 @@ void Button::Draw(Renderer* renderer)
     
     // Label
     if (_label) {
-        if (_focus)
-        {
+        _label->getTransform().SetPosition(_transform.GetPosition());
+        if (_focus) {
             _label->setColor(COLOR_UI_TEXT_HIGHLIGHT);
         } else {
             if (_pressed) {
@@ -91,7 +91,6 @@ void Button::Draw(Renderer* renderer)
                 _label->setColor(COLOR_UI_TEXT);
             }
         }
-        _label->getTransform().SetPosition(_transform.GetPosition());
     }
 }
 

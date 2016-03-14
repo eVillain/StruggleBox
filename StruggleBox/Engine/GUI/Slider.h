@@ -13,7 +13,6 @@ public:
     virtual void SetPosition(const glm::ivec2& position);
     virtual void SetVisible(const bool visible);
     virtual void Draw(Renderer* renderer);
-    virtual const void Update();
     // When clicked/pressed
     virtual void OnInteract( const bool interact, const glm::ivec2& coord );
     virtual void OnDrag( const glm::ivec2& coord );
