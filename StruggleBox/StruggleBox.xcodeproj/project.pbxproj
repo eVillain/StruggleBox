@@ -285,6 +285,7 @@
 		D90F47E81C8EA3160018BE71 /* Console.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E41C8EA3160018BE71 /* Console.h */; settings = {ASSET_TAGS = (); }; };
 		D90F47E91C8EA3160018BE71 /* ConsoleDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E51C8EA3160018BE71 /* ConsoleDefs.h */; settings = {ASSET_TAGS = (); }; };
 		D90F47EA1C8EA3160018BE71 /* ConsoleVar.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E61C8EA3160018BE71 /* ConsoleVar.h */; settings = {ASSET_TAGS = (); }; };
+		D917C0E31C97A3760083FB69 /* CharacterEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */; settings = {ASSET_TAGS = (); }; };
 		D92031361C91DF5300217562 /* Button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031201C91DF5300217562 /* Button.cpp */; settings = {ASSET_TAGS = (); }; };
 		D92031371C91DF5300217562 /* Button.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031211C91DF5300217562 /* Button.h */; settings = {ASSET_TAGS = (); }; };
 		D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031221C91DF5300217562 /* ButtonBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -1010,6 +1011,8 @@
 		D90F47E41C8EA3160018BE71 /* Console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Console.h; sourceTree = "<group>"; };
 		D90F47E51C8EA3160018BE71 /* ConsoleDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleDefs.h; sourceTree = "<group>"; };
 		D90F47E61C8EA3160018BE71 /* ConsoleVar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleVar.h; sourceTree = "<group>"; };
+		D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CharacterEditor.cpp; sourceTree = "<group>"; };
+		D917C0E21C97A3760083FB69 /* CharacterEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CharacterEditor.h; sourceTree = "<group>"; };
 		D92031201C91DF5300217562 /* Button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Button.cpp; sourceTree = "<group>"; };
 		D92031211C91DF5300217562 /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		D92031221C91DF5300217562 /* ButtonBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonBehavior.cpp; sourceTree = "<group>"; };
@@ -1327,6 +1330,8 @@
 				D90366431C8BD20100E6AD07 /* Object3DEditor.h */,
 				D90366441C8BD20100E6AD07 /* Particle3DEditor.cpp */,
 				D90366451C8BD20100E6AD07 /* Particle3DEditor.h */,
+				D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */,
+				D917C0E21C97A3760083FB69 /* CharacterEditor.h */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -2103,6 +2108,7 @@
 				D9B069451C89CEDE00D10277 /* main.cpp in Sources */,
 				D94133601C96F7010029205B /* EditorScene.cpp in Sources */,
 				D903669E1C8BD20100E6AD07 /* UIInventory.cpp in Sources */,
+				D917C0E31C97A3760083FB69 /* CharacterEditor.cpp in Sources */,
 				D903669A1C8BD20100E6AD07 /* CollisionDispatcher.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

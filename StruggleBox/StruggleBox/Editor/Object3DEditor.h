@@ -32,21 +32,21 @@ public:
     // Overridden from Scene
     void Initialize();
     void ReInitialize();
-    void Release( void );
-    void Pause( void );
-    void Resume( void );
-    void Update ( double delta );
-    void Draw( void );
+    void Release();
+    void Pause();
+    void Resume();
+    void Update(double delta);
+    void Draw();
     
     // Editing stuff
-    void UpdateEditCursor( void );
+    void UpdateEditCursor();
     void Cancel();
     void Create();
     void Erase();
     // Input callbacks
     void HandleKey(int key, int action);
-    void HandleMouseWheel( double mWx, double mWy );
-    void HandleJoyAxis( int axis, float value );
+    void HandleMouseWheel(double mWx, double mWy);
+    void HandleJoyAxis(int axis, float value);
     void UpdateMovement();
     // Labels and buttons
     void ExitEditor();

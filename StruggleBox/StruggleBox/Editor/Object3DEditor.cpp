@@ -1217,7 +1217,6 @@ bool Object3DEditor::OnEvent( const std::string& theEvent, const float& amount )
             SDL_ShowCursor(grabCursor);
         } else if ( theEvent == "Jump" ) {
         }
-        
     }
     if (theEvent == INPUT_MOVE_FORWARD) {
         joyMoveInput.y += amount;
@@ -1251,8 +1250,7 @@ bool Object3DEditor::OnMouse( const glm::ivec2& coord )
         }
         _locator.Get<Camera>()->CameraRotate(rotationX, rotationY);
         // Reset the mouse position to the centre of the window each frame
-        //        Renderer* renderer = _locator.Get<Renderer>();
-        //        glfwSetCursorPos(renderer->GetWindow(), midWindowX, midWindowY);
+        _locator.Get<Input>()->MoveCursor(glm::ivec2(midWindowX, midWindowY));
         cursor.posScrn = glm::vec2();
     } else {
         cursor.posScrn = glm::vec2(coord.x-midWindowX, midWindowY-coord.y);
