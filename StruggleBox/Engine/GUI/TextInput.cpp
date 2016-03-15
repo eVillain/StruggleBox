@@ -57,6 +57,7 @@ bool TextInput::OnEvent( const std::string& theEvent, const float& amount )
 void TextInput::Draw(Renderer* renderer)
 {
     if ( !_visible ) return;
+    
     Widget::Draw(renderer);
     
     glm::vec2 textSize = _label->getSize();
@@ -95,12 +96,12 @@ const void TextInput::Update(const double deltaTime)
     }
 }
 
-void TextInput::SetFocus( const bool focus)
+void TextInput::SetFocus(const bool focus)
 {
     _focus = focus;
 }
 
-void TextInput::SetActive( const bool active )
+void TextInput::SetActive(const bool active)
 {
     if ( active != _textInputActive ) {
         if ( _active && _textInputActive ) // Widget made inactive with input active
@@ -111,14 +112,16 @@ void TextInput::SetActive( const bool active )
     _active = active;
 }
 
-void TextInput::SetVisible( const bool visible )
+void TextInput::SetVisible(const bool visible)
 {
-    if ( _visible != visible ) {
-        if ( _visible && _textInputActive ) // Widget made invisible with input active
-        {
-            StopTextInput();
-        }
+    if (_visible &&
+        !visible &&
+        _textInputActive)
+    {
+        StopTextInput();
     }
+    
+    _label->setVisible(visible);
     _visible = visible;
 }
 

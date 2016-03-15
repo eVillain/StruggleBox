@@ -119,11 +119,11 @@ bool TextureManager::UnloadTexture( const std::string fileName ) {
         if ( textureMap[fileName]->refCount == 0 ) {
             // unload it's texture, and remove it from the map
             textureMap[fileName]->Unload();
-            Log::Debug("[TextureMan] Releasing texture %s\n", fileName.c_str());
+            Log::Debug("[TextureMan] Releasing texture %s", fileName.c_str());
             delete textureMap[fileName];
             textureMap.erase(fileName);
         } else {
-            Log::Debug("[TextureMan] Not unloading texture %s yet, refcount: %i\n",
+            Log::Debug("[TextureMan] Not unloading texture %s yet, refcount: %i",
                        fileName.c_str(), textureMap[fileName]->refCount);
         }
     } else {
@@ -140,13 +140,13 @@ bool TextureManager::UnloadTexture(Texture* tex)
         if ( i->second == tex ) {
             if ( textureMap[i->first]->refCount == 0 ) {
                 textureMap[i->first]->Unload();
-                Log::Debug("[TextureMan] Releasing texture %s\n",
+                Log::Debug("[TextureMan] Releasing texture %s",
                            i->first.c_str());
 				                textureMap.erase(i->first);
                 delete tex;
                 return true;
             } else {
-                Log::Debug("[TextureMan] Not releasing texture %s yet, refcount: %i\n",
+                Log::Debug("[TextureMan] Not releasing texture %s yet, refcount: %i",
                            i->first.c_str(), textureMap[i->first]->refCount);
             }
         }

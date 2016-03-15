@@ -69,8 +69,8 @@ void UITextInputBase::CursorHover(const glm::ivec2 coord, bool highlight)
     highlighted = highlight;
 }
 
-void UITextInputBase::Draw( Renderer* renderer )
-{
+void UITextInputBase::Draw(Renderer* renderer)
+{    
     // Pixel perfect outer border (should render with 1px shaved off corners)
     renderer->Buffer2DLine(glm::vec2(x,y+1), glm::vec2(x,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);       // L
     renderer->Buffer2DLine(glm::vec2(x,y+h), glm::vec2(x+w-1,y+h), COLOR_UI_BORDER_OUTER, COLOR_UI_BORDER_OUTER);   // T

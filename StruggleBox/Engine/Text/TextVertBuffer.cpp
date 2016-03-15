@@ -26,7 +26,7 @@ _size(0)
                           sizeof(TextVertexData),
                           (GLvoid*)(4*sizeof(GLfloat)));
     glBindVertexArray(0);
-    Log::Info("[TextVertBuffer] generated\n");
+    Log::Debug("[TextVertBuffer] generated");
 }
 
 void TextVertBuffer::Buffer(const std::string &text,
@@ -99,7 +99,7 @@ void TextVertBuffer::Buffer(const std::string &text,
             g[*p].tx + g[*p].bw / aw, g[*p].ty + g[*p].bh / ah
         };
     }
-    Log::Info("[TextVertBuffer] buffering %i verts (%i bytes) to GPU\n",
+    Log::Debug("[TextVertBuffer] buffering %i verts (%i bytes) to GPU",
               _count, sizeof(TextVertexData)*_count);
 
     // Upload verts
