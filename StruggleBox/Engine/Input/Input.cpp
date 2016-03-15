@@ -58,7 +58,7 @@ void Input::UnRegisterEventObserver(InputEventListener* observer)
     {
         _inputEventListeners.erase(it);
     } else {
-        Log::Warn("[Input] tried to unregister non-existent InputEventListener (%lu in stack)\n", _inputEventListeners.size());
+        Log::Warn("[Input] tried to unregister non-existent InputEventListener (%lu in stack)", _inputEventListeners.size());
     }
 }
 
@@ -77,7 +77,7 @@ void Input::UnRegisterMouseObserver(MouseEventListener* observer)
     {
         _mouseEventListeners.erase(it);
     } else {
-        Log::Warn("[Input] tried to unregister non-existent MouseEventListener (%lu in stack)\n", _mouseEventListeners.size());
+        Log::Warn("[Input] tried to unregister non-existent MouseEventListener (%lu in stack)", _mouseEventListeners.size());
     }
 }
 
