@@ -1,44 +1,40 @@
 #ifndef PARTICLE3D_EDITOR_H
 #define PARTICLE3D_EDITOR_H
 
-#include "Scene.h"
+#include "EditorScene.h"
 #include "CoreTypes.h"
 #include "Input.h"
 #include "UIMenu.h"
 #include "ParticleSys.h"
 
-class Particle3DEditor :
-public Scene, public InputEventListener, public MouseEventListener
+class Particle3DEditor : public EditorScene
 {
 public:
     Particle3DEditor(Locator& locator);
-    virtual ~Particle3DEditor( void );
+    ~Particle3DEditor();
     
-    // Overridden from Scene
-    void Initialize( void );
-    void ReInitialize( void );
-    void Release( void );
-    void Pause( void );
-    void Resume( void );
-    void Update ( double delta );
-    void Draw( void );
-    
-    void ShowEditor( void );
-    void RemoveEditor( void );
-    
-    float timeScaler;
+    void Initialize();
+    void ReInitialize();
+    void Release();
+    void Pause();
+    void Resume();
+    void Update(double deltaTime);
+    void Draw();
     
 private:
+    void ShowEditor();
+    void RemoveEditor();
+    
+    float timeScaler;
 
     std::vector<ButtonBase*> buttonVect;
     UIMenu* fileMenu;                   // New/Load/Save/Quit
     UIMenu* particleMenu;               // Particle system vars
     UIFileMenuBase* fileSelectMenu;     // Open file menu
-    UIMenu* optionsMenu;                // Engine options menu
     UIMenu* cameraMenu;                 // Camera menu
     UIButtonLambda *optionsBtn, *cameraBtn;
 
-    ParticleSys* m_particleSys;
+    ParticleSys* _particleSys;
     
     glm::vec2 joyMoveInput;
     glm::vec2 joyRotateInput;
@@ -51,10 +47,6 @@ private:
     // Editor button callbacks
     void LoadSystemButtonCB( void*data );
     void CloseEditorButtonCB( void*data );
-    void OpenOptionsButtonCB( void*data );
-    
-    void ShowOptionsMenu();
-    void RemoveOptionsMenu();
     
     void LoadSystem( const std::string fileName );
     void SaveSystem( const std::string fileName );

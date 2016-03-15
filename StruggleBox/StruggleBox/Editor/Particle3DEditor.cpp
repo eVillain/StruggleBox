@@ -24,17 +24,15 @@
 
 
 Particle3DEditor::Particle3DEditor(Locator& locator) :
-Scene("Editor", locator)
+EditorScene(locator)
 {
-    optionsMenu = NULL;
     fileMenu = NULL;
     fileSelectMenu = NULL;
     cameraMenu = NULL;
     cameraBtn = NULL;
     particleMenu = NULL;
     optionsBtn = NULL;
-    optionsMenu = NULL;
-    m_particleSys = NULL;
+    _particleSys = NULL;
     timeScaler = 1.0f;
     
     Camera& camera = *_locator.Get<Camera>();
@@ -48,15 +46,13 @@ Scene("Editor", locator)
 
 Particle3DEditor::~Particle3DEditor()
 {
-    _locator.Get<ParticleManager>()->RemoveSystem(m_particleSys);
+    _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
 }
 
 void Particle3DEditor::Initialize()
 {
-    Scene::Initialize();
+    EditorScene::Initialize();
     ShowEditor();
-    _locator.Get<Input>()->RegisterEventObserver(this);
-    _locator.Get<Input>()->RegisterMouseObserver(this);
 }
 
 void Particle3DEditor::ReInitialize()
@@ -64,30 +60,21 @@ void Particle3DEditor::ReInitialize()
     ShowEditor();
 }
 
-void Particle3DEditor::Pause( void )
+void Particle3DEditor::Pause()
 {
-    if ( !IsPaused() )
-    {
-        Scene::Pause();
-        RemoveEditor();
-        _locator.Get<Input>()->UnRegisterEventObserver(this);
-        _locator.Get<Input>()->UnRegisterMouseObserver(this);
-    }
+    EditorScene::Pause();
+    RemoveEditor();
+}
 
-}
-void Particle3DEditor::Resume( void )
+void Particle3DEditor::Resume()
 {
-    if ( IsPaused() )
-    {
-        Scene::Resume();
-        ShowEditor();
-        _locator.Get<Input>()->RegisterEventObserver(this);
-        _locator.Get<Input>()->RegisterMouseObserver(this);
-    }
+    EditorScene::Resume();
+    ShowEditor();
 }
+
 void Particle3DEditor::Release()
 {
-    Scene::Release();
+    EditorScene::Release();
 }
 void Particle3DEditor::ShowEditor()
 {
@@ -101,13 +88,13 @@ void Particle3DEditor::ShowEditor()
     if ( !optionsBtn ) {
         // Options menu button
         optionsBtn = UIButtonLambda::CreateButton("", (_locator.Get<Options>()->getOption<int>("r_resolutionX")/2)-(padding+32), posY-8, 32, 32, ( [=]() {
-            if ( optionsMenu == NULL ) { this->ShowOptionsMenu(); }
-            else { this->RemoveOptionsMenu(); }
+//            if ( optionsMenu == NULL ) { this->ShowOptionsMenu(); }
+//            else { this->RemoveOptionsMenu(); }
         } ), BUTTON_TYPE_DEFAULT, true, "OptionsDefault.png", "OptionsActive.png", "OptionsPressed.png" );
     }
-    if ( optionsMenu != NULL ) {
-        ButtonBase::ToggleButton((ButtonBase*)optionsBtn);
-    }
+//    if ( optionsMenu != NULL ) {
+//        ButtonBase::ToggleButton((ButtonBase*)optionsBtn);
+//    }
     if ( !cameraBtn ) {
         // Camera menu
         int resX = _locator.Get<Options>()->getOption<int>("r_resolutionX");
@@ -117,7 +104,7 @@ void Particle3DEditor::ShowEditor()
             if ( cameraMenu == NULL ) {
                 int pX = posX+bW+8;
                 int pY = resY/2-(bH+8);
-                if ( optionsMenu ) pY -= (optionsMenu->h+optionsMenu->contentHeight+8);
+//                if ( optionsMenu ) pY -= (optionsMenu->h+optionsMenu->contentHeight+8);
                 cameraMenu = new UIMenu(pX, pY, bW, bH, "Camera");
                 Camera& camera = *_locator.Get<Camera>();
                 cameraMenu->AddVar<bool>("Auto Rotate", &camera.autoRotate, "Camera" );
@@ -156,7 +143,7 @@ void Particle3DEditor::ShowEditor()
         fileMenu->ClearWidgets();
     }
     fileMenu->AddButton("Quit", (  [=]() { _locator.Get<SceneManager>()->RemoveActiveScene(); }  ) );
-    if ( !m_particleSys ) {
+    if ( !_particleSys ) {
         fileMenu->AddButton("New", ( [=]() {
             // New system TODO
             ShowEditor();
@@ -195,10 +182,10 @@ void Particle3DEditor::ShowEditor()
             fileSelectMenu = NULL;
         }
     }  ) );
-    if ( m_particleSys ) {
+    if ( _particleSys ) {
         fileMenu->AddButton("Close", ( [=]() {
-            _locator.Get<ParticleManager>()->RemoveSystem(m_particleSys);
-            m_particleSys = NULL;
+            _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
+            _particleSys = NULL;
             ShowEditor();
         } ) );
     }
@@ -208,7 +195,7 @@ void Particle3DEditor::ShowEditor()
     } else {
         particleMenu->ClearWidgets();
     }
-    if ( m_particleSys ) {
+    if ( _particleSys ) {
         if ( _locator.Get<ParticleManager>()->IsPaused() ) {
             particleMenu->AddButton("Resume", ( [=]() {
                 _locator.Get<ParticleManager>()->Resume();
@@ -222,71 +209,71 @@ void Particle3DEditor::ShowEditor()
         }
         float posScale = 16.0f;
         float sizeScale = 2.0f;
-        if ( m_particleSys->dimensions == ParticleSys2D ) {
+        if ( _particleSys->dimensions == ParticleSys2D ) {
             posScale = 640.0f;
             sizeScale = 512.0f;
         }
-        particleMenu->AddButton("active", ( [=]() { m_particleSys->active = !m_particleSys->active; } ) );
-        particleMenu->AddVar("particleCount", &m_particleSys->particleCount);
-        particleMenu->AddVar("blendFuncSrc", &m_particleSys->blendFuncSrc);
-        particleMenu->AddVar("blendFuncDst", &m_particleSys->blendFuncDst);
+        particleMenu->AddButton("active", ( [=]() { _particleSys->active = !_particleSys->active; } ) );
+        particleMenu->AddVar("particleCount", &_particleSys->particleCount);
+        particleMenu->AddVar("blendFuncSrc", &_particleSys->blendFuncSrc);
+        particleMenu->AddVar("blendFuncDst", &_particleSys->blendFuncDst);
 
-        particleMenu->AddSlider("emitterType", &m_particleSys->emitterType, 0, 1);
-        particleMenu->AddSlider("dimensions", &m_particleSys->dimensions, 0, 1);
-        particleMenu->AddSlider("lighting", &m_particleSys->lighting, 0, 1);
+        particleMenu->AddSlider("emitterType", &_particleSys->emitterType, 0, 1);
+        particleMenu->AddSlider("dimensions", &_particleSys->dimensions, 0, 1);
+        particleMenu->AddSlider("lighting", &_particleSys->lighting, 0, 1);
         
-        particleMenu->AddSlider("PosX", &m_particleSys->position.x, -posScale, posScale, "Position");
-        particleMenu->AddSlider("PosY", &m_particleSys->position.y, -posScale, posScale, "Position");
-        particleMenu->AddSlider("PosZ", &m_particleSys->position.z, -posScale, posScale, "Position");
+        particleMenu->AddSlider("PosX", &_particleSys->position.x, -posScale, posScale, "Position");
+        particleMenu->AddSlider("PosY", &_particleSys->position.y, -posScale, posScale, "Position");
+        particleMenu->AddSlider("PosZ", &_particleSys->position.z, -posScale, posScale, "Position");
 
         
-        particleMenu->AddSlider("maxParticles", &m_particleSys->maxParticles, 1, 10000);
+        particleMenu->AddSlider("maxParticles", &_particleSys->maxParticles, 1, 10000);
         particleMenu->AddSlider("Time Scale", &timeScaler, 0.0f, 2.0f);
-        particleMenu->AddSlider("duration", &m_particleSys->duration, -1.0f, 100.0f);
-        particleMenu->AddSlider("emissionRate", &m_particleSys->emissionRate, 0.0f, 10000.0f);
+        particleMenu->AddSlider("duration", &_particleSys->duration, -1.0f, 100.0f);
+        particleMenu->AddSlider("emissionRate", &_particleSys->emissionRate, 0.0f, 10000.0f);
 
-        particleMenu->AddSlider("angle", &m_particleSys->angle, -360.0f, 360.0f);
-        particleMenu->AddSlider("angleVar", &m_particleSys->angleVar, -360.0f, 360.0f);
+        particleMenu->AddSlider("angle", &_particleSys->angle, -360.0f, 360.0f);
+        particleMenu->AddSlider("angleVar", &_particleSys->angleVar, -360.0f, 360.0f);
 
-        particleMenu->AddSlider("finishParticleSize", &m_particleSys->finishParticleSize, 0.0f, sizeScale);
-        particleMenu->AddSlider("finishParticleSizeVar", &m_particleSys->finishParticleSizeVar, 0.0f, sizeScale);
+        particleMenu->AddSlider("finishParticleSize", &_particleSys->finishParticleSize, 0.0f, sizeScale);
+        particleMenu->AddSlider("finishParticleSizeVar", &_particleSys->finishParticleSizeVar, 0.0f, sizeScale);
 
 
-        particleMenu->AddSlider("lifeSpan", &m_particleSys->lifeSpan, 0.0f, 10.0f);
-        particleMenu->AddSlider("lifeSpanVar", &m_particleSys->lifeSpanVar, 0.0f, 10.0f);
+        particleMenu->AddSlider("lifeSpan", &_particleSys->lifeSpan, 0.0f, 10.0f);
+        particleMenu->AddSlider("lifeSpanVar", &_particleSys->lifeSpanVar, 0.0f, 10.0f);
         
-        particleMenu->AddSlider("rotEnd", &m_particleSys->rotEnd,           0.0f, 360.0f, "Rotation");
-        particleMenu->AddSlider("rotEndVar", &m_particleSys->rotEndVar,     0.0f, 360.0f, "Rotation");
-        particleMenu->AddSlider("rotStart", &m_particleSys->rotStart,       0.0f, 360.0f, "Rotation");
-        particleMenu->AddSlider("rotStartVar", &m_particleSys->rotStartVar, 0.0f, 360.0f, "Rotation");
+        particleMenu->AddSlider("rotEnd", &_particleSys->rotEnd,           0.0f, 360.0f, "Rotation");
+        particleMenu->AddSlider("rotEndVar", &_particleSys->rotEndVar,     0.0f, 360.0f, "Rotation");
+        particleMenu->AddSlider("rotStart", &_particleSys->rotStart,       0.0f, 360.0f, "Rotation");
+        particleMenu->AddSlider("rotStartVar", &_particleSys->rotStartVar, 0.0f, 360.0f, "Rotation");
         
-        particleMenu->AddSlider("sourcePosX", &m_particleSys->sourcePos.x, -posScale, posScale, "SourcePos");
-        particleMenu->AddSlider("sourcePosY", &m_particleSys->sourcePos.y, -posScale, posScale, "SourcePos");
-        particleMenu->AddSlider("sourcePosZ", &m_particleSys->sourcePos.z, -posScale, posScale, "SourcePos");
-        particleMenu->AddSlider("sourcePosVarX", &m_particleSys->sourcePosVar.x, -posScale, posScale, "SourcePosVar");
-        particleMenu->AddSlider("sourcePosVarY", &m_particleSys->sourcePosVar.y, -posScale, posScale, "SourcePosVar");
-        particleMenu->AddSlider("sourcePosVarZ", &m_particleSys->sourcePosVar.z, -posScale, posScale, "SourcePosVar");
+        particleMenu->AddSlider("sourcePosX", &_particleSys->sourcePos.x, -posScale, posScale, "SourcePos");
+        particleMenu->AddSlider("sourcePosY", &_particleSys->sourcePos.y, -posScale, posScale, "SourcePos");
+        particleMenu->AddSlider("sourcePosZ", &_particleSys->sourcePos.z, -posScale, posScale, "SourcePos");
+        particleMenu->AddSlider("sourcePosVarX", &_particleSys->sourcePosVar.x, -posScale, posScale, "SourcePosVar");
+        particleMenu->AddSlider("sourcePosVarY", &_particleSys->sourcePosVar.y, -posScale, posScale, "SourcePosVar");
+        particleMenu->AddSlider("sourcePosVarZ", &_particleSys->sourcePosVar.z, -posScale, posScale, "SourcePosVar");
 
-        particleMenu->AddSlider("startSize", &m_particleSys->startSize, 0.0f, sizeScale, "StartSize");
-        particleMenu->AddSlider("startSizeVar", &m_particleSys->startSizeVar, 0.0f, sizeScale, "StartSize");
+        particleMenu->AddSlider("startSize", &_particleSys->startSize, 0.0f, sizeScale, "StartSize");
+        particleMenu->AddSlider("startSizeVar", &_particleSys->startSizeVar, 0.0f, sizeScale, "StartSize");
         
-        if ( m_particleSys->emitterType == ParticleSysGravity ) {
-            particleMenu->AddSlider("gravityX", &m_particleSys->gravity.x, -100.0f, 100.0f, "Gravity");
-            particleMenu->AddSlider("gravityY", &m_particleSys->gravity.y, -100.0f, 100.0f, "Gravity");
-            particleMenu->AddSlider("gravityZ", &m_particleSys->gravity.z, -100.0f, 100.0f, "Gravity");
-            particleMenu->AddSlider("speed", &m_particleSys->speed, -1000.0f, 1000.0f, "Speed");
-            particleMenu->AddSlider("speedVar", &m_particleSys->speedVar, 0.0f, 100.0f, "Speed");
-            particleMenu->AddSlider("radialAccel", &m_particleSys->radialAccel, 0.0f, 100.0f);
-            particleMenu->AddSlider("radialAccelVar", &m_particleSys->radialAccelVar, 0.0f, 100.0f);
-            particleMenu->AddSlider("tangAccel", &m_particleSys->tangAccel, -100.0f, 100.0f);
-            particleMenu->AddSlider("tangAccelVar", &m_particleSys->tangAccelVar, -100.0f, 100.0f);
+        if ( _particleSys->emitterType == ParticleSysGravity ) {
+            particleMenu->AddSlider("gravityX", &_particleSys->gravity.x, -100.0f, 100.0f, "Gravity");
+            particleMenu->AddSlider("gravityY", &_particleSys->gravity.y, -100.0f, 100.0f, "Gravity");
+            particleMenu->AddSlider("gravityZ", &_particleSys->gravity.z, -100.0f, 100.0f, "Gravity");
+            particleMenu->AddSlider("speed", &_particleSys->speed, -1000.0f, 1000.0f, "Speed");
+            particleMenu->AddSlider("speedVar", &_particleSys->speedVar, 0.0f, 100.0f, "Speed");
+            particleMenu->AddSlider("radialAccel", &_particleSys->radialAccel, 0.0f, 100.0f);
+            particleMenu->AddSlider("radialAccelVar", &_particleSys->radialAccelVar, 0.0f, 100.0f);
+            particleMenu->AddSlider("tangAccel", &_particleSys->tangAccel, -100.0f, 100.0f);
+            particleMenu->AddSlider("tangAccelVar", &_particleSys->tangAccelVar, -100.0f, 100.0f);
         } else /*if ( emitterType == ParticleSysRadial )*/ {
-            particleMenu->AddSlider("maxRadius", &m_particleSys->maxRadius, 0.0f, 100.0f);
-            particleMenu->AddSlider("maxRadiusVar", &m_particleSys->maxRadiusVar, 0.0f, 100.0f);
-            particleMenu->AddSlider("minRadius", &m_particleSys->minRadius, 0.0f, 100.0f);
-            particleMenu->AddSlider("minRadiusVar", &m_particleSys->minRadiusVar, 0.0f, 100.0f);
-            particleMenu->AddSlider("rotPerSec", &m_particleSys->rotPerSec, 0.0f, 100.0f);
-            particleMenu->AddSlider("rotPerSecVar", &m_particleSys->rotPerSecVar, 0.0f, 100.0f);
+            particleMenu->AddSlider("maxRadius", &_particleSys->maxRadius, 0.0f, 100.0f);
+            particleMenu->AddSlider("maxRadiusVar", &_particleSys->maxRadiusVar, 0.0f, 100.0f);
+            particleMenu->AddSlider("minRadius", &_particleSys->minRadius, 0.0f, 100.0f);
+            particleMenu->AddSlider("minRadiusVar", &_particleSys->minRadiusVar, 0.0f, 100.0f);
+            particleMenu->AddSlider("rotPerSec", &_particleSys->rotPerSec, 0.0f, 100.0f);
+            particleMenu->AddSlider("rotPerSecVar", &_particleSys->rotPerSecVar, 0.0f, 100.0f);
         }
     }
 }
@@ -317,13 +304,15 @@ void Particle3DEditor::RemoveEditor()
     }
 }
 
-void Particle3DEditor::Update ( double delta )
+void Particle3DEditor::Update(double deltaTime)
 {
+    EditorScene::Update(deltaTime);
     
-    UpdateMovement();
-    _locator.Get<TextManager>()->Update(delta);
+//    UpdateMovement();
+//    _locator.Get<TextManager>()->Update(deltaTime);
+    
     // Update particle systems
-    _locator.Get<ParticleManager>()->Update( delta*timeScaler );
+    _locator.Get<ParticleManager>()->Update(deltaTime*timeScaler);
 
 }
 void Particle3DEditor::Draw( void )
@@ -366,7 +355,6 @@ void Particle3DEditor::Draw( void )
     glDisable(GL_STENCIL_TEST);
 
     // Render particles
-//    hyperVisor.GetParticleMan()->Draw(renderer);
     _locator.Get<ParticleManager>()->DrawLitParticles(renderer);
 
     // Apply lighting
@@ -419,59 +407,6 @@ void Particle3DEditor::CloseEditorButtonCB( void*data ) {
     }
 }
 
-void Particle3DEditor::ShowOptionsMenu() {
-    if ( optionsMenu == NULL ) {
-        int bW = 140;
-        int bH = 22;
-        int posX = 8+bW+8;
-        int posY = _locator.Get<Options>()->getOption<int>("r_resolutionY")/2-30;
-
-        optionsMenu = new UIMenu(posX, posY, bW, bH, "Options");
-        // Get all the options and add them in to our menu
-        std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
-        std::map<const std::string, Attribute*>::iterator it;
-        for ( it = allOptions.begin(); it != allOptions.end(); it++ ) {
-            std::string category = "";
-            if ( it->first.substr(0, 2) == "a_" ) { category = "Audio"; }
-            else if ( it->first.substr(0, 2) == "d_" ) { category = "Debug"; }
-            else if ( it->first.substr(0, 2) == "e_" ) { category = "Editor"; }
-            else if ( it->first.substr(0, 2) == "h_" ) { category = "HyperVisor"; }
-            else if ( it->first.substr(0, 2) == "i_" ) { category = "Input"; }
-            else if ( it->first.substr(0, 2) == "r_" ) { category = "Renderer"; }
-            if ( it->second->IsType<bool>()) {
-                optionsMenu->AddVar<bool>(it->first, &it->second->as<bool>(), category);
-            } else if ( it->second->IsType<int>()) {
-                optionsMenu->AddSlider<int>(it->first, &it->second->as<int>(), 0, 100, category);
-            } else if ( it->second->IsType<float>()) {
-                optionsMenu->AddSlider<float>(it->first, &it->second->as<float>(), 0.0f, 100.0f, category);
-            } else if ( it->second->IsType<std::string>()) {
-                optionsMenu->AddVar<std::string>(it->first, &it->second->as<std::string>(), category);
-            }
-        }
-        optionsMenu->AddButton("Defaults", ( [=]() {
-            _locator.Get<Options>()->setDefaults();
-        }  ) );
-        optionsMenu->AddButton("Save", ( [=]() {
-            _locator.Get<Options>()->save();
-        }  ) );
-        optionsMenu->AddButton("Close", ( [=]() {
-            if ( optionsMenu != NULL ) {
-                delete optionsMenu;
-                optionsMenu = NULL;
-            }
-        }  ) );
-        optionsMenu->Sort();
-    } else {
-        RemoveOptionsMenu();
-    }
-}
-void Particle3DEditor::RemoveOptionsMenu() {
-    if ( optionsMenu != NULL ) {
-        delete optionsMenu;
-        optionsMenu = NULL;
-    }
-}
-
 //========================
 //  Input event handling
 //========================
@@ -494,6 +429,8 @@ void Particle3DEditor::UpdateMovement() {
 bool Particle3DEditor::OnEvent(const std::string& theEvent,
                                const float& amount)
 {
+    if (EditorScene::OnEvent(theEvent, amount)) { return true; }
+
     if (theEvent == INPUT_MOVE_FORWARD) {
         joyMoveInput.y += amount;
     } else if (theEvent == INPUT_MOVE_BACK) {
@@ -533,33 +470,15 @@ bool Particle3DEditor::OnEvent(const std::string& theEvent,
 
 bool Particle3DEditor::OnMouse(const glm::ivec2& coord)
 {
-    double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
-    double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
-        
-        float mouseSensitivity = 0.1f;
-        float rotationX = (midWindowX-coord.x)*mouseSensitivity;
-        float rotationY = (midWindowY-coord.y)*mouseSensitivity;
-        
-        if ( _locator.Get<Camera>()->thirdPerson) {
-            rotationX *= -1.0f;
-            rotationY *= -1.0f;
-        }
-        _locator.Get<Camera>()->CameraRotate(rotationX, rotationY);
-        // Reset the mouse position to the centre of the window each frame
-//        Renderer* renderer = _locator.Get<Renderer>();
-//        glfwSetCursorPos(renderer->GetWindow(), midWindowX, midWindowY);
-//        cursor.posScrn = glm::vec2();
-    } else {
-//        cursor.posScrn = glm::vec2(mx-midWindowX, midWindowY-my);
-    }
+    if (EditorScene::OnMouse(coord)) { return true; }
+    
     return false;
 }
 
 void Particle3DEditor::LoadSystem(const std::string fileName) {
     if ( fileSelectMenu ) { delete fileSelectMenu; fileSelectMenu = NULL; }
-    if ( m_particleSys ) {
-        _locator.Get<ParticleManager>()->RemoveSystem(m_particleSys);
+    if ( _particleSys ) {
+        _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
     }
 
     if ( fileName.length() > 0 ) {
@@ -568,20 +487,20 @@ void Particle3DEditor::LoadSystem(const std::string fileName) {
         std::string shortFileName = fileName;
         if ( fileNPos ) shortFileName = fileName.substr(fileNPos+1);
 		printf("Loading system: %s from %s - %s\n", fileName.c_str(), particlePath.c_str(), shortFileName.c_str());
-        m_particleSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, shortFileName);
+        _particleSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, shortFileName);
     }
     ShowEditor();
 }
 
 void Particle3DEditor::SaveSystem(const std::string fileName) {
     if ( fileSelectMenu ) { delete fileSelectMenu; fileSelectMenu = NULL; }
-    if ( !m_particleSys ) { return; }
+    if ( !_particleSys ) { return; }
     if ( fileName.length() > 0 ) {
         std::string particlePath = FileUtil::GetPath().append("Data/Particles/");
         size_t fileNPos = fileName.find_last_of("/");
         std::string shortFileName = fileName;
         if ( fileNPos ) shortFileName = fileName.substr(fileNPos+1);
-        m_particleSys->SaveToFile(particlePath, shortFileName);
+        _particleSys->SaveToFile(particlePath, shortFileName);
     }
     ShowEditor();
 }

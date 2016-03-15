@@ -5,37 +5,44 @@
 #include "Timer.h"
 #include "GUI.h"
 #include "Button.h"
+#include "TextInput.h"
 #include "Slider.h"
-
+#include "Log.h"
 #include "Options.h"
 #include "Renderer.h"
 #include "TextManager.h"
 #include "SceneManager.h"
-#include "Object3DEditor.h"
 #include "LocalGame.h"
+#include "Object3DEditor.h"
 #include "Particle3DEditor.h"
+#include "CharacterEditor.h"
 #include "ParticleManager.h"
 
 MainMenu::MainMenu(Locator& locator) :
 Scene("MainMenu", locator),
 _particleSysID(-1),
 _optionsMenu(nullptr)
-{ }
+{
+    Log::Info("[MainMenu] created");
+}
 
 MainMenu::~MainMenu()
 {
     _locator.Get<ParticleManager>()->RemoveSystem(_particleSysID);
     _particleSysID = -1;
+    Log::Info("[MainMenu] destroyed");
 }
 
 void MainMenu::Initialize()
 {
+    Log::Info("[MainMenu] initializing...");
     Scene::Initialize();
     ShowMainMenu();
 }
 
 void MainMenu::ReInitialize()
 {
+    Log::Info("[MainMenu] re-initializing...");
     ShowMainMenu();
 }
 
@@ -43,6 +50,7 @@ void MainMenu::Pause()
 {
     if (!IsPaused())
     {
+        Log::Info("[MainMenu] pausing...");
         Scene::Pause();
         RemoveMainMenu();
     }
@@ -52,6 +60,7 @@ void MainMenu::Resume()
 {
     if (IsPaused())
     {
+        Log::Info("[MainMenu] resuming...");
         Scene::Resume();
         ShowMainMenu();
     }
@@ -60,6 +69,7 @@ void MainMenu::Resume()
 void MainMenu::Release()
 {
     Scene::Release();
+    Log::Info("[MainMenu] releasing...");
 }
 
 void MainMenu::ShowMainMenu()
@@ -68,7 +78,7 @@ void MainMenu::ShowMainMenu()
     _mainMenuLabel->setFont(Fonts::FONT_FELL_NORMAL);
     _mainMenuLabel->setFontSize(96);
     _mainMenuLabel->getTransform().SetPositionY(200);
-    _mainMenuLabel->getTransform().SetPositionZ(30);
+    _mainMenuLabel->getTransform().SetPositionZ(0);
 
     // Check what the previous engine state was
     std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
@@ -128,6 +138,10 @@ void MainMenu::ShowMainMenu()
         editObjectsBtn->SetSize(buttonSize);
         editObjectsBtn->setLabel("Edit Objects");
         
+        std::shared_ptr<Button> editCharactersBtn = gui->CreateWidget<Button>();
+        editCharactersBtn->SetSize(buttonSize);
+        editCharactersBtn->setLabel("Edit Characters");
+        
         std::shared_ptr<Button> editParticlesBtn = gui->CreateWidget<Button>();
         editParticlesBtn->SetSize(buttonSize);
         editParticlesBtn->setLabel("Edit Particles");
@@ -142,6 +156,11 @@ void MainMenu::ShowMainMenu()
         });
         editObjectsBtn->SetBehavior(editObjectsBehavior);
         
+        ButtonBehaviorLambda* editCharactersBehavior = new ButtonBehaviorLambda([=](){
+            _locator.Get<SceneManager>()->AddActiveScene(new CharacterEditor(_locator));
+        });
+        editCharactersBtn->SetBehavior(editCharactersBehavior);
+        
         ButtonBehaviorLambda* editParticlesBehavior = new ButtonBehaviorLambda([=](){
             _locator.Get<SceneManager>()->AddActiveScene(new Particle3DEditor(_locator));
         });
@@ -151,11 +170,14 @@ void MainMenu::ShowMainMenu()
         buttonPos.y -= buttonSize.y;
         editObjectsBtn->GetTransform().SetPosition(buttonPos);
         buttonPos.y -= buttonSize.y;
+        editCharactersBtn->GetTransform().SetPosition(buttonPos);
+        buttonPos.y -= buttonSize.y;
         editParticlesBtn->GetTransform().SetPosition(buttonPos);
         buttonPos.y -= buttonSize.y * 2;
         
         _widgets.push_back(startGameBtn);
         _widgets.push_back(editObjectsBtn);
+        _widgets.push_back(editCharactersBtn);
         _widgets.push_back(editParticlesBtn);
     }
     
@@ -211,6 +233,8 @@ void MainMenu::ShowMainMenu()
         testSys->sourcePosVar = glm::vec3(W,0,0);
         _particleSysID = _locator.Get<ParticleManager>()->GetSystemID(testSys);
     }
+    
+    Log::Info("[MainMenu] added main menu content");
 }
 
 void MainMenu::RemoveMainMenu()
@@ -225,6 +249,11 @@ void MainMenu::RemoveMainMenu()
     
     _locator.Get<ParticleManager>()->RemoveSystem(_particleSysID);
     _particleSysID = -1;
+    
+    if (_optionsMenu) {
+        RemoveOptionsMenu();
+    }
+    Log::Info("[MainMenu] removed main menu content");
 }
 
 void MainMenu::Update(double delta)
@@ -246,9 +275,10 @@ void MainMenu::ShowOptionsMenu()
     if (_optionsMenu == nullptr)
     {
         GUI* gui = _locator.Get<GUI>();
-        const glm::ivec2 menuItemSize = glm::ivec2(140, 22);
+        const glm::ivec2 menuItemSize = glm::ivec2(240, 24);
         glm::vec3 menuItemPos = glm::vec3(300, 300, 0);
         _optionsMenu = gui->CreateWidget<Menu>();
+
         _optionsMenu->setName("Options");
         _optionsMenu->GetTransform().SetPosition(menuItemPos);
         _optionsMenu->SetSize(menuItemSize);
@@ -265,11 +295,14 @@ void MainMenu::ShowOptionsMenu()
             else if ( it->first.substr(0, 2) == "i_" ) { category = "Input"; }
             else if ( it->first.substr(0, 2) == "r_" ) { category = "Renderer"; }
             if ( it->second->IsType<bool>()) {
-                std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
-                slider->SetSize(menuItemSize);
-                slider->SetBehavior(new SliderBehavior<bool>(it->second->as<bool>()));
-                slider->setLabel(it->first);
-                _optionsMenu->addWidget(slider, category);
+                std::shared_ptr<Button> button = gui->CreateWidget<Button>();
+                button->SetSize(menuItemSize);
+                button->SetBehavior(new ButtonBehaviorLambda([&](){
+                    it->second->as<bool>() = !it->second->as<bool>();
+                    button->setLabel(it->first + ": " + (it->second->as<bool>() ? "true" : "false"));
+                }));
+                button->setLabel(it->first + ": " + (it->second->as<bool>() ? "true" : "false"));
+                _optionsMenu->addWidget(button, category);
             } else if ( it->second->IsType<int>()) {
                 std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
                 slider->SetSize(menuItemSize);
@@ -283,7 +316,10 @@ void MainMenu::ShowOptionsMenu()
                 slider->setLabel(it->first);
                 _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<std::string>()) {
-//                _optionsMenu->AddVar<std::string>(it->first, &it->second->as<std::string>(), category);
+                std::shared_ptr<Button> button = gui->CreateWidget<Button>();
+                button->SetSize(menuItemSize);
+                button->setLabel(it->first + ": " + it->second->as<std::string>());
+                _optionsMenu->addWidget(button, category);
             }
         }
         auto defaultsBtn = _locator.Get<GUI>()->CreateWidget<Button>();
@@ -306,6 +342,7 @@ void MainMenu::ShowOptionsMenu()
             RemoveOptionsMenu();
         }));
         _optionsMenu->addWidget(closeBtn);
+        Log::Debug("[MaineMenu] options menu created, use count: %lu", _optionsMenu.use_count());
     } else {
         RemoveOptionsMenu();
     }
@@ -314,8 +351,8 @@ void MainMenu::ShowOptionsMenu()
 void MainMenu::RemoveOptionsMenu()
 {
     if (_optionsMenu) {
-        printf("Removing options...");
         _locator.Get<GUI>()->DestroyWidget(_optionsMenu);
+        Log::Debug("[MainMenu] removed options menu, use count %lu", _optionsMenu.use_count());
         _optionsMenu = nullptr;
     }
 }
