@@ -105,7 +105,13 @@ void Slider::setVisibility(const bool visible)
 void Slider::setLabel(const std::string text)
 {
     _name = text;
-    _label->setText(_name);
+    if ( _behavior ) {
+        _behavior->SetValue(_sliderValue);
+        _label->setText(_name + ": " + _behavior->GetValueString());
+    }
+    else {
+        _label->setText(_name + "(empty): " + StringUtil::DoubleToString(_sliderValue));
+    }
 }
 
 void Slider::CheckSliderPress(const glm::ivec2 &coord)
