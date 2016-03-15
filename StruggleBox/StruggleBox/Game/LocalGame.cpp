@@ -373,10 +373,6 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             joyMoveInput.x += -amount;
     } else if (theEvent == INPUT_MOVE_RIGHT) {
             joyMoveInput.x += amount;
-    } else if (theEvent == "MoveUp") {
-            joyMoveInput.y += -amount;
-    } else if (theEvent == "MoveDown") {
-            joyMoveInput.y += amount;
     } else if (theEvent == INPUT_GRAB_CURSOR ) {
         if ( amount == -1.0f ) {
             bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
@@ -385,13 +381,8 @@ bool LocalGame::OnEvent(const std::string &theEvent,
         }
     } else if ( theEvent == INPUT_JUMP ) {
         if ( world && world->playerID ) {
-            if ( amount > 0.5f ) {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
-                player->GetAttributeDataPtr<bool>("jumping") = true;
-            } else {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
-                player->GetAttributeDataPtr<bool>("jumping") = false;
-            }
+            Entity* player = world->entityMan->GetEntity(world->playerID);
+            player->GetAttributeDataPtr<bool>("jumping") = (amount > 0.5f);
         }
     } else if ( theEvent == INPUT_LOOK_DOWN ) {
         _locator.Get<Camera>()->shakeAmount -= 1.0f;
@@ -409,8 +400,8 @@ bool LocalGame::OnEvent(const std::string &theEvent,
 
 bool LocalGame::OnMouse(const glm::ivec2 &coord)
 {
-    double midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2.0;     // Middle of the window horizontally
-    double midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2.0;    // Middle of the window vertically
+    int midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2;     // Middle of the window horizontally
+    int midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2;    // Middle of the window vertically
     if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
         
         float mouseSensitivity = 0.01f;
