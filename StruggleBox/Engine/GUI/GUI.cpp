@@ -41,7 +41,7 @@ void GUI::DestroyWidget(std::shared_ptr<Widget> widget)
     {
         _widgets.erase(it);
     } else {
-        Log::Debug("[GUI] tried to destroy a non-existent widget!");
+        Log::Warn("[GUI] tried to destroy a non-existent widget!");
     }
 }
 
@@ -55,6 +55,9 @@ void GUI::Update(const double deltaTime)
 
 void GUI::Draw(Renderer* renderer)
 {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
     for (std::shared_ptr<Widget> widget : _widgets)
     {
         widget->Draw(renderer);
@@ -97,14 +100,15 @@ bool GUI::OnCursorRelease(const glm::ivec2& coord)
     {
         // Widgets can be removed during this loop execution so we have this
         // ugly sanity check here
-        if (widget == nullptr) continue;
+        if (widget == nullptr) {
+            Log::Warn("[GUI] widget in list was null, WTF happened here?!?!");
+            continue;
+        }
         
         if(widget->Contains(coord))
         {
             widget->OnInteract(false, coord);
-            interacted = true;
-        } else {
-            widget->OnInteract(false, coord);
+            return true;
         }
     }
     return interacted;
@@ -130,15 +134,15 @@ bool GUI::OnCursorHover(const glm::ivec2& coord)
 bool GUI::OnEvent(const std::string& event,
                   const float& amount)
 {
-    if ( event == "shoot")
+    if (event == "shoot")
     {
-        if ( amount == 1 )
+        if (amount == 1)
         {
             bool clickedWidget = OnCursorPress(_currentMouseCoord);
             if (clickedWidget) { _mouseDrag = true; }
             return clickedWidget;
         }
-        else if ( amount == -1 )
+        else if (amount == -1)
         {
             _mouseDrag = false;
             return OnCursorRelease(_currentMouseCoord);

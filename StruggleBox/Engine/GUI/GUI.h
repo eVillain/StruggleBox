@@ -22,7 +22,7 @@ public:
     std::shared_ptr<WidgetType> CreateWidget()
     {
         std::shared_ptr<WidgetType> widget = std::shared_ptr<WidgetType>(new WidgetType(*_locator));
-        _widgets.push_back(std::dynamic_pointer_cast<Widget>(widget));
+        _widgets.push_back(widget);
         return widget;
     }
     
@@ -49,7 +49,7 @@ private:
     const glm::ivec2 ConvertSDLCoordToScreen(const glm::ivec2& coord) const;
 
     std::vector<std::shared_ptr<Widget>> _widgets;
-    
+
     // Dependencies
     Locator* _locator;
     Input* _input;

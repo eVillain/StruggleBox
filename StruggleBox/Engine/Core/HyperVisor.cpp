@@ -124,13 +124,16 @@ void HyperVisor::Run()
         // Update camera before beginning rendering
         m_camera->Update( deltaTime );
         
+        gui->Update(deltaTime);
+
         // Setup rendering for new frame
         renderer->BeginDraw();
-        
+
         if (!sceneManager->IsEmpty())
         {
             Scene& currentScene = sceneManager->GetActiveScene();
-            currentScene.Update( deltaTime );
+            currentScene.Update(deltaTime);
+            
             currentScene.Draw();
             renderer->PostProcess();
         }
