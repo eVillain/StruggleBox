@@ -33,6 +33,7 @@ public:
     const int getContentHeight() { return _contentHeight; }
     
 private:
+    Menu* _parent;
     std::vector<std::shared_ptr<Widget>> _widgets;
     std::map<std::string, std::shared_ptr<Menu>> _subMenus;
     std::shared_ptr<Label> _label;

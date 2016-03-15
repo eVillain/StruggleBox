@@ -7,6 +7,7 @@
 
 Menu::Menu(Locator& locator) :
 Widget(locator),
+_parent(nullptr),
 _contentHeight(4),
 _label(nullptr),
 _minimizeButton(nullptr),
@@ -25,14 +26,15 @@ Menu::~Menu()
     for (auto subMenu : _subMenus)
     {
         gui->DestroyWidget(subMenu.second);
-        subMenu.second = nullptr;
+//        subMenu.second = nullptr;
     }
     _subMenus.clear();
     
     for (auto widget : _widgets)
     {
         gui->DestroyWidget(widget);
-        widget = nullptr;
+        printf("Menu removed widget, use count %lu \n", widget.use_count());
+//        widget = nullptr;
     }
     _widgets.clear();
     
@@ -57,34 +59,42 @@ void Menu::Draw(Renderer* renderer)
     
     glm::ivec2 drawPos = glm::ivec2(_transform.GetPosition().x-(_size.x*0.5),
                                     _transform.GetPosition().y-(_size.y*0.5)-(_contentHeight));
+    float z = _transform.GetPosition().z;
+
     // Box for content under menu bar
     // Pixel perfect outer border (should render with 1px shaved off corners)
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+1),
                            glm::vec2(drawPos.x, drawPos.y+_contentHeight-1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Left
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Left
     renderer->Buffer2DLine(glm::vec2(drawPos.x+_size.x-1, drawPos.y+_contentHeight-1),
                            glm::vec2(drawPos.x+_size.x-1, drawPos.y+1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Right
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Right
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y),
                            glm::vec2(drawPos.x+_size.x-2, drawPos.y),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Top
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Top
     renderer->Buffer2DLine(glm::vec2(drawPos.x, drawPos.y+_contentHeight-1),
                            glm::vec2(drawPos.x+_size.x-2, drawPos.y+_contentHeight-1),
                            COLOR_UI_BORDER_OUTER,
-                           COLOR_UI_BORDER_OUTER);   // Bottom
+                           COLOR_UI_BORDER_OUTER,
+                           z);   // Bottom
     
     renderer->DrawGradientY(Rect2D(drawPos.x, drawPos.y+1, _size.x-1, _contentHeight-1),
                             COLOR_UI_GRADIENT_TOP,
-                            COLOR_UI_GRADIENT_BOTTOM);
+                            COLOR_UI_GRADIENT_BOTTOM,
+                            z);
     // Inside border
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     renderer->Draw2DRect(Rect2D(drawPos.x+1, drawPos.y+1, _size.x-2, _contentHeight-2),
                          COLOR_UI_BORDER_INNER,
-                         COLOR_NONE);
+                         COLOR_NONE,
+                         z);
     renderer->Render2DLines();
     
     if (_label)
@@ -125,22 +135,27 @@ void Menu::addWidget(std::shared_ptr<Widget> widget,
 {
     if (subMenuName.length() == 0) {
         _widgets.push_back(widget);
+        widget->setVisibility(!_minimized);
+        if (_parent) _parent->refresh();
+        else refresh();
     } else {
         if (_subMenus.find(subMenuName) == _subMenus.end()) {
             createSubMenu(subMenuName);
         }
         _subMenus[subMenuName]->addWidget(widget);
     }
-    refresh();
 }
 
 void Menu::createSubMenu(const std::string& name)
 {
     auto subMenu = _locator.Get<GUI>()->CreateWidget<Menu>();
     subMenu->setName(name);
+    subMenu->minimize();
     _subMenus[name] = subMenu;
+    subMenu->_parent = this;
     subMenu->_draggable = false;
-    refresh();
+    if (_parent) _parent->refresh();
+    else refresh();
 }
 
 void Menu::refresh()
@@ -149,22 +164,19 @@ void Menu::refresh()
     {
         glm::vec3 minimizeBtnPos = glm::vec3(_transform.GetPosition());
         minimizeBtnPos.x += (_size.x/2) - 12;
-        minimizeBtnPos.z += 1;
+//        minimizeBtnPos.z += 1;
         _minimizeButton->GetTransform().SetPosition(minimizeBtnPos);
         _minimizeButton->SetSize(glm::ivec2(_size.y-6));
     }
     if (_label)
     {
         _label->getTransform().SetPosition(_transform.GetPosition());
-        _label->getTransform().SetPositionZ(_transform.GetPosition().z+2);
         _label->setFontSize(_size.y - 8);
     }
     glm::vec3 widgetPos = _transform.GetPosition();
     widgetPos.y -= 2;
     widgetPos.z += 1;
     _contentHeight = 4;
-    
-    if (!_minimized)
     
     for (auto subMenu : _subMenus)
     {
@@ -190,6 +202,7 @@ void Menu::minimize()
     if (!_minimizeable) return;
     
     _minimized = !_minimized;
+    
     for (auto subMenu : _subMenus)
     {
         subMenu.second->setVisibility(!_minimized);
@@ -199,12 +212,15 @@ void Menu::minimize()
     {
         widget->setVisibility(!_minimized);
     }
-    if (_minimized) {
+    
+    if (_minimized)
+    {
         _minimizeButton->setLabel("v");
     } else {
         _minimizeButton->setLabel("^");
     }
     refresh();
+    if (_parent) _parent->refresh();
 }
 
 void Menu::setMinimizeable(const bool minimizeable)
@@ -232,18 +248,21 @@ void Menu::setVisibility(const bool visible)
     
     _label->setVisible(_visible);
     
-    if (_minimizeButton) {
+    if (_minimizeButton)
+    {
         _minimizeButton->setVisibility(_visible);
     }
     
+    bool contentVisibility = _visible && !_minimized;
+    
     for (auto subMenu : _subMenus)
     {
-        subMenu.second->setVisibility(_visible);
+        subMenu.second->setVisibility(contentVisibility);
     }
     
     for (auto widget : _widgets)
     {
-        widget->setVisibility(visible);
+        widget->setVisibility(contentVisibility);
     }
 }
 
