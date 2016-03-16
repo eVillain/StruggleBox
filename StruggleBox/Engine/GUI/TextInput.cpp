@@ -85,7 +85,7 @@ void TextInput::Draw(Renderer* renderer)
     renderer->Render2DLines();
 }
 
-const void TextInput::Update(const double deltaTime)
+void TextInput::Update(const double deltaTime)
 {
     double timeNow = Timer::Seconds();
     double cursorBlinkDelta = timeNow - _lastCursorBlink;
@@ -96,12 +96,12 @@ const void TextInput::Update(const double deltaTime)
     }
 }
 
-void TextInput::SetFocus(const bool focus)
+void TextInput::setFocus(const bool focus)
 {
     _focus = focus;
 }
 
-void TextInput::SetActive(const bool active)
+void TextInput::setActive(const bool active)
 {
     if ( active != _textInputActive ) {
         if ( _active && _textInputActive ) // Widget made inactive with input active
@@ -112,7 +112,7 @@ void TextInput::SetActive(const bool active)
     _active = active;
 }
 
-void TextInput::SetVisible(const bool visible)
+void TextInput::setVisibility(const bool visible)
 {
     if (_visible &&
         !visible &&

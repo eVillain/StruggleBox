@@ -16,17 +16,34 @@ class Widget
 {
     friend class GUI;
 public:
-    virtual void SetSize(const glm::ivec2& size);
-    virtual const glm::ivec2& GetSize() const { return _size; };
+    virtual void setSize(const glm::ivec2& size);
+    virtual const glm::ivec2& getSize() const { return _size; }
     
     /// Active is true when the widget is 'on' and interactable (default = true)
-    virtual void SetActive( const bool active ) { _active = active;} ;
+    virtual void setActive( const bool active ) { _active = active;}
     
     /* Override these for different cursor events */
     /// Focus is true when the cursor is over a widget
-    virtual void SetFocus(const bool focus) { _focus = focus; };
-    
+    virtual void setFocus(const bool focus) { _focus = focus; };
+    /// Toggles rendering of widget
     virtual void setVisibility(const bool visible) { _visible = visible; }
+
+    Transform& GetTransform() { return _transform; };
+    const bool active() const { return _active; };
+    const bool visible() const { return _visible; };
+    const bool focus() const { return _focus; };
+    
+protected:
+    Widget(Locator& locator);
+    virtual ~Widget();
+    
+    // Override this for drawing different widgets
+    virtual void Draw(Renderer* renderer);
+    
+    // Update - Unused for most widgets but some will need it
+    virtual void Update(const double deltaTime)
+    { /* printf("[Widget] update called, override me!\n"); */ }
+    
     /// When clicked/pressed
     virtual void OnInteract(const bool interact,
                             const glm::ivec2& coord) { };
@@ -34,22 +51,6 @@ public:
     virtual void OnDrag(const glm::ivec2& coord) { };
     /// Cursor over widget test, returns true if point is inside widget
     virtual const bool Contains(const glm::ivec2& coord) const;
-    
-    // Override this for drawing different widgets
-    virtual void Draw(Renderer* renderer);
-    
-    // Update - Unused for most widgets but some will need it
-    virtual const void Update(const double deltaTime)
-    { /* printf("[Widget] update called, override me!\n"); */ };
-    
-    Transform& GetTransform() { return _transform; };
-    const bool IsActive() const { return _active; };
-    const bool IsVisible() const { return _visible; };
-    const bool HasFocus() const { return _focus; };
-    
-protected:
-    Widget(Locator& locator);
-    virtual ~Widget();
     
     Locator& _locator;
     Transform _transform;

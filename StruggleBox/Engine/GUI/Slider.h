@@ -14,21 +14,18 @@ class Slider : public Widget
 public:
     ~Slider();
 
-    // Overrides from Widget
-    virtual void Draw(Renderer* renderer);
-    // When clicked/pressed
-    virtual void OnInteract(const bool interact,
-                            const glm::ivec2& coord);
-    virtual void OnDrag(const glm::ivec2& coord);
-    
-    virtual void setVisibility(const bool visible);
+    void setVisibility(const bool visible);
     // Attach a behavior to make the button do something when pressed
-    void SetBehavior( ISliderBehavior* behavior ) { _behavior = behavior; };
+    void setBehavior( ISliderBehavior* behavior ) { _behavior = behavior; };
     void setLabel(const std::string text);
 
 protected:
     Slider(Locator& locator);
     
+    void Draw(Renderer* renderer);
+    void OnInteract(const bool interact,
+                    const glm::ivec2& coord);
+    void OnDrag(const glm::ivec2& coord);
 private:
     ISliderBehavior* _behavior;
     double _sliderValue;    // Unit value between 0.0 and 1.0

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-LogLevel Log::_level = Log_Warn;
+LogLevel Log::_level = Log_Debug;
 
 //static const Color LOG_COLOR_ERROR = COLOR_RED;
 //static const Color LOG_COLOR_WARN = COLOR_YELLOW;

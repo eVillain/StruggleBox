@@ -94,12 +94,12 @@ void MainMenu::ShowMainMenu()
     {
         std::string backToWhatever = "Back To " + prevState;
         std::shared_ptr<Button> backToGameBtn = gui->CreateWidget<Button>();
-        backToGameBtn->SetSize(buttonSize);
+        backToGameBtn->setSize(buttonSize);
         backToGameBtn->setLabel(backToWhatever);
         
         std::string stopWhatever = "Stop " + prevState;
         std::shared_ptr<Button> stopGameBtn = gui->CreateWidget<Button>();
-        stopGameBtn->SetSize(buttonSize);
+        stopGameBtn->setSize(buttonSize);
         stopGameBtn->setLabel(stopWhatever);
         
         ButtonBehaviorLambda* backToGameBehavior = new ButtonBehaviorLambda([=](){
@@ -131,19 +131,19 @@ void MainMenu::ShowMainMenu()
     else
     {
         std::shared_ptr<Button> startGameBtn = gui->CreateWidget<Button>();
-        startGameBtn->SetSize(buttonSize);
+        startGameBtn->setSize(buttonSize);
         startGameBtn->setLabel("Start Game");
         
         std::shared_ptr<Button> editObjectsBtn = gui->CreateWidget<Button>();
-        editObjectsBtn->SetSize(buttonSize);
+        editObjectsBtn->setSize(buttonSize);
         editObjectsBtn->setLabel("Edit Objects");
         
         std::shared_ptr<Button> editCharactersBtn = gui->CreateWidget<Button>();
-        editCharactersBtn->SetSize(buttonSize);
+        editCharactersBtn->setSize(buttonSize);
         editCharactersBtn->setLabel("Edit Characters");
         
         std::shared_ptr<Button> editParticlesBtn = gui->CreateWidget<Button>();
-        editParticlesBtn->SetSize(buttonSize);
+        editParticlesBtn->setSize(buttonSize);
         editParticlesBtn->setLabel("Edit Particles");
         
         ButtonBehaviorLambda* startGameBehavior = new ButtonBehaviorLambda([=](){
@@ -182,13 +182,13 @@ void MainMenu::ShowMainMenu()
     }
     
     std::shared_ptr<Button> optionsBtn = gui->CreateWidget<Button>();
-    optionsBtn->SetSize(buttonSize);
+    optionsBtn->setSize(buttonSize);
     optionsBtn->setLabel("Options");
     optionsBtn->GetTransform().SetPosition(buttonPos);
     buttonPos.y -= buttonSize.y;
 
     std::shared_ptr<Button> quitToDesktopBtn = gui->CreateWidget<Button>();
-    quitToDesktopBtn->SetSize(buttonSize);
+    quitToDesktopBtn->setSize(buttonSize);
     quitToDesktopBtn->setLabel("Quit To Desktop");
     quitToDesktopBtn->GetTransform().SetPosition(buttonPos);
     buttonPos.y -= buttonSize.y;
@@ -281,7 +281,7 @@ void MainMenu::ShowOptionsMenu()
 
         _optionsMenu->setName("Options");
         _optionsMenu->GetTransform().SetPosition(menuItemPos);
-        _optionsMenu->SetSize(menuItemSize);
+        _optionsMenu->setSize(menuItemSize);
         
         // Get all the options and add them in to our menu
         std::map<const std::string, Attribute*>& allOptions = _locator.Get<Options>()->getAllOptions();
@@ -296,7 +296,7 @@ void MainMenu::ShowOptionsMenu()
             else if ( it->first.substr(0, 2) == "r_" ) { category = "Renderer"; }
             if ( it->second->IsType<bool>()) {
                 std::shared_ptr<Button> button = gui->CreateWidget<Button>();
-                button->SetSize(menuItemSize);
+                button->setSize(menuItemSize);
                 button->SetBehavior(new ButtonBehaviorLambda([&](){
                     it->second->as<bool>() = !it->second->as<bool>();
                     button->setLabel(it->first + ": " + (it->second->as<bool>() ? "true" : "false"));
@@ -305,19 +305,19 @@ void MainMenu::ShowOptionsMenu()
                 _optionsMenu->addWidget(button, category);
             } else if ( it->second->IsType<int>()) {
                 std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
-                slider->SetSize(menuItemSize);
-                slider->SetBehavior(new SliderBehavior<int>(it->second->as<int>(), 0, 100));
+                slider->setSize(menuItemSize);
+                slider->setBehavior(new SliderBehavior<int>(it->second->as<int>(), 0, 100));
                 slider->setLabel(it->first);
                 _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<float>()) {
                 std::shared_ptr<Slider> slider = gui->CreateWidget<Slider>();
-                slider->SetSize(menuItemSize);
-                slider->SetBehavior(new SliderBehavior<float>(it->second->as<float>(), 0.0f, 100.0f));
+                slider->setSize(menuItemSize);
+                slider->setBehavior(new SliderBehavior<float>(it->second->as<float>(), 0.0f, 100.0f));
                 slider->setLabel(it->first);
                 _optionsMenu->addWidget(slider, category);
             } else if ( it->second->IsType<std::string>()) {
                 std::shared_ptr<Button> button = gui->CreateWidget<Button>();
-                button->SetSize(menuItemSize);
+                button->setSize(menuItemSize);
                 button->setLabel(it->first + ": " + it->second->as<std::string>());
                 _optionsMenu->addWidget(button, category);
             }

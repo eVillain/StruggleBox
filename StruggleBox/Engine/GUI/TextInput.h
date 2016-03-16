@@ -15,16 +15,7 @@ public TextInputEventListener
     friend class GUI;
 public:
     ~TextInput();
-    // Overriden from Widget
-    virtual void Draw(Renderer* renderer);
-    virtual const void Update(const double deltaTime);
-    virtual void SetFocus(const bool focus);
-    virtual void SetActive(const bool active);
-    virtual void SetVisible(const bool visible);
-    // When clicked/pressed
-    virtual void OnInteract(const bool interact,
-                            const glm::ivec2& coord);
-    
+
     // Text input operations
     void StartTextInput();
     void StopTextInput();
@@ -38,7 +29,14 @@ public:
 protected:
     TextInput(Locator& locator);
 
-
+    void Draw(Renderer* renderer);
+    void Update(const double deltaTime);
+    void setFocus(const bool focus);
+    void setActive(const bool active);
+    void setVisibility(const bool visible);
+    
+    void OnInteract(const bool interact,
+                    const glm::ivec2& coord);
 private:
     TextInputBehavior* _behavior;
     // Regular events, we need them to accept/cancel text input
@@ -55,8 +53,6 @@ private:
     
     double _lastCursorBlink;
     bool _cursorBlink;
-    
-    // Sugar :)
 };
 
 #endif

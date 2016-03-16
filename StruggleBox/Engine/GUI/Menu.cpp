@@ -166,7 +166,7 @@ void Menu::refresh()
         minimizeBtnPos.x += (_size.x/2) - 12;
 //        minimizeBtnPos.z += 1;
         _minimizeButton->GetTransform().SetPosition(minimizeBtnPos);
-        _minimizeButton->SetSize(glm::ivec2(_size.y-6));
+        _minimizeButton->setSize(glm::ivec2(_size.y-6));
     }
     if (_label)
     {
@@ -180,20 +180,20 @@ void Menu::refresh()
     
     for (auto subMenu : _subMenus)
     {
-        subMenu.second->SetSize(glm::ivec2(_size.x-4, _size.y-2));
-        widgetPos.y -= subMenu.second->GetSize().y;
+        subMenu.second->setSize(glm::ivec2(_size.x-4, _size.y-2));
+        widgetPos.y -= subMenu.second->getSize().y;
         subMenu.second->GetTransform().SetPosition(widgetPos);
         subMenu.second->refresh();
         widgetPos.y -= subMenu.second->getContentHeight();
-        if (!_minimized) _contentHeight += subMenu.second->GetSize().y + subMenu.second->getContentHeight();
+        if (!_minimized) _contentHeight += subMenu.second->getSize().y + subMenu.second->getContentHeight();
     }
     
     for (auto widget : _widgets)
     {
-        widget->SetSize(glm::ivec2(_size.x-4, _size.y-2));
-        widgetPos.y -= widget->GetSize().y;
+        widget->setSize(glm::ivec2(_size.x-4, _size.y-2));
+        widgetPos.y -= widget->getSize().y;
         widget->GetTransform().SetPosition(widgetPos);
-        if (!_minimized) _contentHeight += widget->GetSize().y;
+        if (!_minimized) _contentHeight += widget->getSize().y;
     }
 }
 

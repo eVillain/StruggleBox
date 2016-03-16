@@ -15,21 +15,22 @@ public:
     Button(Locator& locator);
     ~Button();
     
-    virtual void Draw(Renderer* renderer);
-    virtual void OnDrag(const glm::ivec2& coord);
+    void Draw(Renderer* renderer);
+    void OnDrag(const glm::ivec2& coord);
 
-    virtual void OnInteract(const bool interact,
-                            const glm::ivec2& coord);
-    virtual void setVisibility(const bool visible);
+    void setVisibility(const bool visible);
     
     /// Attaches a behavior to make the button do something when pressed
     void SetBehavior(ButtonBehavior* behavior) { _behavior = behavior; }
 
     void setLabel(const std::string text);
-    
     std::shared_ptr<Label> getLabel() { return _label; }
 protected:
     Button();
+
+    void OnInteract(const bool interact,
+                    const glm::ivec2& coord);
+
     bool _pressed;
 
 private:

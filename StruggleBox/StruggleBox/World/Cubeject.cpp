@@ -19,16 +19,16 @@
 int Cubeject::nextInstanceID = 1;
 int Cubeject::totalCubejects = 0;
 
-static inline int GetIndex(const int x, const int y, const int z, const int width_bits, const int height_bits ) {
-    int index = x | (y | z << height_bits) << width_bits;
-    return index;
-};
-static inline glm::vec3 GetPosForIndex(int index, const int width_bits, const int height_bits) {
-    int z = index >> (width_bits + height_bits);
-    int y = (index >> width_bits) & ((1 << height_bits) - 1);
-    int x = index & ((1 << width_bits) - 1);
-    return glm::vec3(x,y,z);
-};
+//static inline int GetIndex(const int x, const int y, const int z, const int width_bits, const int height_bits ) {
+//    int index = x | (y | z << height_bits) << width_bits;
+//    return index;
+//};
+//static inline glm::vec3 GetPosForIndex(int index, const int width_bits, const int height_bits) {
+//    int z = index >> (width_bits + height_bits);
+//    int y = (index >> width_bits) & ((1 << height_bits) - 1);
+//    int x = index & ((1 << width_bits) - 1);
+//    return glm::vec3(x,y,z);
+//};
 
 Cubeject::Cubeject( const std::string fileName, Renderer* renderer, const glm::vec3 pos, const int w_bits, const int h_bits ) {
     objectName = fileName;

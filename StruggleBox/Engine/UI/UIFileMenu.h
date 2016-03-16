@@ -8,15 +8,30 @@
 
 class UIFileMenuBase : public UIWidget
 {
+public:
+    int contentHeight;
+
+    UIFileMenuBase(int posX, int posY,
+                   int width, int height,
+                   std::string path,
+                   std::string type = "",
+                   std::string title = "Select thy file:",
+                   std::string defaultVal = "defaultFile",
+                   bool loading = true,
+                   std::string texDefault = "",
+                   std::string texActive = "",
+                   std::string texPressed = "");
+    ~UIFileMenuBase();
+private:
     std::string label;
     int labelID;
-
+    
     std::string filePath;
     std::string fileType;
     std::string defaultFile;
     std::string selectedFile;
     std::vector<std::string> fileList;
-
+    
     UITextInput<UIFileMenuBase>* textWidget;
     ButtonBase* selectButton;
     ButtonBase* closeButton;
@@ -47,21 +62,6 @@ class UIFileMenuBase : public UIWidget
     virtual void CursorHover(const glm::ivec2 coord, bool highlight);
     virtual void CursorPress(const glm::ivec2 coord);
     virtual void CursorRelease(const glm::ivec2 coord);
-    
-public:
-    int                             contentHeight;
-
-    UIFileMenuBase( int posX, int posY,
-                   int width, int height,
-                   std::string path,
-                   std::string type = "",
-                   std::string title = "Select thy file:",
-                   std::string defaultVal = "defaultFile",
-                   bool loading = true,
-                   std::string texDefault = "",
-                   std::string texActive = "",
-                   std::string texPressed = "" );
-    ~UIFileMenuBase();
 };
 
 template <class UnknownClass>

@@ -1,10 +1,12 @@
-#include <iostream>
 #include "Camera.h"
+#include "Random.h"
+#include "Timer.h"
 #include <glm/gtx/rotate_vector.hpp>
-#include <time.h>       /* time */
-#include "SysCore.h"
+//#include <time.h>       /* time */
+#include <iostream>
 
-Camera::Camera()
+Camera::Camera() :
+_followTarget(false)
 {
     fieldOfView = 70.0f;
     nearDepth = 0.1f;
@@ -20,15 +22,9 @@ Camera::Camera()
     shakeAmount = 0.0f;
     shakeDecay = 0.85f;
     
-    position = glm::vec3(0.0f,0.0f,0.0f);
-    rotation = glm::vec3(0.0f,0.0f,0.0f);
     rotationSensitivity = glm::vec2(20.0f,20.0f);
-    speed = glm::vec3(0.0f, 0.0f, 0.0f);
-    movement = glm::vec3(0.0f,0.0f,0.0f);
     movementSpeedFactor = 20.0f;
     
-    targetPosition = glm::vec3(0.0f,8.0f,-8.0f);
-    targetRotation = glm::vec3(0.0f,0.0f,0.0f);
     elasticMovement = false;
     autoRotate = false;
     thirdPerson = false;
@@ -45,11 +41,7 @@ Camera::~Camera()
 void Camera::Update(double delta)
 {
     if ( delta <= 0.0 ) return;
-//    if ( delta >= 1.0 ) return;
 
-    if ( shakeVect.x != 0.0f || shakeVect.y != 0.0f ) {
-        position -= shakeVect;
-    }
     if ( elasticMovement ) {
         if ( targetRotation.y - rotation.y < -180.0f ) targetRotation.y += 360.0f;
         else if ( targetRotation.y - rotation.y > 180.0f ) targetRotation.y -= 360.0f;
@@ -94,7 +86,7 @@ void Camera::Update(double delta)
             position = position+speed;
         }
     } else {
-        rotation = targetRotation;
+        
         if ( thirdPerson ) {
             // Find coordinate for camera
             glm::vec3 zVect = glm::vec3(0.0f,0.0f,1.0f);
@@ -114,15 +106,21 @@ void Camera::Update(double delta)
                 position = behindTarget;
             }
         } else {
-            position = targetPosition;
+            if (_followTarget)
+            {
+                rotation = targetRotation;
+                position = targetPosition;
+            } else {
+                CalculateCameraMovement( movement );
+                position = position+speed*float(delta);
+            }
         }
-//        CalculateCameraMovement( movement );
-//        position = position+speed*float(delta);
     }
+    
     if ( shakeAmount != 0.0f ) {
-        SysCore::RandomSeed(int(SysCore::GetMicroseconds()));
-        int rX = SysCore::RandomInt(-1, 1);
-        int rY = SysCore::RandomInt(-1, 1);
+        Random::RandomSeed((int)Timer::Microseconds());
+        int rX = Random::RandomInt(-1, 1);
+        int rY = Random::RandomInt(-1, 1);
         shakeVect = glm::vec3(rX, rY, 0.0f)*shakeAmount;
 //        printf("Shake:%f / %f\n", shakeVect.x, shakeVect.y);
         position += shakeVect;
@@ -131,7 +129,9 @@ void Camera::Update(double delta)
     }
 }
 // Function to deal with mouse position changes, called whenever the mouse cursor moves
-void Camera::CameraRotate( const float rotX, const float rotY ) {
+void Camera::CameraRotate(const float rotX,
+                          const float rotY)
+{
 //    int horizMovement = -rotX;
 //    int vertMovement = -rotY;
 
@@ -202,7 +202,8 @@ void Camera::CalculateCameraMovement(glm::vec3 direction) {
 }
 
 // Function to move the camera the amount we've calculated in the calculateCameraMovement function
-void Camera::MoveCamera( double dt ) {
-    position += speed*(float)dt;
+void Camera::MoveCamera(double deltaTime)
+{
+    position += speed*(float)deltaTime;
 }
 

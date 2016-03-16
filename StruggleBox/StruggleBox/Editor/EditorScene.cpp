@@ -4,6 +4,9 @@
 #include "Console.h"
 #include "SceneManager.h"
 #include "Options.h"
+#include "GUI.h"
+#include "Menu.h"
+#include "Button.h"
 
 EditorScene::EditorScene(Locator& locator) :
 Scene("Editor", locator)
@@ -48,6 +51,7 @@ void EditorScene::Release()
 void EditorScene::Update(double deltaTime)
 {
     HandleMovement();
+    _locator.Get<Camera>()->Update(deltaTime);
 }
 
 bool EditorScene::OnEvent(const std::string& theEvent,

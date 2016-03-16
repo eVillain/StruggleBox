@@ -19,7 +19,7 @@ dragY(0)
 Widget::~Widget( void )
 {}
 
-void Widget::SetSize(const glm::ivec2& size)
+void Widget::setSize(const glm::ivec2& size)
 {
     _size = size;
 }

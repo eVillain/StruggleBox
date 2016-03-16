@@ -16,12 +16,12 @@ static inline int GetIndex(const int x, const int y, const int z,
     int index = z | (y | x << height_bits) << width_bits;
     return index;
 };
-static inline glm::vec3 GetPosForIndex(int index, const int width_bits, const int height_bits) {
-    int x = index >> (width_bits + height_bits);
-    int y = (index >> width_bits) & ((1 << height_bits) - 1);
-    int z = index & ((1 << width_bits) - 1);
-    return glm::vec3(x,y,z);
-};
+//static inline glm::vec3 GetPosForIndex(int index, const int width_bits, const int height_bits) {
+//    int x = index >> (width_bits + height_bits);
+//    int y = (index >> width_bits) & ((1 << height_bits) - 1);
+//    int z = index & ((1 << width_bits) - 1);
+//    return glm::vec3(x,y,z);
+//};
 
 CubeSet::CubeSet( const int w_bits, const int h_bits ) {
     width_bits = w_bits;

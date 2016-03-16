@@ -286,6 +286,10 @@
 		D90F47E91C8EA3160018BE71 /* ConsoleDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E51C8EA3160018BE71 /* ConsoleDefs.h */; settings = {ASSET_TAGS = (); }; };
 		D90F47EA1C8EA3160018BE71 /* ConsoleVar.h in Headers */ = {isa = PBXBuildFile; fileRef = D90F47E61C8EA3160018BE71 /* ConsoleVar.h */; settings = {ASSET_TAGS = (); }; };
 		D917C0E31C97A3760083FB69 /* CharacterEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */; settings = {ASSET_TAGS = (); }; };
+		D917C0E71C98C1170083FB69 /* FileMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0E51C98C1170083FB69 /* FileMenu.cpp */; settings = {ASSET_TAGS = (); }; };
+		D917C0E81C98C1170083FB69 /* FileMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = D917C0E61C98C1170083FB69 /* FileMenu.h */; settings = {ASSET_TAGS = (); }; };
+		D917C0EB1C98D0260083FB69 /* List.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0E91C98D0260083FB69 /* List.cpp */; settings = {ASSET_TAGS = (); }; };
+		D917C0EC1C98D0260083FB69 /* List.h in Headers */ = {isa = PBXBuildFile; fileRef = D917C0EA1C98D0260083FB69 /* List.h */; settings = {ASSET_TAGS = (); }; };
 		D92031361C91DF5300217562 /* Button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031201C91DF5300217562 /* Button.cpp */; settings = {ASSET_TAGS = (); }; };
 		D92031371C91DF5300217562 /* Button.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031211C91DF5300217562 /* Button.h */; settings = {ASSET_TAGS = (); }; };
 		D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031221C91DF5300217562 /* ButtonBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -1013,6 +1017,11 @@
 		D90F47E61C8EA3160018BE71 /* ConsoleVar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleVar.h; sourceTree = "<group>"; };
 		D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CharacterEditor.cpp; sourceTree = "<group>"; };
 		D917C0E21C97A3760083FB69 /* CharacterEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CharacterEditor.h; sourceTree = "<group>"; };
+		D917C0E41C98B5580083FB69 /* CameraMenuHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CameraMenuHelper.h; sourceTree = "<group>"; };
+		D917C0E51C98C1170083FB69 /* FileMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileMenu.cpp; sourceTree = "<group>"; };
+		D917C0E61C98C1170083FB69 /* FileMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileMenu.h; sourceTree = "<group>"; };
+		D917C0E91C98D0260083FB69 /* List.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = List.cpp; sourceTree = "<group>"; };
+		D917C0EA1C98D0260083FB69 /* List.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = List.h; sourceTree = "<group>"; };
 		D92031201C91DF5300217562 /* Button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Button.cpp; sourceTree = "<group>"; };
 		D92031211C91DF5300217562 /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		D92031221C91DF5300217562 /* ButtonBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonBehavior.cpp; sourceTree = "<group>"; };
@@ -1332,6 +1341,7 @@
 				D90366451C8BD20100E6AD07 /* Particle3DEditor.h */,
 				D917C0E11C97A3760083FB69 /* CharacterEditor.cpp */,
 				D917C0E21C97A3760083FB69 /* CharacterEditor.h */,
+				D917C0E41C98B5580083FB69 /* CameraMenuHelper.h */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -1733,8 +1743,14 @@
 				D92031211C91DF5300217562 /* Button.h */,
 				D92031221C91DF5300217562 /* ButtonBehavior.cpp */,
 				D92031231C91DF5300217562 /* ButtonBehavior.h */,
+				D917C0E51C98C1170083FB69 /* FileMenu.cpp */,
+				D917C0E61C98C1170083FB69 /* FileMenu.h */,
 				D92031251C91DF5300217562 /* GUI.cpp */,
 				D92031261C91DF5300217562 /* GUI.h */,
+				D917C0E91C98D0260083FB69 /* List.cpp */,
+				D917C0EA1C98D0260083FB69 /* List.h */,
+				D94133611C96F9060029205B /* Menu.cpp */,
+				D94133621C96F9060029205B /* Menu.h */,
 				D920312B1C91DF5300217562 /* Slider.cpp */,
 				D920312C1C91DF5300217562 /* Slider.h */,
 				D920312D1C91DF5300217562 /* SliderBehavior.h */,
@@ -1744,8 +1760,6 @@
 				D92031311C91DF5300217562 /* TextInputBehavior.h */,
 				D92031321C91DF5300217562 /* Widget.cpp */,
 				D92031331C91DF5300217562 /* Widget.h */,
-				D94133611C96F9060029205B /* Menu.cpp */,
-				D94133621C96F9060029205B /* Menu.h */,
 			);
 			path = GUI;
 			sourceTree = "<group>";
@@ -1845,6 +1859,7 @@
 				D90362A51C8BBC1F00E6AD07 /* TextureManager.h in Headers */,
 				D90362851C8BBC1E00E6AD07 /* LightRenderer2D.h in Headers */,
 				D903625D1C8BBC1D00E6AD07 /* CoreTypes.h in Headers */,
+				D917C0EC1C98D0260083FB69 /* List.h in Headers */,
 				D90362691C8BBC1D00E6AD07 /* Scene.h in Headers */,
 				D90362731C8BBC1D00E6AD07 /* Attribute.h in Headers */,
 				D90362A11C8BBC1F00E6AD07 /* TextManager.h in Headers */,
@@ -1901,6 +1916,7 @@
 				D903662A1C8BCEEB00E6AD07 /* RangeReverseAdapter.h in Headers */,
 				D90362B61C8BBC2000E6AD07 /* UISlider.h in Headers */,
 				D90362B21C8BBC2000E6AD07 /* UIMenuItem.h in Headers */,
+				D917C0E81C98C1170083FB69 /* FileMenu.h in Headers */,
 				D939DF121C92196500C7F3A2 /* Color.h in Headers */,
 				D903627E1C8BBC1E00E6AD07 /* GFXHelpers.h in Headers */,
 				D90362671C8BBC1D00E6AD07 /* Options.h in Headers */,
@@ -2027,6 +2043,7 @@
 				D90362801C8BBC1E00E6AD07 /* Light2D.cpp in Sources */,
 				D903625E1C8BBC1D00E6AD07 /* Dictionary.cpp in Sources */,
 				D90362661C8BBC1D00E6AD07 /* Options.cpp in Sources */,
+				D917C0E71C98C1170083FB69 /* FileMenu.cpp in Sources */,
 				D94133631C96F9060029205B /* Menu.cpp in Sources */,
 				D90362861C8BBC1E00E6AD07 /* LightSystem2D.cpp in Sources */,
 				D90362981C8BBC1E00E6AD07 /* ShaderManager.cpp in Sources */,
@@ -2062,6 +2079,7 @@
 				D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */,
 				D90362A81C8BBC1F00E6AD07 /* UIButton.cpp in Sources */,
 				D90362B71C8BBC2100E6AD07 /* UITextInput.cpp in Sources */,
+				D917C0EB1C98D0260083FB69 /* List.cpp in Sources */,
 				D90362841C8BBC1E00E6AD07 /* LightRenderer2D.cpp in Sources */,
 				D903629E1C8BBC1F00E6AD07 /* SpriteBatch.cpp in Sources */,
 				D92031411C91DF5300217562 /* Slider.cpp in Sources */,
@@ -2180,12 +2198,14 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -2223,7 +2243,9 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

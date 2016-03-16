@@ -4,8 +4,10 @@
 #include "EditorScene.h"
 #include "CoreTypes.h"
 #include "Input.h"
-#include "UIMenu.h"
 #include "ParticleSys.h"
+
+class Menu;
+class FileMenu;
 
 class Particle3DEditor : public EditorScene
 {
@@ -25,17 +27,14 @@ private:
     void ShowEditor();
     void RemoveEditor();
     
-    float timeScaler;
-
     std::vector<ButtonBase*> buttonVect;
-    UIMenu* fileMenu;                   // New/Load/Save/Quit
-    UIMenu* particleMenu;               // Particle system vars
-    UIFileMenuBase* fileSelectMenu;     // Open file menu
-    UIMenu* cameraMenu;                 // Camera menu
-    UIButtonLambda *optionsBtn, *cameraBtn;
+    std::shared_ptr<Menu> _editorMenu;
+    std::shared_ptr<Menu> _particleMenu;
+    std::shared_ptr<FileMenu> _fileSelectMenu;
 
     ParticleSys* _particleSys;
-    
+    float timeScaler;
+
     glm::vec2 joyMoveInput;
     glm::vec2 joyRotateInput;
     void UpdateMovement();

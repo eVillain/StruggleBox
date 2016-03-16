@@ -36,7 +36,6 @@ protected:
     glm::vec2 _inputRotate;
 private:
     void HandleMovement();
-    
 };
 
 #endif /* EDITOR_SCENE_H */

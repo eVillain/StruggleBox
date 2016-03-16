@@ -14,12 +14,12 @@ public:
     Menu(Locator& locator);
     ~Menu();
     
-    virtual void Draw(Renderer* renderer);
-    virtual void OnDrag(const glm::ivec2& coord);
+    void Draw(Renderer* renderer);
+    void OnDrag(const glm::ivec2& coord);
     
-    virtual void OnInteract(const bool interact,
-                            const glm::ivec2& coord);
-    virtual void setVisibility(const bool visible);
+    void OnInteract(const bool interact,
+                    const glm::ivec2& coord);
+    void setVisibility(const bool visible);
 
     void addWidget(std::shared_ptr<Widget> widget,
                    const std::string& subMenu = "");

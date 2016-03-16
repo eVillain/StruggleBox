@@ -263,7 +263,7 @@ void Console::Show()
     consoleInfo.append(_locator->Get<Options>()->getOption<std::string>("version"));
     _textInput = _locator->Get<GUI>()->CreateWidget<TextInput>();
     _textInput->GetTransform().SetPosition(glm::vec3(0, 11, CONSOLE_TEXT_DEPTH));
-    _textInput->SetSize(glm::ivec2(winWidth-1, 22));
+    _textInput->setSize(glm::ivec2(winWidth-1, 22));
     _textInput->setDefaultText(consoleInfo);
     TextInputBehavior* textInputBehavior = new TextInputBehaviorStaticCallback(&Console::OnTextInput);
     _textInput->SetBehavior(textInputBehavior);

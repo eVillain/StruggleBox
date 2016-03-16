@@ -13,13 +13,10 @@ public:
     Camera();
     ~Camera();
     
-    void Update( double delta );
+    void Update(const double deltaTime);
     // Function to deal with mouse position changes, called whenever the mouse cursor moves
-    void CameraRotate( const float rotX, const float rotY );
-    // Function to calculate which direction we need to move the camera and by what amount
-    void CalculateCameraMovement(glm::vec3 movement);    
-    // Function to move the camera the amount we've calculated in the calculateCameraMovement function
-    void MoveCamera( double dela );
+    void CameraRotate(const float rotX,
+                      const float rotY);
     
     void SetPhysicsCallback( PhysicsCallback cb ) { physicsFunc = cb; };
     
@@ -59,7 +56,16 @@ public:
     GLboolean debugLens;            // Show debug focal point and range
     bool autoFocus;                 // Automatically focus to center
 
+    void setFollowTarget(const bool followTarget) { _followTarget = followTarget; }
+    const bool followTarget() const { return _followTarget; }
 private:
+    bool _followTarget;
+    
+    // Function to calculate which direction we need to move the camera and by what amount
+    void CalculateCameraMovement(glm::vec3 movement);
+    // Function to move the camera the amount we've calculated in the calculateCameraMovement function
+    void MoveCamera(double deltaTime);
+
     PhysicsCallback physicsFunc;               // Pointer to a static callback function
 };
 

@@ -87,7 +87,7 @@ bool GUI::OnCursorDrag(const glm::ivec2& coord)
             widget->OnDrag(coord);
             interacted = true;
         } else {
-            widget->SetFocus(false);
+            widget->setFocus(false);
         }
     }
     return interacted;
@@ -121,10 +121,10 @@ bool GUI::OnCursorHover(const glm::ivec2& coord)
     {
         if(widget->Contains(coord))
         {
-            widget->SetFocus(true);
+            widget->setFocus(true);
             overWidget = true;
         } else {
-            widget->SetFocus(false);
+            widget->setFocus(false);
         }
     }
     if (!overWidget) { _mouseDrag = false; }
