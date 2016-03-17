@@ -20,6 +20,8 @@ public:
     void SetPositionY(const float position);
     void SetPositionZ(const float position);
 
+    bool isDirty() const { return _dirty; }
+    void unflagDirty() { _dirty = false; }
 private:
     glm::vec3 _position;
     glm::quat _orientation;
