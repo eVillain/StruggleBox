@@ -22,16 +22,37 @@ private:
 class ButtonBehaviorToggle : public ButtonBehavior
 {
 public:
-    ButtonBehaviorToggle(bool* clientData);
+    ButtonBehaviorToggle(bool& clientData);
     void Trigger();
 private:
-    bool* toggleData;
+    bool& toggleData;
 };
 
 template <class UnknownClass>
-class ButtonBehaviorMember {
+class ButtonBehaviorMember : public ButtonBehavior
+{
 public:
     ButtonBehaviorMember(UnknownClass* objectPtr,
+                         void(UnknownClass::*func)()) :
+    function(func),
+    object(objectPtr)
+    { }
+    void Trigger()
+    {
+        if ( object && function ) {
+            (*object.*function)();
+        }
+    }
+private:
+    void (UnknownClass::*function)();  // Pointer to a member function
+    UnknownClass* object;                   // Pointer to an object instance
+};
+
+template <class UnknownClass>
+class ButtonBehaviorMemberData : public ButtonBehavior
+{
+public:
+    ButtonBehaviorMemberData(UnknownClass* objectPtr,
                          void(UnknownClass::*func)(void*),
                          void* clientData) :
     function(func),
@@ -51,7 +72,8 @@ private:
 };
 
 template <typename UnknownType>
-class ButtonBehaviorVariable {
+class ButtonBehaviorVariable : public ButtonBehavior
+{
 public:
     ButtonBehaviorVariable(UnknownType* objectP,
                            UnknownType clientData) :

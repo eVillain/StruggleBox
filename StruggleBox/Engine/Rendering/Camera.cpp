@@ -5,7 +5,8 @@
 #include <iostream>
 
 Camera::Camera() :
-_followTarget(false)
+_followTarget(false),
+physicsFunc(nullptr)
 {
     fieldOfView = 70.0f;
     nearDepth = 0.1f;

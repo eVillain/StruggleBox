@@ -63,13 +63,18 @@ public:
     virtual void Render3DCubes() = 0;
     virtual void Render2DCube( const glm::vec2& center, const Color color, const glm::vec3 rotation) = 0;
     // 2D Drawing functions ( drawn immediately )
-    virtual void DrawPolygon( const int count, const GLfloat *verts,
-                             const Color lineColor, const Color fillColor, const float z = 0.0f ) = 0;
-    virtual void DrawPolygon( const int count, const glm::vec2 *verts,
-                             const Color lineColor, const Color fillColor, const float z = 0.0f ) = 0;
+    virtual void DrawPolygon(const int count,
+                             const GLfloat *verts,
+                             const Color lineColor,
+                             const Color fillColor) = 0;
+    virtual void DrawPolygon(const int count,
+                             const glm::vec2 *verts,
+                             const Color lineColor,
+                             const Color fillColor,
+                             const float z = 0.0f) = 0;
     virtual void Draw2DRect( Rect2D rect,
                             Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f ) = 0;
-    virtual void Draw2DRect( glm::vec2 center, float width, float height,
+    virtual void Draw2DRect(glm::vec2 center, float width, float height,
                             Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f ) = 0;
     virtual void Draw2DRect3D( glm::vec3 center, float width, float height,
                               Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f ) = 0;

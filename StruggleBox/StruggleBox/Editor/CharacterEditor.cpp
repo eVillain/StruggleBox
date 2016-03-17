@@ -127,12 +127,7 @@ void CharacterEditor::Draw()
         renderer->RenderLighting( COLOR_FOG_DEFAULT );
     }    // Draw to screen if deferred
     
-    // Render crosshair image
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    Color crossHairCol = COLOR_WHITE;
-    renderer->DrawImage(_cursor.posScrn, 16, 16, "Crosshair.png", 0.0f, crossHairCol);
+    EditorScene::Draw();
 }
 
 bool CharacterEditor::OnEvent(const std::string& theEvent,

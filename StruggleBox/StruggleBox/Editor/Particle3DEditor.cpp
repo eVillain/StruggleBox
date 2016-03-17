@@ -77,6 +77,7 @@ void Particle3DEditor::Release()
 {
     EditorScene::Release();
 }
+
 void Particle3DEditor::ShowEditor()
 {
     GUI* gui = _locator.Get<GUI>();
@@ -89,11 +90,6 @@ void Particle3DEditor::ShowEditor()
     itemPos.x = (itemSize.x/2) - (resX/2) + padding;
     itemPos.y = (resY/2) - ((itemSize.y/2) + padding);
 
-//    int bW = 140;       // Button width
-//    int bH = 24;        // Button height
-//    int posX = padding-(resX/2);
-//    int posY = resY/2-(bH+padding);
-
     if (_editorMenu)
     {
         printf("[Particle3DEditor] file menu loaded twice!!!\n");
@@ -103,7 +99,19 @@ void Particle3DEditor::ShowEditor()
     _editorMenu->setName("File");
     _editorMenu->setSize(itemSize);
     _editorMenu->GetTransform().SetPosition(itemPos);
-    itemPos.y += itemSize.y;
+    itemPos.x += itemSize.x;
+    
+    if (_particleMenu)
+    {
+        printf("[Particle3DEditor] particle menu loaded twice!!!\n");
+    }
+    
+    _particleMenu = gui->CreateWidget<Menu>();
+    _particleMenu->setName("Particle System");
+    _particleMenu->setSize(itemSize);
+    _particleMenu->GetTransform().SetPosition(itemPos);
+    itemPos.x += itemSize.x;
+    RefreshParticleMenu();
     
     {
         auto quitBtn = gui->CreateWidget<Button>();
@@ -129,52 +137,20 @@ void Particle3DEditor::ShowEditor()
         saveBtn->setLabel("Save");
         saveBtn->setSize(itemSize);
         saveBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-
+            OpenFileSelectMenu(false);
         }));
         _editorMenu->addWidget(saveBtn);
-//        fileMenu->AddButton("Save", ( [=]() {
-//            if ( fileSelectMenu == NULL ) {
-//                fileSelectMenu = new UIFileMenu<Particle3DEditor>(8+140+8,
-//                                                                  posY,
-//                                                                  200,
-//                                                                  20,
-//                                                                  FileUtil::GetPath().append("Data/Particles/"),
-//                                                                ".plist",
-//                                                                "Select particle file:",
-//                                                                "defaultParticle",
-//                                                                false,
-//                                                                this,
-//                                                                &Particle3DEditor::SaveSystem );
-//            } else {
-//                delete fileSelectMenu;
-//                fileSelectMenu = NULL;
-//            }
-//        }  ) );
     }
 
     auto loadBtn = gui->CreateWidget<Button>();
-    loadBtn->setLabel("Save");
+    loadBtn->setLabel("Load");
     loadBtn->setSize(itemSize);
     loadBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-        
+        OpenFileSelectMenu(true);
     }));
     _editorMenu->addWidget(loadBtn);
 
-//    fileMenu->AddButton("Load", ( [=]() {
-//        if ( fileSelectMenu == NULL ) {
-//            fileSelectMenu = new UIFileMenu<Particle3DEditor>(posX+bW+padding, posY, 200, 22, FileUtil::GetPath().append("Data/Particles/"),
-//                                                            ".plist",
-//                                                            "Select particle file:",
-//                                                            "defaultParticle",
-//                                                            true,
-//                                                            this,
-//                                                            &Particle3DEditor::LoadSystem );
-//        } else {
-//            delete fileSelectMenu;
-//            fileSelectMenu = NULL;
-//        }
-//    }  ) );
-    if (_particleSys)
+    if ( _particleSys )
     {
         auto closeBtn = gui->CreateWidget<Button>();
         closeBtn->setLabel("Close");
@@ -182,42 +158,10 @@ void Particle3DEditor::ShowEditor()
         closeBtn->SetBehavior(new ButtonBehaviorLambda([&](){
             _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
             _particleSys = NULL;
-            ShowEditor();
         }));
         _editorMenu->addWidget(closeBtn);
     }
-//    posY -= fileMenu->h+fileMenu->contentHeight+padding;
-    if (!_particleMenu)
-    {
-        _particleMenu = gui->CreateWidget<Menu>();
-        _particleMenu->setName("Particle System");
-//        _particleMenu = new UIMenu(posX,posY,200,bH,"Particle System");
-    }
     
-    if ( _particleSys ) {
-//        if ( _locator.Get<ParticleManager>()->IsPaused() ) {
-//            particleMenu->AddButton("Resume", ( [=]() {
-//                _locator.Get<ParticleManager>()->Resume();
-//                ShowEditor();
-//            }  ) );
-//        } else {
-//            particleMenu->AddButton("Pause", ( [=]() {
-//                _locator.Get<ParticleManager>()->Pause();
-//                ShowEditor();
-//            }  ) );
-//        }
-//        float posScale = 16.0f;
-//        float sizeScale = 2.0f;
-//        if ( _particleSys->dimensions == ParticleSys2D ) {
-//            posScale = 640.0f;
-//            sizeScale = 512.0f;
-//        }
-//        particleMenu->AddButton("active", ( [=]() { _particleSys->active = !_particleSys->active; } ) );
-//        particleMenu->AddVar("particleCount", &_particleSys->particleCount);
-//        particleMenu->AddVar("blendFuncSrc", &_particleSys->blendFuncSrc);
-//        particleMenu->AddVar("blendFuncDst", &_particleSys->blendFuncDst);
-//
-//        particleMenu->AddSlider("emitterType", &_particleSys->emitterType, 0, 1);
 //        particleMenu->AddSlider("dimensions", &_particleSys->dimensions, 0, 1);
 //        particleMenu->AddSlider("lighting", &_particleSys->lighting, 0, 1);
 //        
@@ -274,11 +218,11 @@ void Particle3DEditor::ShowEditor()
 //            particleMenu->AddSlider("rotPerSec", &_particleSys->rotPerSec, 0.0f, 100.0f);
 //            particleMenu->AddSlider("rotPerSecVar", &_particleSys->rotPerSecVar, 0.0f, 100.0f);
 //        }
-    }
     
     auto cameraButton = _locator.Get<GUI>()->CreateWidget<Button>();
-    cameraButton->setSize(itemSize);
     cameraButton->setLabel("Camera");
+    cameraButton->setSize(itemSize);
+
     cameraButton->SetBehavior(new ButtonBehaviorLambda([&](){
         auto cameraMenu = CameraMenuHelper::createCameraMenu(*_locator.Get<Camera>(),
                                                              _locator.Get<GUI>());
@@ -291,6 +235,7 @@ void Particle3DEditor::ShowEditor()
         }));
         cameraMenu->addWidget(closeBtn);
     }));
+    cameraButton->GetTransform().SetPosition(itemPos);
     _widgets.push_back(cameraButton);
 }
 
@@ -325,7 +270,7 @@ void Particle3DEditor::Update(double deltaTime)
     _locator.Get<ParticleManager>()->Update(deltaTime*timeScaler);
 
 }
-void Particle3DEditor::Draw( void )
+void Particle3DEditor::Draw()
 {
     Renderer* renderer = _locator.Get<Renderer>();
     
@@ -395,40 +340,7 @@ void Particle3DEditor::Draw( void )
     }
     _locator.Get<ParticleManager>()->DrawUnlitParticles(renderer);
 
-}
-
-//========================================================================
-// Main menu Button callback functions
-//========================================================================
-void Particle3DEditor::LoadSystemButtonCB( void*data ) {
-    LocalGame * localGame = new LocalGame(_locator);
-    _locator.Get<SceneManager>()->AddActiveScene( localGame );
-}
-void Particle3DEditor::CloseEditorButtonCB( void*data ) {
-    std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
-    if ( !prevState.empty() ) {
-        _locator.Get<SceneManager>()->SetActiveScene(prevState);
-    }
-}
-
-//========================
-//  Input event handling
-//========================
-void Particle3DEditor::UpdateMovement()
-{
-    float deadZone = 0.35f;
-    Camera& camera = *_locator.Get<Camera>();
-    
-    if ( fabsf(joyMoveInput.x)+fabsf(joyMoveInput.y) < deadZone ) joyMoveInput = glm::vec2();
-    if ( fabsf(joyRotateInput.x)+fabsf(joyRotateInput.y) < deadZone ) joyRotateInput = glm::vec2();
-    
-    camera.movement.x = joyMoveInput.x;
-    camera.movement.z = -joyMoveInput.y;
-    
-    float joySensitivity = 2.0f;
-    float rotationX = -joyRotateInput.x*joySensitivity;
-    float rotationY = joyRotateInput.y*joySensitivity;
-    camera.CameraRotate(rotationX, rotationY);
+    EditorScene::Draw();
 }
 
 bool Particle3DEditor::OnEvent(const std::string& theEvent,
@@ -446,15 +358,104 @@ bool Particle3DEditor::OnMouse(const glm::ivec2& coord)
     return false;
 }
 
-void Particle3DEditor::LoadSystem(const std::string fileName)
+void Particle3DEditor::OpenFileSelectMenu(const bool load)
+{
+    if (_fileSelectMenu) return;
+    
+    const std::string path = FileUtil::GetPath() + "Data/Particles";
+    const std::string fileExtension = ".plist";
+    const std::string title = (load ? "Load System" : "Save System");
+    
+    _fileSelectMenu = _locator.Get<GUI>()->CreateWidget<FileMenu>();
+    _fileSelectMenu->setName(title);
+    _fileSelectMenu->setSize(glm::ivec2(300, 20));
+    _fileSelectMenu->setContentHeight(200);
+    if (load) {
+        _fileSelectMenu->loadFromPath(path, fileExtension);
+        auto behavior = new ListBehaviorMember<Particle3DEditor>(this,
+                                                                 &Particle3DEditor::LoadSystem);
+        _fileSelectMenu->setBehavior(behavior);
+    } else {
+        _fileSelectMenu->saveToPath(path, fileExtension);
+        auto behavior = new ListBehaviorMember<Particle3DEditor>(this,
+                                                                 &Particle3DEditor::SaveSystem);
+        _fileSelectMenu->setBehavior(behavior);
+    }
+}
+
+void Particle3DEditor::CloseFileSelectMenu()
+{
+    if (!_fileSelectMenu) return;
+    
+    _locator.Get<GUI>()->DestroyWidget(_fileSelectMenu);
+    _fileSelectMenu = nullptr;
+}
+
+void Particle3DEditor::RefreshParticleMenu()
+{
+    _particleMenu->removeAllItems();
+    
+    if (!_particleSys) return;
+    
+    GUI* gui = _locator.Get<GUI>();
+    
+    if (_locator.Get<ParticleManager>()->IsPaused()) {
+        auto resumeBtn = gui->CreateWidget<Button>();
+        resumeBtn->setLabel("Resume");
+        resumeBtn->SetBehavior(new ButtonBehaviorLambda([&](){
+            _locator.Get<ParticleManager>()->Resume();
+            RefreshParticleMenu();
+        }));
+        _particleMenu->addWidget(resumeBtn);
+    } else {
+        auto pauseBtn = gui->CreateWidget<Button>();
+        pauseBtn->setLabel("Pause");
+        pauseBtn->SetBehavior(new ButtonBehaviorLambda([&](){
+            _locator.Get<ParticleManager>()->Pause();
+            RefreshParticleMenu();
+        }));
+        _particleMenu->addWidget(pauseBtn);
+    }
+    float posScale = 16.0f;
+    float sizeScale = 2.0f;
+    if ( _particleSys->dimensions == ParticleSys2D ) {
+        posScale = 640.0f;
+        sizeScale = 512.0f;
+    }
+    
+    auto activeBtn = gui->CreateWidget<Button>();
+    std::string active = "Active: ";
+    active.append(_particleSys->active ? "true" : "false");
+    activeBtn->setLabel(active);
+    activeBtn->SetBehavior(new ButtonBehaviorToggle(_particleSys->active));
+    _particleMenu->addWidget(activeBtn);
+
+    auto countSlider = gui->CreateWidget<Slider>();
+    countSlider->setLabel("Count");
+    countSlider->setBehavior(new SliderBehavior<int>(_particleSys->particleCount));
+    _particleMenu->addWidget(countSlider);
+
+    auto blendSrcSlider = gui->CreateWidget<Slider>();
+    blendSrcSlider->setLabel("BlendFunc SRC");
+    blendSrcSlider->setBehavior(new SliderBehavior<int>(_particleSys->blendFuncSrc));
+    _particleMenu->addWidget(blendSrcSlider);
+    
+    auto blendDstSlider = gui->CreateWidget<Slider>();
+    blendDstSlider->setLabel("BlendFunc DST");
+    blendDstSlider->setBehavior(new SliderBehavior<int>(_particleSys->blendFuncDst));
+    _particleMenu->addWidget(blendDstSlider);
+  
+    auto emitterTypeSlider = gui->CreateWidget<Slider>();
+    emitterTypeSlider->setLabel("Emitter type");
+    emitterTypeSlider->setBehavior(new SliderBehavior<int>(_particleSys->emitterType, 0, 1));
+    _particleMenu->addWidget(emitterTypeSlider);
+}
+
+void Particle3DEditor::LoadSystem(const std::string& fileName)
 {
     if (_fileSelectMenu) {
         _locator.Get<GUI>()->DestroyWidget(_fileSelectMenu);
         _fileSelectMenu = nullptr;
-    }
-    if (_particleSys) {
-        _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
-        _particleSys = nullptr;
     }
 
     if (fileName.length() > 0)
@@ -464,12 +465,19 @@ void Particle3DEditor::LoadSystem(const std::string fileName)
         std::string shortFileName = fileName;
         if ( fileNPos ) shortFileName = fileName.substr(fileNPos+1);
 		printf("Loading system: %s from %s - %s\n", fileName.c_str(), particlePath.c_str(), shortFileName.c_str());
-        _particleSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, shortFileName);
+        
+        if (_particleSys)
+        {
+            _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
+            _particleSys = nullptr;
+        }
+        _particleSys = _locator.Get<ParticleManager>()->AddSystem(particlePath,
+                                                                  shortFileName);
+        RefreshParticleMenu();
     }
-    ShowEditor();
 }
 
-void Particle3DEditor::SaveSystem(const std::string fileName)
+void Particle3DEditor::SaveSystem(const std::string& fileName)
 {
     if (_fileSelectMenu) {
         _locator.Get<GUI>()->DestroyWidget(_fileSelectMenu);
@@ -485,6 +493,4 @@ void Particle3DEditor::SaveSystem(const std::string fileName)
         if ( fileNPos ) shortFileName = fileName.substr(fileNPos+1);
         _particleSys->SaveToFile(particlePath, shortFileName);
     }
-    ShowEditor();
 }
-

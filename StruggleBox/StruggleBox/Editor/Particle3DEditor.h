@@ -37,18 +37,17 @@ private:
 
     glm::vec2 joyMoveInput;
     glm::vec2 joyRotateInput;
-    void UpdateMovement();
     
     bool OnEvent(const std::string& theEvent,
                  const float& amount);
     bool OnMouse(const glm::ivec2& coord);
-
-    // Editor button callbacks
-    void LoadSystemButtonCB( void*data );
-    void CloseEditorButtonCB( void*data );
     
-    void LoadSystem( const std::string fileName );
-    void SaveSystem( const std::string fileName );
+    void OpenFileSelectMenu(const bool load);
+    void CloseFileSelectMenu();
+    void RefreshParticleMenu();
+    
+    void LoadSystem(const std::string& fileName);
+    void SaveSystem(const std::string& fileName);
 
 };
 

@@ -22,7 +22,7 @@ public:
     virtual void Pause();
     virtual void Resume();
     virtual void Update(double deltaTime);
-    virtual void Draw() = 0;
+    virtual void Draw();
     
 protected:
     bool OnEvent(const std::string& theEvent,

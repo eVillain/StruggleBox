@@ -84,7 +84,6 @@ void Button::Draw(Renderer* renderer)
                          COLOR_UI_BORDER_INNER,
                          COLOR_NONE,
                          z);
-    renderer->Render2DLines();
     
     // Label
     if (_label) {
@@ -101,6 +100,7 @@ void Button::Draw(Renderer* renderer)
         }
     }
 }
+
 
 void Button::OnDrag(const glm::ivec2& coord)
 {

@@ -10,10 +10,10 @@
 #define CURSOR_BLINK_RATE 0.5
 
 TextInput::TextInput(Locator& locator) :
-Widget(locator)
+Widget(locator),
+_behavior(nullptr)
 {
     _textInputActive = false;
-    _behavior = nullptr;
     _label = _locator.Get<Text>()->CreateLabel("");
     _lastCursorBlink = 0;
 }
@@ -60,6 +60,7 @@ void TextInput::Draw(Renderer* renderer)
     
     Widget::Draw(renderer);
     
+    const float cursorZ = _transform.GetPosition().z+1;
     glm::vec2 textSize = _label->getSize();
     float leftEdge = _transform.GetPosition().x - _size.x*0.5;
     float cursorX = leftEdge + 8 + textSize.x + 4;
@@ -67,7 +68,7 @@ void TextInput::Draw(Renderer* renderer)
     float labelY = _transform.GetPosition().y;
     _label->getTransform().SetPositionX(leftEdge + 8);
     _label->getTransform().SetPositionY(labelY);
-
+    _label->getTransform().SetPositionZ(cursorZ);
     _label->setAlignment(Align_Left);
     
     // Render blinking cursor
@@ -79,10 +80,9 @@ void TextInput::Draw(Renderer* renderer)
                                    glm::vec2(cursorX, _transform.GetPosition().y - halfFontHeight),
                                    COLOR_WHITE,
                                    COLOR_WHITE,
-                                   _transform.GetPosition().z-1);
+                                   cursorZ);
         }
     }
-    renderer->Render2DLines();
 }
 
 void TextInput::Update(const double deltaTime)

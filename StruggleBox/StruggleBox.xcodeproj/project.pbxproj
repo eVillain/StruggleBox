@@ -290,6 +290,8 @@
 		D917C0E81C98C1170083FB69 /* FileMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = D917C0E61C98C1170083FB69 /* FileMenu.h */; settings = {ASSET_TAGS = (); }; };
 		D917C0EB1C98D0260083FB69 /* List.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0E91C98D0260083FB69 /* List.cpp */; settings = {ASSET_TAGS = (); }; };
 		D917C0EC1C98D0260083FB69 /* List.h in Headers */ = {isa = PBXBuildFile; fileRef = D917C0EA1C98D0260083FB69 /* List.h */; settings = {ASSET_TAGS = (); }; };
+		D917C0EF1C9B06470083FB69 /* ListBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D917C0ED1C9B06470083FB69 /* ListBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
+		D917C0F01C9B06470083FB69 /* ListBehavior.h in Headers */ = {isa = PBXBuildFile; fileRef = D917C0EE1C9B06470083FB69 /* ListBehavior.h */; settings = {ASSET_TAGS = (); }; };
 		D92031361C91DF5300217562 /* Button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031201C91DF5300217562 /* Button.cpp */; settings = {ASSET_TAGS = (); }; };
 		D92031371C91DF5300217562 /* Button.h in Headers */ = {isa = PBXBuildFile; fileRef = D92031211C91DF5300217562 /* Button.h */; settings = {ASSET_TAGS = (); }; };
 		D92031381C91DF5300217562 /* ButtonBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92031221C91DF5300217562 /* ButtonBehavior.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -1022,6 +1024,8 @@
 		D917C0E61C98C1170083FB69 /* FileMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileMenu.h; sourceTree = "<group>"; };
 		D917C0E91C98D0260083FB69 /* List.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = List.cpp; sourceTree = "<group>"; };
 		D917C0EA1C98D0260083FB69 /* List.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = List.h; sourceTree = "<group>"; };
+		D917C0ED1C9B06470083FB69 /* ListBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ListBehavior.cpp; sourceTree = "<group>"; };
+		D917C0EE1C9B06470083FB69 /* ListBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ListBehavior.h; sourceTree = "<group>"; };
 		D92031201C91DF5300217562 /* Button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Button.cpp; sourceTree = "<group>"; };
 		D92031211C91DF5300217562 /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		D92031221C91DF5300217562 /* ButtonBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ButtonBehavior.cpp; sourceTree = "<group>"; };
@@ -1749,6 +1753,8 @@
 				D92031261C91DF5300217562 /* GUI.h */,
 				D917C0E91C98D0260083FB69 /* List.cpp */,
 				D917C0EA1C98D0260083FB69 /* List.h */,
+				D917C0ED1C9B06470083FB69 /* ListBehavior.cpp */,
+				D917C0EE1C9B06470083FB69 /* ListBehavior.h */,
 				D94133611C96F9060029205B /* Menu.cpp */,
 				D94133621C96F9060029205B /* Menu.h */,
 				D920312B1C91DF5300217562 /* Slider.cpp */,
@@ -1890,6 +1896,7 @@
 				D90362B11C8BBC2000E6AD07 /* UIMenu.h in Headers */,
 				D903628B1C8BBC1E00E6AD07 /* ParticleManager.h in Headers */,
 				D903626D1C8BBC1D00E6AD07 /* Serialise.h in Headers */,
+				D917C0F01C9B06470083FB69 /* ListBehavior.h in Headers */,
 				D90366301C8BCEEB00E6AD07 /* Timer.h in Headers */,
 				D90362721C8BBC1D00E6AD07 /* ThreadPool.h in Headers */,
 				D90362AB1C8BBC2000E6AD07 /* UIFileMenu.h in Headers */,
@@ -2074,6 +2081,7 @@
 				D90366101C8BCEDD00E6AD07 /* CommandProcessor.cpp in Sources */,
 				D90362AE1C8BBC2000E6AD07 /* UIManager.cpp in Sources */,
 				D90362821C8BBC1E00E6AD07 /* Light3D.cpp in Sources */,
+				D917C0EF1C9B06470083FB69 /* ListBehavior.cpp in Sources */,
 				D92031441C91DF5300217562 /* TextInput.cpp in Sources */,
 				D939DF201C927DBC00C7F3A2 /* FontAtlas.cpp in Sources */,
 				D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */,

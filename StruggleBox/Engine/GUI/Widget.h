@@ -22,9 +22,6 @@ public:
     /// Active is true when the widget is 'on' and interactable (default = true)
     virtual void setActive( const bool active ) { _active = active;}
     
-    /* Override these for different cursor events */
-    /// Focus is true when the cursor is over a widget
-    virtual void setFocus(const bool focus) { _focus = focus; };
     /// Toggles rendering of widget
     virtual void setVisibility(const bool visible) { _visible = visible; }
 
@@ -39,6 +36,9 @@ protected:
     
     // Override this for drawing different widgets
     virtual void Draw(Renderer* renderer);
+    void DrawBase(Renderer* renderer,
+                  const glm::vec3& position,
+                  const glm::ivec2& size);
     
     // Update - Unused for most widgets but some will need it
     virtual void Update(const double deltaTime)
@@ -51,7 +51,9 @@ protected:
     virtual void OnDrag(const glm::ivec2& coord) { };
     /// Cursor over widget test, returns true if point is inside widget
     virtual const bool Contains(const glm::ivec2& coord) const;
-    
+    /// Focus is true when the cursor is over a widget
+    virtual void setFocus(const bool focus) { _focus = focus; };
+
     Locator& _locator;
     Transform _transform;
     glm::ivec2 _size;

@@ -2314,9 +2314,7 @@ void RendererGLProg::Buffer2DLine( const glm::vec2 a, const glm::vec2 b,
 }
 void RendererGLProg::Render2DLines() {
     if ( numBuffered2DLines == 0 ) return;
-//    glDisable(GL_BLEND);
-//    glEnable(GL_DEPTH_TEST);
-
+    
     d_shaderDefault_vColor->Begin();
     d_shaderDefault_vColor->setUniformM4fv("MVP", mvp2D);
 
@@ -2331,8 +2329,11 @@ void RendererGLProg::Render2DLines() {
     numBuffered2DLines = 0;
 }
 
-void RendererGLProg::DrawPolygon( const int count, const GLfloat *verts,
-                                 const Color lineColor, const Color fillColor, const float z ) {
+void RendererGLProg::DrawPolygon(const int count,
+                                 const GLfloat *verts,
+                                 const Color lineColor,
+                                 const Color fillColor)
+{
     f_shaderUI_color->Begin();
     f_shaderUI_color->setUniformM4fv("MVP", mvp2D);
     // Bind buffer and upload verts
@@ -2353,8 +2354,13 @@ void RendererGLProg::DrawPolygon( const int count, const GLfloat *verts,
     f_shaderUI_color->End();
     glBindVertexArray(0);
 }
-void RendererGLProg::DrawPolygon( const int count, const glm::vec2 *verts,
-                                 const Color lineColor, const Color fillColor, const float z ) {
+
+void RendererGLProg::DrawPolygon(const int count,
+                                 const glm::vec2 *verts,
+                                 const Color lineColor,
+                                 const Color fillColor,
+                                 const float z)
+{
     f_shaderUI_color->Begin();
     f_shaderUI_color->setUniformM4fv("MVP", mvp2D);
     // Bind buffer and upload verts
@@ -2386,15 +2392,18 @@ void RendererGLProg::DrawPolygon( const int count, const glm::vec2 *verts,
     glBindVertexArray(0);
     delete [] vertices;
 }
-void RendererGLProg::Draw2DRect( Rect2D rect,
-                               Color lineColor, Color fillColor, float z ) {
+void RendererGLProg::Draw2DRect(Rect2D rect,
+                                Color lineColor,
+                                Color fillColor,
+                                float z)
+{
     GLfloat verts[] = {
-        rect.x           , rect.y,           z, 1,
-        rect.x + rect.w-1, rect.y,           z, 1,
-        rect.x + rect.w-1, rect.y + rect.h-1,  z, 1,
-        rect.x           , rect.y + rect.h-1,  z, 1,
+        rect.x           , rect.y,              z, 1,
+        rect.x + rect.w-1, rect.y,              z, 1,
+        rect.x + rect.w-1, rect.y + rect.h-1,   z, 1,
+        rect.x           , rect.y + rect.h-1,   z, 1,
     };
-    DrawPolygon(4, verts, lineColor, fillColor, 0.0f);
+    DrawPolygon(4, verts, lineColor, fillColor);
 }
 
 void RendererGLProg::Draw2DRect( glm::vec2 center, float width, float height,
@@ -2407,10 +2416,14 @@ void RendererGLProg::Draw2DRect( glm::vec2 center, float width, float height,
         +hw + center.x, +hh + center.y, z, 1,
         -hw + center.x, +hh + center.y, z, 1,
     };
-    DrawPolygon(4, verts, lineColor, fillColor, z);
+    DrawPolygon(4, verts, lineColor, fillColor);
 }
-void RendererGLProg::Draw2DRect3D( glm::vec3 center, float width, float height,
-                                   Color lineColor, Color fillColor, float z ) {
+void RendererGLProg::Draw2DRect3D(glm::vec3 center,
+                                  float width,
+                                  float height,
+                                  Color lineColor,
+                                  Color fillColor,
+                                  float z) {
     
     glm::mat4 model = glm::mat4();
     model = glm::rotate(model, -g_camera->rotation.x, glm::vec3(1.0, 0.0, 0.0));

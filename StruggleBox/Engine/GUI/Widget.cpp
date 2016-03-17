@@ -98,5 +98,44 @@ void Widget::Draw(Renderer* renderer)
                          COLOR_UI_BORDER_INNER,
                          COLOR_NONE,
                          z);
-    renderer->Render2DLines();
+}
+
+void Widget::DrawBase(Renderer* renderer,
+                      const glm::vec3 &position,
+                      const glm::ivec2 &size)
+{
+    // Pixel perfect outer border (should render with 1px shaved off corners)
+    renderer->Buffer2DLine(glm::vec2(position.x, position.y+1),
+                           glm::vec2(position.x, position.y+size.y-1),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER,
+                           position.z);   // Left
+    renderer->Buffer2DLine(glm::vec2(position.x+_size.x-1, position.y+size.y-1),
+                           glm::vec2(position.x+_size.x-1, position.y+1),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER,
+                           position.z);   // Right
+    renderer->Buffer2DLine(glm::vec2(position.x, position.y),
+                           glm::vec2(position.x+_size.x-2, position.y),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER,
+                           position.z);   // Top
+    renderer->Buffer2DLine(glm::vec2(position.x, position.y+size.y-1),
+                           glm::vec2(position.x+_size.x-2, position.y+size.y-1),
+                           COLOR_UI_BORDER_OUTER,
+                           COLOR_UI_BORDER_OUTER,
+                           position.z);   // Bottom
+    
+    renderer->DrawGradientY(Rect2D(position.x, position.y+1, size.x-1, size.y-1),
+                            COLOR_UI_GRADIENT_TOP,
+                            COLOR_UI_GRADIENT_BOTTOM,
+                            position.z);
+    
+    // Inside border
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    renderer->Draw2DRect(Rect2D(position.x+1, position.y+1, size.x-2, size.y-2),
+                         COLOR_UI_BORDER_INNER,
+                         COLOR_NONE,
+                         position.z);
 }

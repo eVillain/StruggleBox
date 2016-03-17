@@ -58,10 +58,12 @@ void GUI::Draw(Renderer* renderer)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
     for (std::shared_ptr<Widget> widget : _widgets)
     {
         widget->Draw(renderer);
     }
+    renderer->Render2DLines();
 }
 
 bool GUI::OnCursorPress(const glm::ivec2& coord)

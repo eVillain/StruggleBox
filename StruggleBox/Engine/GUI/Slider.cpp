@@ -42,6 +42,7 @@ void Slider::Draw(Renderer* renderer)
     // Slider
     if (_behavior)
     {
+        const float sliderZ = _transform.GetPosition().z + 1;
         const int sliderMaxLeft = drawPos.x + _sliderPadding;
         const int sliderMaxRight = drawPos.x + (_size.x - _sliderPadding);
         const int sliderLength = (sliderMaxRight-sliderMaxLeft);
@@ -55,7 +56,7 @@ void Slider::Draw(Renderer* renderer)
                                glm::vec2(sliderMaxRight, widgetMiddleY),
                                COLOR_BLACK,
                                COLOR_BLACK,
-                               _transform.GetPosition().z+1);
+                               sliderZ);
         
         // Slider pointer
         float hF = _sliderWidth/2.0f;
@@ -67,7 +68,11 @@ void Slider::Draw(Renderer* renderer)
             glm::vec2(sliderMiddle+hF, drawPos.y+_size.y-pad),
             glm::vec2(sliderMiddle-hF, drawPos.y+_size.y-pad),
         };
-        renderer->DrawPolygon(5, vertices, COLOR_BLACK, COLOR_GREY);
+        renderer->DrawPolygon(5,
+                              vertices,
+                              COLOR_BLACK,
+                              COLOR_GREY,
+                              sliderZ+1);
     }
     
     // Label

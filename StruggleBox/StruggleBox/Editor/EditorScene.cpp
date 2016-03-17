@@ -7,6 +7,14 @@
 #include "GUI.h"
 #include "Menu.h"
 #include "Button.h"
+#include "FileUtil.h"
+#include "TextureManager.h"
+#include "Renderer.h"
+
+const int MOVE_SPEED_DEFAULT = 4;
+const int MOVE_SPEED_SNEAK = 2;
+const int MOVE_SPEED_SNEAK_SUPER = 1;
+const int MOVE_SPEED_RUN = 8;
 
 EditorScene::EditorScene(Locator& locator) :
 Scene("Editor", locator)
@@ -24,6 +32,7 @@ void EditorScene::Initialize()
     Scene::Initialize();
     _locator.Get<Input>()->RegisterEventObserver(this);
     _locator.Get<Input>()->RegisterMouseObserver(this);
+    TextureManager::Inst()->LoadTexture(FileUtil::GetPath().append("Data/GFX/"), "Crosshair.png");
 }
 
 void EditorScene::ReInitialize()
@@ -46,12 +55,26 @@ void EditorScene::Resume()
 void EditorScene::Release()
 {
     Scene::Release();
+    TextureManager::Inst()->UnloadTexture("Crosshair.png");
 }
 
 void EditorScene::Update(double deltaTime)
 {
     HandleMovement();
     _locator.Get<Camera>()->Update(deltaTime);
+}
+
+void EditorScene::Draw()
+{
+    if (_locator.Get<Options>()->getOption<bool>("r_grabCursor"))
+    {
+        // Render crosshair image
+        _locator.Get<Renderer>()->DrawImage(_cursor.posScrn,
+                                            16, 16,
+                                            "Crosshair.png",
+                                            100.0f,
+                                            COLOR_WHITE);
+    }
 }
 
 bool EditorScene::OnEvent(const std::string& theEvent,
@@ -68,16 +91,16 @@ bool EditorScene::OnEvent(const std::string& theEvent,
             _cursor.rClickPosScrn = _cursor.posScrn;
         } else if ( theEvent == INPUT_PAUSE ) {
         } else if ( theEvent == INPUT_RUN ) {
-            if ( _locator.Get<Camera>()->movementSpeedFactor == 10.0 ) {
-                _locator.Get<Camera>()->movementSpeedFactor = 1.0;
+            if ( _locator.Get<Camera>()->movementSpeedFactor == MOVE_SPEED_SNEAK ) {
+                _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_SNEAK_SUPER;
             } else {
-                _locator.Get<Camera>()->movementSpeedFactor = 50.0;
+                _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_RUN;
             }
         } else if ( theEvent == INPUT_SNEAK ) {
-            if ( _locator.Get<Camera>()->movementSpeedFactor == 50.0 ) {
-                _locator.Get<Camera>()->movementSpeedFactor = 1.0;
+            if ( _locator.Get<Camera>()->movementSpeedFactor == MOVE_SPEED_RUN ) {
+                _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_SNEAK_SUPER;
             } else {
-                _locator.Get<Camera>()->movementSpeedFactor = 10.0;
+                _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_SNEAK;
             }
         } else if ( theEvent == INPUT_LOOK_DOWN ) {
         } else if ( theEvent == INPUT_LOOK_UP ) {
@@ -97,9 +120,9 @@ bool EditorScene::OnEvent(const std::string& theEvent,
             } else {
             }
         } else if ( theEvent == INPUT_RUN ) {
-            { _locator.Get<Camera>()->movementSpeedFactor = 20.0; }
+            { _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_DEFAULT; }
         } else if ( theEvent == INPUT_SNEAK ) {
-            { _locator.Get<Camera>()->movementSpeedFactor = 20.0; }
+            { _locator.Get<Camera>()->movementSpeedFactor = MOVE_SPEED_DEFAULT; }
         } else if ( theEvent == INPUT_EDIT_BLOCKS ) {
         } else if ( theEvent == INPUT_CONSOLE ) {
             if ( !Console::isVisible() ) {
@@ -123,7 +146,7 @@ bool EditorScene::OnEvent(const std::string& theEvent,
         } else if (theEvent == INPUT_GRAB_CURSOR ) {
             bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
-            SDL_ShowCursor(grabCursor);
+            SDL_ShowCursor(!grabCursor);
             return true;
         } else if (theEvent == INPUT_JUMP) {
             _locator.Get<Camera>()->thirdPerson = !_locator.Get<Camera>()->thirdPerson;

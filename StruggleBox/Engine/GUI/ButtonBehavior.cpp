@@ -12,7 +12,7 @@ void ButtonBehaviorLambda::Trigger()
     }
 }
 
-ButtonBehaviorToggle::ButtonBehaviorToggle( bool* clientData ) :
+ButtonBehaviorToggle::ButtonBehaviorToggle(bool& clientData) :
 toggleData(clientData)
 { }
 
@@ -20,6 +20,6 @@ void ButtonBehaviorToggle::Trigger()
 {
     if ( toggleData )
     {
-        *toggleData = !(*toggleData );
+        toggleData = !toggleData;
     }
 }

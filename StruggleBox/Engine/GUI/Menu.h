@@ -16,15 +16,13 @@ public:
     
     void Draw(Renderer* renderer);
     void Update(const double deltaTime);
-    void OnDrag(const glm::ivec2& coord);
     
-    void OnInteract(const bool interact,
-                    const glm::ivec2& coord);
     void setVisibility(const bool visible);
 
     void addWidget(std::shared_ptr<Widget> widget,
                    const std::string& subMenu = "");
     void createSubMenu(const std::string& name);
+    void removeAllItems();
     
     void minimize();
 
@@ -34,6 +32,10 @@ public:
     const int getContentHeight() { return _contentHeight; }
     
 private:
+    void OnInteract(const bool interact,
+                    const glm::ivec2& coord);
+    void OnDrag(const glm::ivec2& coord);
+
     Menu* _parent;
     std::vector<std::shared_ptr<Widget>> _widgets;
     std::map<std::string, std::shared_ptr<Menu>> _subMenus;

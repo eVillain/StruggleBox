@@ -84,6 +84,7 @@ public:
     // 2D Buffering functions
     void Buffer2DLine( glm::vec2 a, glm::vec2 b, Color aColor, Color bColor, float z = 0.0f );
     void Render2DLines();
+    
     // 3D Buffering functions
     void Buffer3DLine( glm::vec3 a, glm::vec3 b, Color aColor, Color bColor );
     void Render3DLines();
@@ -91,10 +92,15 @@ public:
     void Render3DCubes();
     void Render2DCube( const glm::vec2& center, const Color color, const glm::vec3 rotation);
     // 2D Drawing functions ( drawn immediately )
-    void DrawPolygon( const int count, const GLfloat *verts,
-                     const Color lineColor, const Color fillColor, const float z = 0.0f );
-    void DrawPolygon( const int count, const glm::vec2 *verts,
-                     const Color lineColor, const Color fillColor, const float z = 0.0f );
+    void DrawPolygon(const int count,
+                     const GLfloat *verts,
+                     const Color lineColor,
+                     const Color fillColor);
+    void DrawPolygon(const int count,
+                     const glm::vec2 *verts,
+                     const Color lineColor,
+                     const Color fillColor,
+                     const float z = 0.0f);
 
     void Draw2DRect( Rect2D rect,
                   Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f );
