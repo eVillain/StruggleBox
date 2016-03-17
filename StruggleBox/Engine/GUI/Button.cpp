@@ -22,8 +22,6 @@ Button::~Button()
     
     if (_label)
     {
-        printf("[Button] removing label %s, use count %lu\n",
-               _label->getText().c_str(), _label.use_count());
         _locator.Get<Text>()->DestroyLabel(_label);
         _label = nullptr;
     }
@@ -137,6 +135,4 @@ void Button::setLabel(const std::string text)
     } else {
         _label = _locator.Get<Text>()->CreateLabel(text);
     }
-    printf("[Button] set label %s use count %lu \n",
-           _label->getText().c_str(), _label.use_count());
 }
