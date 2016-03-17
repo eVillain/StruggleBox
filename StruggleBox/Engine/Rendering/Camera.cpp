@@ -2,7 +2,6 @@
 #include "Random.h"
 #include "Timer.h"
 #include <glm/gtx/rotate_vector.hpp>
-//#include <time.h>       /* time */
 #include <iostream>
 
 Camera::Camera() :
@@ -52,7 +51,6 @@ void Camera::Update(double delta)
         glm::vec3 new_dir = (rotation * old_ratio) + (targetRotation * new_ratio);
         rotation = new_dir;
         
-//        rotation = targetRotation;
         if ( glm::length(movement) > 0.0f ) {
             // Apply direct camera movement
             CalculateCameraMovement( movement );
@@ -112,7 +110,7 @@ void Camera::Update(double delta)
                 position = targetPosition;
             } else {
                 CalculateCameraMovement( movement );
-                position = position+speed*float(delta);
+                position += speed*float(delta);
             }
         }
     }
@@ -122,7 +120,6 @@ void Camera::Update(double delta)
         int rX = Random::RandomInt(-1, 1);
         int rY = Random::RandomInt(-1, 1);
         shakeVect = glm::vec3(rX, rY, 0.0f)*shakeAmount;
-//        printf("Shake:%f / %f\n", shakeVect.x, shakeVect.y);
         position += shakeVect;
         shakeAmount *= shakeDecay;
         if ( fabsf(shakeAmount) < 0.01f ) { shakeAmount = 0.0f; shakeVect = glm::vec3(); }
@@ -159,7 +156,9 @@ void Camera::CameraRotate(const float rotX,
 
 }
 // Function to calculate which direction we need to move the camera and by what amount
-void Camera::CalculateCameraMovement(glm::vec3 direction) {
+void Camera::CalculateCameraMovement(glm::vec3 direction)
+{
+
     // Break up our movement into components along the X, Y and Z axis
     float camMovementXComponent = 0.0f;
     float camMovementYComponent = 0.0f;
@@ -168,33 +167,29 @@ void Camera::CalculateCameraMovement(glm::vec3 direction) {
     if (direction.z != 0.0f) {
         // Control X-Axis movement
         float pitchFactor = cos(toRads(rotation.x));
-        camMovementXComponent += ( movementSpeedFactor * float(sin(toRads(rotation.y))) * direction.z ) * pitchFactor;
+        camMovementXComponent += (movementSpeedFactor * float(sin(rotation.y)) * -direction.z) * pitchFactor;
         // Control Y-Axis movement
-        camMovementYComponent += movementSpeedFactor * float(sin(toRads(rotation.x))* -direction.z );
+        camMovementYComponent += movementSpeedFactor * float(sin(rotation.x)* direction.z);
         // Control Z-Axis movement
-        float yawFactor = (cos(toRads(rotation.x)));
-        camMovementZComponent += ( movementSpeedFactor * float(cos(toRads(rotation.y))) * direction.z ) * yawFactor;
+        float yawFactor = (cos(toRads(rotation.z)));
+        camMovementZComponent += ( movementSpeedFactor * float(cos(rotation.y)) * -direction.z) * yawFactor;
     }
     // Strafing
     if ( direction.x !=  0.0f ) {
-        // Calculate our Y-Axis rotation in radians once here because we use it twice
-        float yRotRad = toRads(rotation.y);
-        camMovementXComponent +=  movementSpeedFactor * float(cos(yRotRad)) * direction.x;
-        camMovementZComponent +=  movementSpeedFactor * float(sin(yRotRad)) * -direction.x;
+        camMovementXComponent +=  movementSpeedFactor * float(cos(rotation.y)) * direction.x;
+        camMovementZComponent +=  movementSpeedFactor * float(sin(rotation.y)) * -direction.x;
     }
     // Vertical movement
     if ( direction.y !=  0.0f ) {
-        float xRotRad = toRads(rotation.x);
-        float yRotRad = toRads(rotation.y);
-        camMovementYComponent +=  movementSpeedFactor * float(cos(xRotRad)) * -direction.y;
-        camMovementXComponent +=  movementSpeedFactor * float(sin(yRotRad)) * direction.y;
-        camMovementZComponent +=  movementSpeedFactor * float(cos(yRotRad)) * direction.y;
+        camMovementYComponent +=  movementSpeedFactor * float(cos(rotation.x)) * -direction.y;
+        camMovementXComponent +=  movementSpeedFactor * float(sin(rotation.y)) * direction.y;
+        camMovementZComponent +=  movementSpeedFactor * float(cos(rotation.y)) * direction.y;
     }
     // After combining our movements for any & all keys pressed, assign them to our camera speed along the given axis
     speed.x = camMovementXComponent;
     speed.y = camMovementYComponent;
     speed.z = camMovementZComponent;
-    
+
     // Cap the speeds to our movementSpeedFactor (otherwise going forward and strafing at an angle is twice as fast as just going forward!)
     double_clamp(speed.x, -movementSpeedFactor, movementSpeedFactor);
     double_clamp(speed.y, -movementSpeedFactor, movementSpeedFactor);
