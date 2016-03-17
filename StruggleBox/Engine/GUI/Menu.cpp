@@ -109,6 +109,15 @@ void Menu::Draw(Renderer* renderer)
     }
 }
 
+void Menu::Update(const double deltaTime)
+{
+    if (_transform.isDirty())
+    {
+        refresh();
+        _transform.unflagDirty();
+    }
+}
+
 void Menu::OnDrag(const glm::ivec2& coord)
 {
     if (!_draggable) return;
@@ -164,7 +173,7 @@ void Menu::refresh()
     {
         glm::vec3 minimizeBtnPos = glm::vec3(_transform.GetPosition());
         minimizeBtnPos.x += (_size.x/2) - 12;
-//        minimizeBtnPos.z += 1;
+        minimizeBtnPos.z += 1;
         _minimizeButton->GetTransform().SetPosition(minimizeBtnPos);
         _minimizeButton->setSize(glm::ivec2(_size.y-6));
     }

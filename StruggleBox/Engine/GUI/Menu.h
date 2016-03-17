@@ -15,6 +15,7 @@ public:
     ~Menu();
     
     void Draw(Renderer* renderer);
+    void Update(const double deltaTime);
     void OnDrag(const glm::ivec2& coord);
     
     void OnInteract(const bool interact,
