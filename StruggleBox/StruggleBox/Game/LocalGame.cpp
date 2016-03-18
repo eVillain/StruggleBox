@@ -322,7 +322,8 @@ bool LocalGame::OnEvent(const std::string &theEvent,
                 }
             }
         } else if ( theEvent == INPUT_BACK ) {
-            if ( Console::isVisible() ) {
+            if (Console::isVisible())
+            {
                 Console::ToggleVisibility();
             } else {
                 _locator.Get<Options>()->getOption<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
@@ -363,6 +364,7 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             }
         } else if ( theEvent == INPUT_CONSOLE ) {
             Console::ToggleVisibility();
+            return true;
         }
     }
     if (theEvent == INPUT_MOVE_FORWARD) {
