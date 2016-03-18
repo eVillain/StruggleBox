@@ -111,6 +111,7 @@ void Slider::setBehavior(ISliderBehavior* behavior)
 {
     if (_behavior) { delete _behavior; }
     _behavior = behavior;
+    if (_behavior) { _sliderValue = _behavior->GetValue(); }
     updateLabel();
 }
 
@@ -165,7 +166,6 @@ void Slider::updateLabel()
 {
     if ( _behavior )
     {
-        _behavior->SetValue(_sliderValue);
         _label->setText(_name + ": " + _behavior->GetValueString());
     }
     else
