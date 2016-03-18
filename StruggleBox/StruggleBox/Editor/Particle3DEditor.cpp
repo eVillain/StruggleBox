@@ -2,10 +2,12 @@
 #include "HyperVisor.h"
 #include "FileUtil.h"
 #include "Console.h"
+
 #include "GUI.h"
 #include "Menu.h"
 #include "Button.h"
 #include "FileMenu.h"
+#include "ValueDisplay.h"
 #include "CameraMenuHelper.h"
 
 
@@ -99,7 +101,7 @@ void Particle3DEditor::ShowEditor()
     _editorMenu->setName("File");
     _editorMenu->setSize(itemSize);
     _editorMenu->GetTransform().SetPosition(itemPos);
-    itemPos.x += itemSize.x;
+    itemPos.x += itemSize.x/2;
     
     if (_particleMenu)
     {
@@ -108,11 +110,12 @@ void Particle3DEditor::ShowEditor()
     
     _particleMenu = gui->CreateWidget<Menu>();
     _particleMenu->setName("Particle System");
-    _particleMenu->setSize(itemSize);
+    _particleMenu->setSize(glm::ivec2(280, 24));
+    itemPos.x += _particleMenu->getSize().x/2;
     _particleMenu->GetTransform().SetPosition(itemPos);
-    itemPos.x += itemSize.x;
     RefreshParticleMenu();
-    
+    itemPos.x += _particleMenu->getSize().x/2;
+
     {
         auto quitBtn = gui->CreateWidget<Button>();
         quitBtn->setLabel("Quit");
@@ -150,7 +153,7 @@ void Particle3DEditor::ShowEditor()
     }));
     _editorMenu->addWidget(loadBtn);
 
-    if ( _particleSys )
+    if (_particleSys)
     {
         auto closeBtn = gui->CreateWidget<Button>();
         closeBtn->setLabel("Close");
@@ -161,45 +164,8 @@ void Particle3DEditor::ShowEditor()
         }));
         _editorMenu->addWidget(closeBtn);
     }
-    
-//        particleMenu->AddSlider("dimensions", &_particleSys->dimensions, 0, 1);
-//        particleMenu->AddSlider("lighting", &_particleSys->lighting, 0, 1);
-//        
-//        particleMenu->AddSlider("PosX", &_particleSys->position.x, -posScale, posScale, "Position");
-//        particleMenu->AddSlider("PosY", &_particleSys->position.y, -posScale, posScale, "Position");
-//        particleMenu->AddSlider("PosZ", &_particleSys->position.z, -posScale, posScale, "Position");
-//
-//        
-//        particleMenu->AddSlider("maxParticles", &_particleSys->maxParticles, 1, 10000);
-//        particleMenu->AddSlider("Time Scale", &timeScaler, 0.0f, 2.0f);
-//        particleMenu->AddSlider("duration", &_particleSys->duration, -1.0f, 100.0f);
-//        particleMenu->AddSlider("emissionRate", &_particleSys->emissionRate, 0.0f, 10000.0f);
-//
-//        particleMenu->AddSlider("angle", &_particleSys->angle, -360.0f, 360.0f);
-//        particleMenu->AddSlider("angleVar", &_particleSys->angleVar, -360.0f, 360.0f);
-//
-//        particleMenu->AddSlider("finishParticleSize", &_particleSys->finishParticleSize, 0.0f, sizeScale);
-//        particleMenu->AddSlider("finishParticleSizeVar", &_particleSys->finishParticleSizeVar, 0.0f, sizeScale);
-//
-//
-//        particleMenu->AddSlider("lifeSpan", &_particleSys->lifeSpan, 0.0f, 10.0f);
-//        particleMenu->AddSlider("lifeSpanVar", &_particleSys->lifeSpanVar, 0.0f, 10.0f);
-//        
-//        particleMenu->AddSlider("rotEnd", &_particleSys->rotEnd,           0.0f, 360.0f, "Rotation");
-//        particleMenu->AddSlider("rotEndVar", &_particleSys->rotEndVar,     0.0f, 360.0f, "Rotation");
-//        particleMenu->AddSlider("rotStart", &_particleSys->rotStart,       0.0f, 360.0f, "Rotation");
-//        particleMenu->AddSlider("rotStartVar", &_particleSys->rotStartVar, 0.0f, 360.0f, "Rotation");
-//        
-//        particleMenu->AddSlider("sourcePosX", &_particleSys->sourcePos.x, -posScale, posScale, "SourcePos");
-//        particleMenu->AddSlider("sourcePosY", &_particleSys->sourcePos.y, -posScale, posScale, "SourcePos");
-//        particleMenu->AddSlider("sourcePosZ", &_particleSys->sourcePos.z, -posScale, posScale, "SourcePos");
-//        particleMenu->AddSlider("sourcePosVarX", &_particleSys->sourcePosVar.x, -posScale, posScale, "SourcePosVar");
-//        particleMenu->AddSlider("sourcePosVarY", &_particleSys->sourcePosVar.y, -posScale, posScale, "SourcePosVar");
-//        particleMenu->AddSlider("sourcePosVarZ", &_particleSys->sourcePosVar.z, -posScale, posScale, "SourcePosVar");
-//
-//        particleMenu->AddSlider("startSize", &_particleSys->startSize, 0.0f, sizeScale, "StartSize");
-//        particleMenu->AddSlider("startSizeVar", &_particleSys->startSizeVar, 0.0f, sizeScale, "StartSize");
-//        
+
+
 //        if ( _particleSys->emitterType == ParticleSysGravity ) {
 //            particleMenu->AddSlider("gravityX", &_particleSys->gravity.x, -100.0f, 100.0f, "Gravity");
 //            particleMenu->AddSlider("gravityY", &_particleSys->gravity.y, -100.0f, 100.0f, "Gravity");
@@ -235,6 +201,7 @@ void Particle3DEditor::ShowEditor()
         }));
         cameraMenu->addWidget(closeBtn);
     }));
+    itemPos.x += itemSize.x/2;
     cameraButton->GetTransform().SetPosition(itemPos);
     _widgets.push_back(cameraButton);
 }
@@ -430,9 +397,9 @@ void Particle3DEditor::RefreshParticleMenu()
     activeBtn->SetBehavior(new ButtonBehaviorToggle(_particleSys->active));
     _particleMenu->addWidget(activeBtn);
 
-    auto countSlider = gui->CreateWidget<Slider>();
-    countSlider->setLabel("Count");
-    countSlider->setBehavior(new SliderBehavior<int>(_particleSys->particleCount));
+    auto countSlider = gui->CreateWidget<ValueDisplay>();
+    countSlider->setName("Count");
+    countSlider->setValue(_particleSys->particleCount);
     _particleMenu->addWidget(countSlider);
 
     auto blendSrcSlider = gui->CreateWidget<Slider>();
@@ -449,6 +416,140 @@ void Particle3DEditor::RefreshParticleMenu()
     emitterTypeSlider->setLabel("Emitter type");
     emitterTypeSlider->setBehavior(new SliderBehavior<int>(_particleSys->emitterType, 0, 1));
     _particleMenu->addWidget(emitterTypeSlider);
+    
+    auto dimensionsSlider = gui->CreateWidget<Slider>();
+    dimensionsSlider->setLabel("Dimensions");
+    dimensionsSlider->setBehavior(new SliderBehavior<int>(_particleSys->dimensions, 0, 1));
+    _particleMenu->addWidget(dimensionsSlider);
+    
+    auto lightingSlider = gui->CreateWidget<Slider>();
+    lightingSlider->setLabel("Lighting");
+    lightingSlider->setBehavior(new SliderBehavior<int>(_particleSys->lighting, 0, 1));
+    _particleMenu->addWidget(lightingSlider);
+    
+    {
+        auto posXSlider = gui->CreateWidget<Slider>();
+        posXSlider->setLabel("X");
+        posXSlider->setBehavior(new SliderBehavior<float>(_particleSys->position.x, -posScale, posScale));
+        _particleMenu->addWidget(posXSlider, "Position");
+        auto posYSlider = gui->CreateWidget<Slider>();
+        posYSlider->setLabel("Y");
+        posYSlider->setBehavior(new SliderBehavior<float>(_particleSys->position.y, -posScale, posScale));
+        _particleMenu->addWidget(posYSlider, "Position");
+        auto posZSlider = gui->CreateWidget<Slider>();
+        posZSlider->setLabel("Z");
+        posZSlider->setBehavior(new SliderBehavior<float>(_particleSys->position.z, -posScale, posScale));
+        _particleMenu->addWidget(posZSlider, "Position");
+    }
+    
+    {
+        auto rotEndSlider = gui->CreateWidget<Slider>();
+        rotEndSlider->setLabel("End");
+        rotEndSlider->setBehavior(new SliderBehavior<float>(_particleSys->rotEnd, 0.0f, 360.0f));
+        _particleMenu->addWidget(rotEndSlider, "Rotation");
+        auto rotEndVarSlider = gui->CreateWidget<Slider>();
+        rotEndVarSlider->setLabel("End Variance");
+        rotEndVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->rotEndVar, 0.0f, 360.0f));
+        _particleMenu->addWidget(rotEndVarSlider, "Rotation");
+        auto rotStartSlider = gui->CreateWidget<Slider>();
+        rotStartSlider->setLabel("Start");
+        rotStartSlider->setBehavior(new SliderBehavior<float>(_particleSys->rotStart, 0.0f, 360.0f));
+        _particleMenu->addWidget(rotStartSlider, "Rotation");
+        auto rotStartVarSlider = gui->CreateWidget<Slider>();
+        rotStartVarSlider->setLabel("Start Variance");
+        rotStartVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->rotStartVar, 0.0f, 360.0f));
+        _particleMenu->addWidget(rotStartVarSlider, "Rotation");
+    }
+    
+    {
+        auto sourcePosXSlider = gui->CreateWidget<Slider>();
+        sourcePosXSlider->setLabel("X");
+        sourcePosXSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePos.x, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosXSlider, "Source Position");
+        auto sourcePosYSlider = gui->CreateWidget<Slider>();
+        sourcePosYSlider->setLabel("Y");
+        sourcePosYSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePos.y, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosYSlider, "Source Position");
+        auto sourcePosZSlider = gui->CreateWidget<Slider>();
+        sourcePosZSlider->setLabel("Z");
+        sourcePosZSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePos.z, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosZSlider, "Source Position");
+    }
+    
+    {
+        auto sourcePosVarXSlider = gui->CreateWidget<Slider>();
+        sourcePosVarXSlider->setLabel("X");
+        sourcePosVarXSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePosVar.x, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosVarXSlider, "Source Position Variance");
+        auto sourcePosVarYSlider = gui->CreateWidget<Slider>();
+        sourcePosVarYSlider->setLabel("Y");
+        sourcePosVarYSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePosVar.y, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosVarYSlider, "Source Position Variance");
+        auto sourcePosVarZSlider = gui->CreateWidget<Slider>();
+        sourcePosVarZSlider->setLabel("Z");
+        sourcePosVarZSlider->setBehavior(new SliderBehavior<float>(_particleSys->sourcePosVar.z, -posScale, posScale));
+        _particleMenu->addWidget(sourcePosVarZSlider, "Source Position Variance");
+    }
+    
+    auto maxParticlesSlider = gui->CreateWidget<Slider>();
+    maxParticlesSlider->setLabel("Max Count");
+    maxParticlesSlider->setBehavior(new SliderBehavior<int>(_particleSys->maxParticles, 1, 10000));
+    _particleMenu->addWidget(maxParticlesSlider);
+    
+    auto timeScaleSlider = gui->CreateWidget<Slider>();
+    timeScaleSlider->setLabel("Time Scale");
+    timeScaleSlider->setBehavior(new SliderBehavior<float>(timeScaler, 0.0f, 2.0f));
+    _particleMenu->addWidget(timeScaleSlider);
+    
+    auto durationSlider = gui->CreateWidget<Slider>();
+    durationSlider->setLabel("Duration");
+    durationSlider->setBehavior(new SliderBehavior<float>(_particleSys->duration, -1.0f, 120.0f));
+    _particleMenu->addWidget(durationSlider);
+    
+    auto emissionRateSlider = gui->CreateWidget<Slider>();
+    emissionRateSlider->setLabel("Emission Rate");
+    emissionRateSlider->setBehavior(new SliderBehavior<float>(_particleSys->emissionRate, 0.0f, 10000.0f));
+    _particleMenu->addWidget(emissionRateSlider);
+
+    auto angleSlider = gui->CreateWidget<Slider>();
+    angleSlider->setLabel("Angle");
+    angleSlider->setBehavior(new SliderBehavior<float>(_particleSys->angle, -360.0f, 360.0f));
+    _particleMenu->addWidget(angleSlider, "Angle");
+
+    auto angleVarSlider = gui->CreateWidget<Slider>();
+    angleVarSlider->setLabel("Angle Variation");
+    angleVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->angleVar, -360.0f, 360.0f));
+    _particleMenu->addWidget(angleVarSlider, "Angle");
+
+    auto endSizeSlider = gui->CreateWidget<Slider>();
+    endSizeSlider->setLabel("End Size");
+    endSizeSlider->setBehavior(new SliderBehavior<float>(_particleSys->finishParticleSize, 0.0f, sizeScale));
+    _particleMenu->addWidget(endSizeSlider);
+    
+    auto endSizeVarSlider = gui->CreateWidget<Slider>();
+    endSizeVarSlider->setLabel("End Size Variation");
+    endSizeVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->finishParticleSizeVar, 0.0f, sizeScale));
+    _particleMenu->addWidget(endSizeVarSlider);
+    
+    auto lifeSpanSlider = gui->CreateWidget<Slider>();
+    lifeSpanSlider->setLabel("Life Span");
+    lifeSpanSlider->setBehavior(new SliderBehavior<float>(_particleSys->lifeSpan, 0.0f, 30.0f));
+    _particleMenu->addWidget(lifeSpanSlider);
+    
+    auto lifeSpanVarSlider = gui->CreateWidget<Slider>();
+    lifeSpanVarSlider->setLabel("Life Span Variation");
+    lifeSpanVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->lifeSpanVar, 0.0f, 30.0f));
+    _particleMenu->addWidget(lifeSpanVarSlider);
+    
+    auto startSizeSlider = gui->CreateWidget<Slider>();
+    startSizeSlider->setLabel("Start Size");
+    startSizeSlider->setBehavior(new SliderBehavior<float>(_particleSys->startSize, 0.0f, sizeScale));
+    _particleMenu->addWidget(startSizeSlider, "Start Size");
+    
+    auto startSizeVarSlider = gui->CreateWidget<Slider>();
+    startSizeVarSlider->setLabel("Start Size Variation");
+    startSizeVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->startSizeVar, 0.0f, sizeScale));
+    _particleMenu->addWidget(startSizeVarSlider, "Start Size");
 }
 
 void Particle3DEditor::LoadSystem(const std::string& fileName)
