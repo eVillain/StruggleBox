@@ -1554,7 +1554,7 @@ void RendererGLProg::RenderLighting( const Color& fogColor ) {
             d_shaderLightShadow->setUniform3fv("lightSpotDirection", light.direction);
             d_shaderLightShadow->setUniform1fv("lightSpotCutoff", light.spotCutoff);
             d_shaderLightShadow->setUniform1fv("lightSpotExponent", light.spotExponent);
-//            d_shaderLightShadow->setUniform1fv("seed", glfwGetTime());
+            d_shaderLightShadow->setUniform1fv("globalTime", Timer::RunTimeSeconds());
         } else {
             d_shaderLight->Begin();
             d_shaderLight->setUniform4fv("lightPosition", light.position);
@@ -1565,7 +1565,7 @@ void RendererGLProg::RenderLighting( const Color& fogColor ) {
             d_shaderLight->setUniform3fv("lightSpotDirection", light.direction);
             d_shaderLight->setUniform1fv("lightSpotCutoff", light.spotCutoff);
             d_shaderLight->setUniform1fv("lightSpotExponent", light.spotExponent);
-//            d_shaderLight->setUniform1fv("seed", glfwGetTime());
+            d_shaderLight->setUniform1fv("globalTime", Timer::RunTimeSeconds());
         }
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }

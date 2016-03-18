@@ -21,11 +21,11 @@ uniform float lightSpotExponent = 1.0;  // Spot light exponent
 uniform float nearDepth = 0.1;
 uniform float farDepth = 250.1;
 uniform bool renderFog = false;
-uniform bool renderNoise = false;
+uniform bool renderNoise = true;
 uniform bool renderSSAO = false;
 
 uniform vec2 depthParameter;
-uniform float seed;
+uniform float globalTime;
 
 in vec2 texCoord;
 in vec3 viewRay;
@@ -58,6 +58,48 @@ float VolumetricFog(float dist,         // camera to point distance
     float fogAmount = max(min(fogDensity * (fogDistAmount + fogHeightAmount), 1.0), 0.0);
     return fogAmount;
 
+}
+
+#define ANIMATED
+#define CHROMATIC
+
+//note: from https://www.shadertoy.com/view/4djSRW
+// This set suits the coords of of 0-1.0 ranges..
+#define MOD3 vec3(443.8975,397.2973, 491.1871)
+float hash11(float p)
+{
+    vec3 p3  = fract(vec3(p) * MOD3);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+float hash12(vec2 p)
+{
+    vec3 p3  = fract(vec3(p.xyx) * MOD3);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
+}
+vec3 hash32(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * MOD3);
+    p3 += dot(p3, p3.yxz+19.19);
+    return fract(vec3((p3.x + p3.y)*p3.z, (p3.x+p3.z)*p3.y, (p3.y+p3.z)*p3.x));
+}
+
+vec3 triangleNoise(vec3 inputColor)
+{
+    //note: triangluarly distributed noise, 1.5LSB
+    vec2 seed = texCoord;
+#ifdef ANIMATED
+    seed += fract(globalTime);
+#endif
+    
+#ifdef CHROMATIC
+    vec3 rnd = hash32( seed ) + hash32(seed + 0.59374) - 0.5;
+#else
+    vec3 rnd = vec3(hash12( seed ) + hash12(seed + 0.59374) - 0.5 );
+#endif
+    
+    return vec3(inputColor) + rnd/255.0;
 }
 
 void main(void)
@@ -146,8 +188,9 @@ void main(void)
         color.rgb = mix( color.rgb, finalFogColor, fogIntensity );
     }
     if ( renderNoise ) {
-        float noise = (rand(texCoord*seed) -0.5) * .08;
-        color.rgb += vec3(noise);
+//        float noise = (rand(texCoord*seed) -0.5) * .08;
+//        color.rgb += vec3(noise);
+        color.rgb = triangleNoise(color.rgb);
     }
 }
 

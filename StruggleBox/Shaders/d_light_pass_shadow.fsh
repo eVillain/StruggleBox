@@ -36,7 +36,8 @@ uniform bool shadowNoise = false;
 uniform bool renderSSAO = false;
 
 uniform vec2 depthParameter;    // Near/Far depth parameters
-uniform float seed; // Seed for noise
+uniform float globalTime; // Time for noise
+
 // Random points for shadow sampling
 vec2 poissonDisk[4] = vec2[](vec2( -0.94201624, -0.39906216 ),
                              vec2( 0.94558609, -0.76890725 ),
