@@ -90,13 +90,13 @@ void Slider::Draw(Renderer* renderer)
 void Slider::OnInteract(const bool interact,
                         const glm::ivec2& coord)
 {
-    if (interact) CheckSliderPress(coord);
+    if (interact) checkSliderPress(coord);
     else _draggingSlider = false;
 }
 
 void Slider::OnDrag(const glm::ivec2& coord)
 {
-    CheckSliderPress(coord);
+    checkSliderPress(coord);
 }
 
 void Slider::setVisibility(const bool visible)
@@ -107,19 +107,20 @@ void Slider::setVisibility(const bool visible)
     }
 }
 
+void Slider::setBehavior(ISliderBehavior* behavior)
+{
+    if (_behavior) { delete _behavior; }
+    _behavior = behavior;
+    updateLabel();
+}
+
 void Slider::setLabel(const std::string text)
 {
     _name = text;
-    if ( _behavior ) {
-        _behavior->SetValue(_sliderValue);
-        _label->setText(_name + ": " + _behavior->GetValueString());
-    }
-    else {
-        _label->setText(_name + "(empty): " + StringUtil::DoubleToString(_sliderValue));
-    }
+    updateLabel();
 }
 
-void Slider::CheckSliderPress(const glm::ivec2 &coord)
+void Slider::checkSliderPress(const glm::ivec2 &coord)
 {
     if (_focus)
     {
@@ -154,14 +155,21 @@ void Slider::CheckSliderPress(const glm::ivec2 &coord)
             if (_sliderValue != newValue)
             {
                 _sliderValue = newValue;
-                if ( _behavior ) {
-                    _behavior->SetValue(_sliderValue);
-                    _label->setText(_name + ": " + _behavior->GetValueString());
-                }
-                else {
-                    _label->setText(_name + "(empty): " + StringUtil::DoubleToString(_sliderValue));
-                }
+                updateLabel();
             }
         }
+    }
+}
+
+void Slider::updateLabel()
+{
+    if ( _behavior )
+    {
+        _behavior->SetValue(_sliderValue);
+        _label->setText(_name + ": " + _behavior->GetValueString());
+    }
+    else
+    {
+        _label->setText(_name + "(empty): " + StringUtil::DoubleToString(_sliderValue));
     }
 }

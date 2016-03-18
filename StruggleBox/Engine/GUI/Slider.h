@@ -16,7 +16,7 @@ public:
 
     void setVisibility(const bool visible);
     // Attach a behavior to make the button do something when pressed
-    void setBehavior( ISliderBehavior* behavior ) { _behavior = behavior; };
+    void setBehavior(ISliderBehavior* behavior);
     void setLabel(const std::string text);
 
 protected:
@@ -35,7 +35,8 @@ private:
     std::string _name;
     std::shared_ptr<Label> _label;
     
-    void CheckSliderPress(const glm::ivec2& coord);
+    void checkSliderPress(const glm::ivec2& coord);
+    void updateLabel();
 };
 
 #endif /* SLIDER_H */
