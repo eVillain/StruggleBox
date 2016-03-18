@@ -20,7 +20,7 @@
 #include "TextManager.h"
 #include "Text.h"
 #include "TextureManager.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 #include <iostream>
 #include <math.h>
 
@@ -82,8 +82,8 @@ void HyperVisor::Initialize(const std::string title,
     gui->Initialize(_locator);
     _locator.MapInstance<GUI>(gui);
     
-    ParticleManager* m_particleMan = new ParticleManager( this );
-    _locator.MapInstance<ParticleManager>(m_particleMan);
+    Particles* particles = new Particles(_locator);
+    _locator.MapInstance<Particles>(particles);
     
     // Engine is finally ready so we'll pass our command-line arguments to
     // the CommandProcessor where they will be parsed and processed.
@@ -242,8 +242,8 @@ void HyperVisor::Terminate()
         _locator.UnMap<StatTracker>();
     }
     
-    if (_locator.Satisfies<SceneManager>()) {
-        _locator.UnMap<ParticleManager>();
+    if (_locator.Satisfies<Particles>()) {
+        _locator.UnMap<Particles>();
     }
     
     // Output console to log file

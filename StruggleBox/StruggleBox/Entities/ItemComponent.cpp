@@ -13,7 +13,7 @@
 #include "Locator.h"
 #include "FileUtil.h"
 #include "TextManager.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 #include "PhysicsComponent.h"
 #include "btRigidBody.h"
 
@@ -80,11 +80,11 @@ void ItemComponent::HitEntity( Entity* entityB, glm::vec3 velocity, glm::vec3 po
             int bType = entityB->GetAttributeDataPtr<int>("type");
             if ( bType == ENTITY_ITEM ) {   // Item collided with another item
                 // Item on item collision, throw sparks!
-                ParticleSys* pSys = _locator.Get<ParticleManager>()->AddSystem(FileUtil::GetPath().append("Data/Particles/"),
+                std::shared_ptr<ParticleSys> pSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"),
                                                                                "Sparks3D.plist");
                 pSys->position = position;
             } else if ( bType == ENTITY_HUMANOID ) {
-                ParticleSys* pSys = _locator.Get<ParticleManager>()->AddSystem(FileUtil::GetPath().append("Data/Particles/"),
+                std::shared_ptr<ParticleSys> pSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"),
                                                                                "Blood3D.plist");
                 pSys->position = position;
                 pSys->duration = velDamage/10.0f;

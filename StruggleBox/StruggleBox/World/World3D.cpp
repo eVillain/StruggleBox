@@ -28,7 +28,7 @@
 
 #include "Console.h"
 #include "ShaderManager.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 
 #include "Physics.h"
 #include "SkyDome.h"
@@ -666,11 +666,11 @@ void World3D::Explosion(const glm::vec3 position,
                         const float radius,
                         const float force)
 {
-    ParticleSys* pSys = _locator.Get<ParticleManager>()->AddSystem(FileUtil::GetPath().append("Data/Particles/"), "Flame3D.plist");
+    std::shared_ptr<ParticleSys> pSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"),
+                                                                          "Flame3D.plist");
     pSys->position = position-(pSys->sourcePosVar*0.5f);
     pSys->duration = fminf(1.0f, force/20.0f);
     pSys->speed = force/20.0f;
-//    ExplodeArea(position, radius);
     if ( worldPhysics ) {   // Physics explosion
         worldPhysics->Explosion(btVector3(position.x,position.y,position.z), radius, force);
     }

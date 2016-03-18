@@ -2,7 +2,7 @@
 #include "Locator.h"
 #include "EntityManager.h"
 #include "FileUtil.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 #include "ParticleSys.h"
 #include "World3D.h"
 #include "Entity.h"
@@ -15,13 +15,13 @@ _locator(locator)
 {
     m_family = "Particle";
     if ( fileName.length() != 0 ) { // Load particle system from filename given
-        _particleSys = _locator.Get<ParticleManager>()->AddSystem(FileUtil::GetPath().append("Data/Particles/"), fileName);
+        _particleSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"), fileName);
 //        m_particleSys->duration = -1.0f;
         offset = glm::vec3();
     } else {    // No filename given, load from attributes
         Entity* m_owner = _locator.Get<EntityManager>()->GetEntity(m_ownerID);
         std::string particleFile = m_owner->GetAttributeDataPtr<std::string>("particleFile");
-        _particleSys = _locator.Get<ParticleManager>()->AddSystem(FileUtil::GetPath().append("Data/Particles/"), particleFile);
+        _particleSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"), particleFile);
         offset = m_owner->GetAttributeDataPtr<glm::vec3>("particleOffset");
     }
 }
@@ -29,7 +29,7 @@ _locator(locator)
 ParticleComponent::~ParticleComponent()
 {
     if (_particleSys ) {
-        _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
+        _locator.Get<Particles>()->destroy(_particleSys);
         _particleSys = NULL;
     }
 }

@@ -15,7 +15,7 @@
 #include "TextManager.h"
 #include "Console.h"
 #include "Serialise.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 
 #include "UIWidget.h"
 #include "UIMenu.h"
@@ -147,7 +147,7 @@ void LocalGame::Update( double delta ) {
         if ( !world->paused ) {
             _locator.Get<TextManager>();
             // Update particle systems
-            _locator.Get<ParticleManager>()->Update(delta);
+            _locator.Get<Particles>()->Update(delta);
             // Update sky and clouds
             skyDome->Update( delta );
         }
@@ -193,7 +193,7 @@ void LocalGame::Draw()
 //        skyDome->Draw(renderer, *_locator.Get<Camera>());
         
         // Render particles
-        _locator.Get<ParticleManager>()->DrawLitParticles(renderer);
+        _locator.Get<Particles>()->drawLit(renderer);
         
         
         // Render lighting
@@ -202,7 +202,7 @@ void LocalGame::Draw()
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     
-    _locator.Get<ParticleManager>()->DrawUnlitParticles(renderer);
+    _locator.Get<Particles>()->drawUnlit(renderer);
     
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     // Render game relevant info

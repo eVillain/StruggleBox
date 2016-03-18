@@ -47,8 +47,8 @@
 		D90362871C8BBC1E00E6AD07 /* LightSystem2D.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362211C8BBC1D00E6AD07 /* LightSystem2D.h */; settings = {ASSET_TAGS = (); }; };
 		D90362881C8BBC1E00E6AD07 /* LightSystem3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362221C8BBC1D00E6AD07 /* LightSystem3D.cpp */; settings = {ASSET_TAGS = (); }; };
 		D90362891C8BBC1E00E6AD07 /* LightSystem3D.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362231C8BBC1D00E6AD07 /* LightSystem3D.h */; settings = {ASSET_TAGS = (); }; };
-		D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362241C8BBC1D00E6AD07 /* ParticleManager.cpp */; settings = {ASSET_TAGS = (); }; };
-		D903628B1C8BBC1E00E6AD07 /* ParticleManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362251C8BBC1D00E6AD07 /* ParticleManager.h */; settings = {ASSET_TAGS = (); }; };
+		D903628A1C8BBC1E00E6AD07 /* Particles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362241C8BBC1D00E6AD07 /* Particles.cpp */; settings = {ASSET_TAGS = (); }; };
+		D903628B1C8BBC1E00E6AD07 /* Particles.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362251C8BBC1D00E6AD07 /* Particles.h */; settings = {ASSET_TAGS = (); }; };
 		D903628C1C8BBC1E00E6AD07 /* ParticleSys.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362261C8BBC1D00E6AD07 /* ParticleSys.cpp */; settings = {ASSET_TAGS = (); }; };
 		D903628D1C8BBC1E00E6AD07 /* ParticleSys.h in Headers */ = {isa = PBXBuildFile; fileRef = D90362271C8BBC1D00E6AD07 /* ParticleSys.h */; settings = {ASSET_TAGS = (); }; };
 		D903628E1C8BBC1E00E6AD07 /* Rect2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D90362281C8BBC1D00E6AD07 /* Rect2D.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -657,8 +657,8 @@
 		D90362211C8BBC1D00E6AD07 /* LightSystem2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LightSystem2D.h; sourceTree = "<group>"; };
 		D90362221C8BBC1D00E6AD07 /* LightSystem3D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LightSystem3D.cpp; sourceTree = "<group>"; };
 		D90362231C8BBC1D00E6AD07 /* LightSystem3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LightSystem3D.h; sourceTree = "<group>"; };
-		D90362241C8BBC1D00E6AD07 /* ParticleManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleManager.cpp; sourceTree = "<group>"; };
-		D90362251C8BBC1D00E6AD07 /* ParticleManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleManager.h; sourceTree = "<group>"; };
+		D90362241C8BBC1D00E6AD07 /* Particles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particles.cpp; sourceTree = "<group>"; };
+		D90362251C8BBC1D00E6AD07 /* Particles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particles.h; sourceTree = "<group>"; };
 		D90362261C8BBC1D00E6AD07 /* ParticleSys.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleSys.cpp; sourceTree = "<group>"; };
 		D90362271C8BBC1D00E6AD07 /* ParticleSys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleSys.h; sourceTree = "<group>"; };
 		D90362281C8BBC1D00E6AD07 /* Rect2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rect2D.cpp; sourceTree = "<group>"; };
@@ -1179,8 +1179,8 @@
 				D90362171C8BBC1D00E6AD07 /* GFXHelpers.h */,
 				D90362181C8BBC1D00E6AD07 /* GFXIncludes.h */,
 				D90362191C8BBC1D00E6AD07 /* Lighting */,
-				D90362241C8BBC1D00E6AD07 /* ParticleManager.cpp */,
-				D90362251C8BBC1D00E6AD07 /* ParticleManager.h */,
+				D90362241C8BBC1D00E6AD07 /* Particles.cpp */,
+				D90362251C8BBC1D00E6AD07 /* Particles.h */,
 				D90362261C8BBC1D00E6AD07 /* ParticleSys.cpp */,
 				D90362271C8BBC1D00E6AD07 /* ParticleSys.h */,
 				D90362281C8BBC1D00E6AD07 /* Rect2D.cpp */,
@@ -1901,7 +1901,7 @@
 				D90362901C8BBC1E00E6AD07 /* Renderer.h in Headers */,
 				D903629B1C8BBC1F00E6AD07 /* SkyDome.h in Headers */,
 				D90362B11C8BBC2000E6AD07 /* UIMenu.h in Headers */,
-				D903628B1C8BBC1E00E6AD07 /* ParticleManager.h in Headers */,
+				D903628B1C8BBC1E00E6AD07 /* Particles.h in Headers */,
 				D903626D1C8BBC1D00E6AD07 /* Serialise.h in Headers */,
 				D917C0F01C9B06470083FB69 /* ListBehavior.h in Headers */,
 				D90366301C8BCEEB00E6AD07 /* Timer.h in Headers */,
@@ -2092,7 +2092,7 @@
 				D917C0EF1C9B06470083FB69 /* ListBehavior.cpp in Sources */,
 				D92031441C91DF5300217562 /* TextInput.cpp in Sources */,
 				D939DF201C927DBC00C7F3A2 /* FontAtlas.cpp in Sources */,
-				D903628A1C8BBC1E00E6AD07 /* ParticleManager.cpp in Sources */,
+				D903628A1C8BBC1E00E6AD07 /* Particles.cpp in Sources */,
 				D90362A81C8BBC1F00E6AD07 /* UIButton.cpp in Sources */,
 				D90362B71C8BBC2100E6AD07 /* UITextInput.cpp in Sources */,
 				D917C0EB1C98D0260083FB69 /* List.cpp in Sources */,

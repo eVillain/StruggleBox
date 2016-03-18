@@ -26,7 +26,7 @@
 #include "Object3DEditor.h"
 #include "LocalGame.h"
 
-#include "ParticleManager.h"
+#include "Particles.h"
 
 
 Particle3DEditor::Particle3DEditor(Locator& locator) :
@@ -49,7 +49,7 @@ _fileSelectMenu(nullptr)
 
 Particle3DEditor::~Particle3DEditor()
 {
-    _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
+    _locator.Get<Particles>()->destroy(_particleSys);
 }
 
 void Particle3DEditor::Initialize()
@@ -132,7 +132,13 @@ void Particle3DEditor::ShowEditor()
         newBtn->setLabel("New");
         newBtn->setSize(itemSize);
         newBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-            // TODO: Implement this
+            if (_particleSys)
+            {
+                _locator.Get<Particles>()->destroy(_particleSys);
+                _particleSys = nullptr;
+            }
+//            _particleSys = _locator.Get<Particles>()->create(particlePath,
+//                                                                      shortFileName);
         }));
         _editorMenu->addWidget(newBtn);
     } else {
@@ -158,9 +164,11 @@ void Particle3DEditor::ShowEditor()
         auto closeBtn = gui->CreateWidget<Button>();
         closeBtn->setLabel("Close");
         closeBtn->setSize(itemSize);
-        closeBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-            _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
-            _particleSys = NULL;
+        closeBtn->SetBehavior(new ButtonBehaviorLambda([&]() {
+            if (_particleSys) {
+                _locator.Get<Particles>()->destroy(_particleSys);
+                _particleSys = nullptr;
+            }
         }));
         _editorMenu->addWidget(closeBtn);
     }
@@ -234,7 +242,7 @@ void Particle3DEditor::Update(double deltaTime)
     EditorScene::Update(deltaTime);
     
     // Update particle systems
-    _locator.Get<ParticleManager>()->Update(deltaTime*timeScaler);
+    _locator.Get<Particles>()->Update(deltaTime*timeScaler);
 
 }
 void Particle3DEditor::Draw()
@@ -271,7 +279,7 @@ void Particle3DEditor::Draw()
     glDisable(GL_STENCIL_TEST);
 
     // Render particles
-    _locator.Get<ParticleManager>()->DrawLitParticles(renderer);
+    _locator.Get<Particles>()->drawLit(renderer);
 
     // Apply lighting
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -305,7 +313,7 @@ void Particle3DEditor::Draw()
         }
         renderer->RenderLighting( COLOR_FOG_DEFAULT );
     }
-    _locator.Get<ParticleManager>()->DrawUnlitParticles(renderer);
+    _locator.Get<Particles>()->drawUnlit(renderer);
 
     EditorScene::Draw();
 }
@@ -366,11 +374,11 @@ void Particle3DEditor::RefreshParticleMenu()
     
     GUI* gui = _locator.Get<GUI>();
     
-    if (_locator.Get<ParticleManager>()->IsPaused()) {
+    if (_locator.Get<Particles>()->paused()) {
         auto resumeBtn = gui->CreateWidget<Button>();
         resumeBtn->setLabel("Resume");
         resumeBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-            _locator.Get<ParticleManager>()->Resume();
+            _locator.Get<Particles>()->resume();
             RefreshParticleMenu();
         }));
         _particleMenu->addWidget(resumeBtn);
@@ -378,7 +386,7 @@ void Particle3DEditor::RefreshParticleMenu()
         auto pauseBtn = gui->CreateWidget<Button>();
         pauseBtn->setLabel("Pause");
         pauseBtn->SetBehavior(new ButtonBehaviorLambda([&](){
-            _locator.Get<ParticleManager>()->Pause();
+            _locator.Get<Particles>()->pause();
             RefreshParticleMenu();
         }));
         _particleMenu->addWidget(pauseBtn);
@@ -406,7 +414,7 @@ void Particle3DEditor::RefreshParticleMenu()
     blendSrcSlider->setLabel("BlendFunc SRC");
     blendSrcSlider->setBehavior(new SliderBehavior<int>(_particleSys->blendFuncSrc));
     _particleMenu->addWidget(blendSrcSlider);
-    
+
     auto blendDstSlider = gui->CreateWidget<Slider>();
     blendDstSlider->setLabel("BlendFunc DST");
     blendDstSlider->setBehavior(new SliderBehavior<int>(_particleSys->blendFuncDst));
@@ -421,12 +429,12 @@ void Particle3DEditor::RefreshParticleMenu()
     dimensionsSlider->setLabel("Dimensions");
     dimensionsSlider->setBehavior(new SliderBehavior<int>(_particleSys->dimensions, 0, 1));
     _particleMenu->addWidget(dimensionsSlider);
-    
+
     auto lightingSlider = gui->CreateWidget<Slider>();
     lightingSlider->setLabel("Lighting");
     lightingSlider->setBehavior(new SliderBehavior<int>(_particleSys->lighting, 0, 1));
     _particleMenu->addWidget(lightingSlider);
-    
+
     {
         auto posXSlider = gui->CreateWidget<Slider>();
         posXSlider->setLabel("X");
@@ -460,7 +468,7 @@ void Particle3DEditor::RefreshParticleMenu()
         rotStartVarSlider->setBehavior(new SliderBehavior<float>(_particleSys->rotStartVar, 0.0f, 360.0f));
         _particleMenu->addWidget(rotStartVarSlider, "Rotation");
     }
-    
+
     {
         auto sourcePosXSlider = gui->CreateWidget<Slider>();
         sourcePosXSlider->setLabel("X");
@@ -505,7 +513,7 @@ void Particle3DEditor::RefreshParticleMenu()
     durationSlider->setLabel("Duration");
     durationSlider->setBehavior(new SliderBehavior<float>(_particleSys->duration, -1.0f, 120.0f));
     _particleMenu->addWidget(durationSlider);
-    
+
     auto emissionRateSlider = gui->CreateWidget<Slider>();
     emissionRateSlider->setLabel("Emission Rate");
     emissionRateSlider->setBehavior(new SliderBehavior<float>(_particleSys->emissionRate, 0.0f, 10000.0f));
@@ -569,10 +577,10 @@ void Particle3DEditor::LoadSystem(const std::string& fileName)
         
         if (_particleSys)
         {
-            _locator.Get<ParticleManager>()->RemoveSystem(_particleSys);
+            _locator.Get<Particles>()->destroy(_particleSys);
             _particleSys = nullptr;
         }
-        _particleSys = _locator.Get<ParticleManager>()->AddSystem(particlePath,
+        _particleSys = _locator.Get<Particles>()->create(particlePath,
                                                                   shortFileName);
         RefreshParticleMenu();
     }

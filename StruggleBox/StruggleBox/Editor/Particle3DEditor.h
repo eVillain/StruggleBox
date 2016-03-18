@@ -32,7 +32,7 @@ private:
     std::shared_ptr<Menu> _particleMenu;
     std::shared_ptr<FileMenu> _fileSelectMenu;
 
-    ParticleSys* _particleSys;
+    std::shared_ptr<ParticleSys> _particleSys;
     float timeScaler;
 
     glm::vec2 joyMoveInput;

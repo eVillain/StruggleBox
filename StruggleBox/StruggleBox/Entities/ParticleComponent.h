@@ -23,7 +23,7 @@ public:
     glm::vec3 offset;
 private:
     Locator& _locator;
-    ParticleSys* _particleSys;
+    std::shared_ptr<ParticleSys> _particleSys;
 };
 
 

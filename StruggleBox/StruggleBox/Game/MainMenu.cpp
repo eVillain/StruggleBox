@@ -16,7 +16,7 @@
 #include "Object3DEditor.h"
 #include "Particle3DEditor.h"
 #include "CharacterEditor.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 
 MainMenu::MainMenu(Locator& locator) :
 Scene("MainMenu", locator),
@@ -28,7 +28,7 @@ _optionsMenu(nullptr)
 
 MainMenu::~MainMenu()
 {
-    _locator.Get<ParticleManager>()->RemoveSystem(_particleSysID);
+    _locator.Get<Particles>()->destroy(_particleSysID);
     _particleSysID = -1;
     Log::Info("[MainMenu] destroyed");
 }
@@ -214,24 +214,24 @@ void MainMenu::ShowMainMenu()
     Random::RandomSeed((int)Timer::Microseconds());
     int rnd = Random::RandomInt(0, 3);
     if ( rnd == 0 ) {
-        ParticleSys* testSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, "HellFire2D.plist");
+        std::shared_ptr<ParticleSys> testSys = _locator.Get<Particles>()->create(particlePath, "HellFire2D.plist");
         testSys->sourcePos = glm::vec3(-W/2,-hH,0);
         testSys->sourcePosVar = glm::vec3(W,0,0);
-        _particleSysID = _locator.Get<ParticleManager>()->GetSystemID(testSys);
+        _particleSysID = _locator.Get<Particles>()->getSystemID(testSys);
     } else if ( rnd == 1 ) {
-        ParticleSys* testSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, "Smoker2D.plist");
+        std::shared_ptr<ParticleSys> testSys = _locator.Get<Particles>()->create(particlePath, "Smoker2D.plist");
         testSys->sourcePos = glm::vec3(0,0,0);
-        _particleSysID = _locator.Get<ParticleManager>()->GetSystemID(testSys);
+        _particleSysID = _locator.Get<Particles>()->getSystemID(testSys);
     } else if ( rnd == 2 ) {
-        ParticleSys* testSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, "Smoke2D.plist");
+        std::shared_ptr<ParticleSys> testSys = _locator.Get<Particles>()->create(particlePath, "Smoke2D.plist");
         testSys->sourcePos = glm::vec3(-W/2,-hH,0);
         testSys->sourcePosVar = glm::vec3(W,0,0);
-        _particleSysID = _locator.Get<ParticleManager>()->GetSystemID(testSys);
+        _particleSysID = _locator.Get<Particles>()->getSystemID(testSys);
     } else {
-        ParticleSys* testSys = _locator.Get<ParticleManager>()->AddSystem(particlePath, "Snow2D.plist");
+        std::shared_ptr<ParticleSys> testSys = _locator.Get<Particles>()->create(particlePath, "Snow2D.plist");
         testSys->sourcePos = glm::vec3(-W/2,hH,0);
         testSys->sourcePosVar = glm::vec3(W,0,0);
-        _particleSysID = _locator.Get<ParticleManager>()->GetSystemID(testSys);
+        _particleSysID = _locator.Get<Particles>()->getSystemID(testSys);
     }
     
     Log::Info("[MainMenu] added main menu content");
@@ -247,7 +247,7 @@ void MainMenu::RemoveMainMenu()
     }
     _widgets.clear();
     
-    _locator.Get<ParticleManager>()->RemoveSystem(_particleSysID);
+    _locator.Get<Particles>()->destroy(_particleSysID);
     _particleSysID = -1;
     
     if (_optionsMenu) {
@@ -259,15 +259,15 @@ void MainMenu::RemoveMainMenu()
 void MainMenu::Update(double delta)
 {
     _locator.Get<TextManager>()->Update(delta);
-    _locator.Get<ParticleManager>()->Update(delta);
+    _locator.Get<Particles>()->Update(delta);
 }
 
 void MainMenu::Draw()
 {
     Renderer* renderer = _locator.Get<Renderer>();
-    _locator.Get<ParticleManager>()->DrawLitParticles(renderer);
+    _locator.Get<Particles>()->drawLit(renderer);
     renderer->RenderLighting(COLOR_FOG_DEFAULT);
-    _locator.Get<ParticleManager>()->DrawUnlitParticles(renderer);
+    _locator.Get<Particles>()->drawUnlit(renderer);
 }
 
 void MainMenu::ShowOptionsMenu()

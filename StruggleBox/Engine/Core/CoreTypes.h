@@ -13,7 +13,7 @@ class UIManager;
 class Input;
 class LightSystem2D;
 class LightSystem3D;
-class ParticleManager;
+class Particles;
 class StatTracker;
 
 class Options;

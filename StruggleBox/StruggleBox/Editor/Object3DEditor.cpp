@@ -15,7 +15,7 @@
 #include "TextManager.h"
 #include "Console.h"
 #include "Serialise.h"
-#include "ParticleManager.h"
+#include "Particles.h"
 
 #include "UIWidget.h"
 #include "UIButton.h"
