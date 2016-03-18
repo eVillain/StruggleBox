@@ -12,7 +12,6 @@ class Button : public Widget
 {
     friend class GUI;
 public:
-    Button(Locator& locator);
     ~Button();
     
     void Draw(Renderer* renderer);
@@ -26,7 +25,7 @@ public:
     void setLabel(const std::string text);
     std::shared_ptr<Label> getLabel() { return _label; }
 protected:
-    Button();
+    Button(Locator& locator);
 
     void OnInteract(const bool interact,
                     const glm::ivec2& coord);
