@@ -4,6 +4,10 @@ StruggleBox - Voxel-based networked game prototype.
 The goal is a game with networked multiplayer combat in a single room.
 Supported platforms are Windows and OSX for now with possible mobile ports later.
 
+Note: Development for this is, for the time being, on hold due to lack of time & funds.
+Some screenshots of past progress: http://imgur.com/a/XXOZu
+
+
 Features
 -----------------------------------------------------------------------------------
 
@@ -20,7 +24,6 @@ Core Engine:
   * Custom logging
   * Various utility classes for timers, file I/O, Base64 encoding, etc.
 
-
 Setup
 -----------------------------------------------------------------------------------
 
@@ -36,6 +39,7 @@ Grab all the required dependencies:
 This will clone all the required dependencies into the thirdparty/ folder.
 
 There are project files included for VS2015 and Xcode.
+Note: Xcode project is seriously out of date and will remain broken until there is some demand to fix it.
 
 Dependencies
 -----------------------------------------------------------------------------------
