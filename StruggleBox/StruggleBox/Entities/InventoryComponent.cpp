@@ -1,32 +1,28 @@
-//
-//  InventoryComponent.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 29/12/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include "InventoryComponent.h"
-//#include "World3D.h"
 
-InventoryComponent::InventoryComponent( const int ownerID, EntityManager* manager ) :
-EntityComponent(ownerID) {
-    m_manager = manager;
-    m_family = "Inventory";
+InventoryComponent::InventoryComponent(
+	const int ownerID,
+	std::shared_ptr<EntityManager> manager) :
+EntityComponent(ownerID, "Inventory"),
+_manager(manager)
+{
     maxItems = 32;
     updated = false;
 }
 
-InventoryComponent::~InventoryComponent() {
+InventoryComponent::~InventoryComponent()
+{
     // Throw all items out into world?
     
 }
 
-void InventoryComponent::Update( double delta ) {
-    
-}
-bool InventoryComponent::AddItem( Entity* newItem ) {
-    if ( inventory.size() < maxItems ) {
+void InventoryComponent::update(const double delta)
+{ }
+
+bool InventoryComponent::addItem(Entity* newItem)
+{
+    if ( inventory.size() < maxItems )
+    {
         if ( std::find(inventory.begin(), inventory.end(), newItem) == inventory.end() ) {
             inventory.push_back(newItem);
             updated = true;
@@ -35,7 +31,9 @@ bool InventoryComponent::AddItem( Entity* newItem ) {
     }
     return false;
 }
-bool InventoryComponent::RemoveItem( Entity* oldItem ) {
+
+bool InventoryComponent::removeItem(Entity* oldItem)
+{
     if ( inventory.size() > 0 ) {
         std::vector<Entity*>::iterator it = std::find(inventory.begin(), inventory.end(), oldItem);
         if ( it != inventory.end() ) {
@@ -46,9 +44,11 @@ bool InventoryComponent::RemoveItem( Entity* oldItem ) {
     }
     return false;
 }
-void InventoryComponent::SetMaxItems( const int newMaxItems ) {
+
+void InventoryComponent::setMaxItems(const int newMaxItems)
+{
     if ( inventory.size() > newMaxItems ) {
-        printf("[Inventory] couldn't resize, more items than new max size\n");
+        printf("[Inventory] couldn't resize, contained more items than new max size\n");
     } else {
         maxItems = newMaxItems;
     }

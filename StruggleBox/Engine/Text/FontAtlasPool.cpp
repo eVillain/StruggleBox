@@ -4,7 +4,9 @@
 
 FontAtlasPool::FontAtlasPool() :
 _freeType()
-{ }
+{
+	Log::Info("[FontAtlasPool] constructor, instance at %p", this);
+}
 
 bool FontAtlasPool::Initialize()
 {
@@ -36,7 +38,7 @@ std::shared_ptr<FontAtlas> FontAtlasPool::GetAtlas(const std::string filename,
                                                    const int size)
 {
     char buf[256];
-#ifdef _WIN32   /* Windows ಠ_ಠ I don't even */
+#ifdef _WIN32   /* Windows... ಠ_ಠ I don't even */
     sprintf_s(buf, "%s%i", filename.c_str(), size);
 #else
     sprintf(buf, "%s%i", filename.c_str(), size);
@@ -49,7 +51,7 @@ std::shared_ptr<FontAtlas> FontAtlasPool::GetAtlas(const std::string filename,
     }
     
     // We need to load the font and create a new atlas, let's do it
-    std::string path = PathUtil::GetFontsPath() + filename;
+    std::string path = PathUtil::FontsPath() + filename;
     Log::Debug("[FontAtlasPool] Loading font from file: %s", path.c_str());
     
     FT_Face face = NULL;

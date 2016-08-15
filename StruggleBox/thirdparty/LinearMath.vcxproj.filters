@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{FBC01B25-D505-6A43-8000-96A623505BC0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\LinearMath">
+      <UniqueIdentifier>{E741A486-54AA-484B-83C1-E1F0346BC057}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bullet\src\LinearMath\btAabbUtil2.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btAlignedAllocator.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btAlignedObjectArray.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btConvexHull.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btConvexHullComputer.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btCpuFeatureUtility.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btDefaultMotionState.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btGeometryUtil.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btGrahamScan2dConvexHull.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btHashMap.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btIDebugDraw.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btList.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btMatrix3x3.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btMatrixX.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btMinMax.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btMotionState.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btPolarDecomposition.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btPoolAllocator.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btQuadWord.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btQuaternion.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btQuickprof.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btRandom.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btScalar.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btSerializer.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btSpatialAlgebra.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btStackAlloc.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btTransform.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btTransformUtil.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+    <ClInclude Include="bullet\src\LinearMath\btVector3.h">
+      <Filter>src\LinearMath</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bullet\src\LinearMath\btAlignedAllocator.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btConvexHull.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btConvexHullComputer.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btGeometryUtil.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btPolarDecomposition.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btQuickprof.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btSerializer.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet\src\LinearMath\btVector3.cpp">
+      <Filter>src\LinearMath</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

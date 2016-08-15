@@ -1,26 +1,20 @@
-//
-//  SpriteBatch.h
-//  NeverEngine
-//
-//  Created by The Drudgerist on 1/19/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
-#ifndef NE_SPRITE_BATCH_H
-#define NE_SPRITE_BATCH_H
+#ifndef SPRITE_BATCH_H
+#define SPRITE_BATCH_H
 
 #include <string>
 #include <map>
 #include <vector>
 
-#include "CoreTypes.h"
 #include "GFXDefines.h"
 #include "Rect2D.h"
 
-class SpriteBatch {
-private:
-    std::map<std::string, Rect2D> frames;
-    std::vector<std::string> frameIDs;
+class Sprite;
+class Renderer;
+class Texture;
+
+class SpriteBatch
+{
+
 public:
     SpriteBatch( );
     ~SpriteBatch( );
@@ -50,6 +44,9 @@ public:
     Texture* texture;
 
     std::vector<Sprite*> children;
+private:
+	std::map<std::string, Rect2D> frames;
+	std::vector<std::string> frameIDs;
 };
 
 

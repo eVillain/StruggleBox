@@ -1,20 +1,14 @@
-//
-//  HumanoidComponent.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 8/31/13.
-//
-//
-
-#ifndef BWO_HUMANOID_COMPONENT_H
-#define BWO_HUMANOID_COMPONENT_H
+#ifndef HUMANOID_COMPONENT_H
+#define HUMANOID_COMPONENT_H
 
 #include "EntityComponent.h"
 #include "GFXIncludes.h"
 #include <glm/gtc/quaternion.hpp>
 
-class Cubeject;
 class EntityManager;
+class Physics;
+class VoxelFactory;
+
 class btDynamicsWorld;
 class btKinematicCharacterController;
 class btPairCachingGhostObject;
@@ -36,48 +30,26 @@ typedef enum {
     Arm_Throwing = 4,
 } ArmState;
 
-class HumanoidComponent : public EntityComponent {
-private:
-    EntityManager* m_manager;
-    float characterHeight;
-    float characterRadius;
-    float wantedAngle;
-    float sizeScale;
-    float walkSpeed;
-    
-    btDynamicsWorld* physicsWorld;
-    btKinematicCharacterController* character;
-    btPairCachingGhostObject* ghostObject;
-    btBroadphaseInterface* overlappingPairCache;
-
-    
-    // Animation states
-    ArmState leftArmAnimState;
-    ArmState rightArmAnimState;
-    LegsState legsAnimState;
-    // Animation vars
-    float hipRotationAngle;
-    float torsoTiltAngle;
-    float torsoLeanAngle;
-    float torsoBobAmount;
-    
+class HumanoidComponent : public EntityComponent
+{
 public:
     double rHandTimer;
     double lHandTimer;
     
-    Entity* backPack;
-    Entity* rightHandItem;
-    Entity* leftHandItem;
-    
-    HumanoidComponent( const int ownerID, EntityManager* manager );
+    HumanoidComponent(
+		const int ownerID,
+		std::shared_ptr < EntityManager> entityManager,
+		std::shared_ptr<Physics> physics,
+		std::shared_ptr<VoxelFactory> voxels);
     virtual ~HumanoidComponent();
-    virtual void Update( double delta );
-    void UpdateAnimations( double delta );
-    
-    void SetCharacterType( const int newType );
 
-    glm::vec3 GetPosition( void );
-    glm::vec3 GetRotation( void );
+    virtual void update(const double delta);
+    void updateAnimations(const double delta);
+    
+    void setCharacterType( const int newType );
+
+    glm::vec3 GetPosition();
+    glm::vec3 GetRotation();
     
     const void Rotate( const float rotX, const float rotY );
     void Rotate(glm::quat orientation);
@@ -98,6 +70,35 @@ public:
     void ThrowItem( const glm::vec3 targetPos );
     void UseRightHand();
     
+private:
+	std::shared_ptr<EntityManager> _entityManager;
+	std::shared_ptr<Physics> _physics;
+	std::shared_ptr<VoxelFactory> _voxels;
+
+    float characterHeight;
+    float characterRadius;
+    float wantedAngle;
+    float sizeScale;
+    float walkSpeed;
+    
+    btDynamicsWorld* physicsWorld;
+    btKinematicCharacterController* character;
+    btPairCachingGhostObject* ghostObject;
+    btBroadphaseInterface* overlappingPairCache;
+    
+    // Animation states
+    ArmState leftArmAnimState;
+    ArmState rightArmAnimState;
+    LegsState legsAnimState;
+    // Animation vars
+    float hipRotationAngle;
+    float torsoTiltAngle;
+    float torsoLeanAngle;
+    float torsoBobAmount;
+
+	Entity* backPack;
+	Entity* rightHandItem;
+	Entity* leftHandItem;
 };
 
 #endif

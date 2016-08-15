@@ -1,24 +1,17 @@
-//
-//  VoxelAABB.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 28/12/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_VOXEL_AABB_H
-#define NGN_VOXEL_AABB_H
+#ifndef VOXEL_AABB_H
+#define VOXEL_AABB_H
 
 class VoxelAABB
 {
 public:
     glm::vec3 m_min;
     glm::vec3 m_max;
-    BlockType m_voxel;
+    uint8_t m_voxel;
     
     VoxelAABB(const glm::vec3 min,
               const glm::vec3 max,
-              const BlockType voxel) {
+              const uint8_t voxel)
+	{
         m_min = min;
         m_max = max;
         m_voxel = voxel;

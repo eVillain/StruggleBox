@@ -20,17 +20,16 @@ uniform mat4 View;
 void main() {
     vec4 texColor = texture(textureMap, fragment.texCoord);
     if ( texColor.a < 0.0001 ) discard;
-    
+
     texColor *= spriteColor;
-    
+
     // Save fragment depth
     gl_FragDepth = fragDepth;
     depth = fragDepth;
-    
-    // Calculate normal
+
+    // Pack normal
     normal = (fragNormal+1.0)*0.5;
-    
-    
+
     // Save color values
     diffuseColor = texColor;
     specularColor = texColor;

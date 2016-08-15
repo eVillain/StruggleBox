@@ -1,29 +1,23 @@
-#include <iostream>
-#include <fstream>
-
 #include "LocalGame.h"
-#include "HyperVisor.h"
+#include "Injector.h"
+#include "Input.h"
+
 #include "FileUtil.h"
 #include "Options.h"
 #include "GFXHelpers.h"
 #include "Renderer.h"
 #include "RendererGLProg.h"
-#include "LightSystem3D.h"
 #include "Camera.h"
 #include "SceneManager.h"
 #include "TextureManager.h"
-#include "TextManager.h"
+#include "Text.h"
 #include "Console.h"
 #include "Serialise.h"
 #include "Particles.h"
 
-#include "UIWidget.h"
-#include "UIMenu.h"
-#include "UIFileMenu.h"
-#include "UIInventory.h"
-
 #include "Block.h"
 #include "World3D.h"
+#include "VoxelFactory.h"
 #include "EntityManager.h"
 #include "CubeComponent.h"
 #include "PhysicsComponent.h"
@@ -32,8 +26,12 @@
 #include "HealthComponent.h"
 #include "ItemComponent.h"
 
-#include <glm/gtx/rotate_vector.hpp>
+#include "Log.h"
+
 #include "zlib.h"
+#include <glm/gtx/rotate_vector.hpp>
+#include <iostream>
+#include <fstream>
 
 // Ugly hack to avoid zlib corruption on win systems
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
@@ -44,74 +42,107 @@
 #  define SET_BINARY_MODE(file)
 #endif
 
-LocalGame::LocalGame(Locator& locator) :
-Scene("Game", locator)
+LocalGame::LocalGame(
+	std::shared_ptr<Injector> injector,
+	std::shared_ptr<Camera> camera,
+	std::shared_ptr<Renderer> renderer,
+	std::shared_ptr<Options> options,
+	std::shared_ptr<Input> input,
+	std::shared_ptr<EntityManager> entityManager,
+	std::shared_ptr<Text> text,
+	std::shared_ptr<Physics> physics,
+	std::shared_ptr<Particles> particles) :
+Scene("Game"),
+_camera(camera),
+_renderer(renderer),
+_options(options),
+_input(input),
+_entityManager(entityManager),
+_text(text),
+_physics(physics),
+_particles(particles)
 {
+	Log::Debug("[LocalGame] constructor, instance at %p", this);
+
     TextureManager::Inst()->LoadTexture(FileUtil::GetPath().append("Data/GFX/"),
                                         "Crosshair.png");
 
-    world = NULL;
-    skyDome = new SkyDome();
+	injector->mapSingleton<World3D,
+		Injector,
+		Renderer,
+		Camera,
+		EntityManager,
+		Text,
+		Options,
+		Particles,
+		Physics>();
+    _world = injector->getInstance<World3D>();
+
+	injector->mapSingleton<VoxelFactory,
+		Renderer>();
+	_voxels = injector->getInstance<VoxelFactory>();
+
     loadLabelID = -1;
+
+    _world->Initialize();
     
-    inventory_player = NULL;
-    inventory_lookat = NULL;
-    
-    newCubeType = Type_Rock;
-    
-    world = new World3D("Test World",
-                        1337,
-                        _locator);
-    _locator.Get<Camera>()->thirdPerson = true;
+    _camera->thirdPerson = true;
 }
 
 LocalGame::~LocalGame()
 {
-    _locator.Get<Input>()->UnRegisterEventObserver(this);
-    _locator.Get<Input>()->UnRegisterMouseObserver(this);
+	Log::Debug("[LocalGame] destructor, instance at %p", this);
+
+    _input->UnRegisterEventObserver(this);
+    _input->UnRegisterMouseObserver(this);
 
     TextureManager::Inst()->UnloadTexture("Crosshair.png");
-
-    delete world;
-    world = NULL;
-    delete skyDome;
-    skyDome = NULL;
 }
 
 void LocalGame::Initialize()
 {
+	Log::Debug("[LocalGame] initializing...");
+
     Scene::Initialize();
-    _locator.Get<Input>()->RegisterEventObserver(this);
-    _locator.Get<Input>()->RegisterMouseObserver(this);
+    _input->RegisterEventObserver(this);
+    _input->RegisterMouseObserver(this);
     ShowGame();
 }
 
 void LocalGame::ReInitialize()
 {
+	Log::Debug("[LocalGame] reinitializing...");
+
     ShowGame();
 }
 
 void LocalGame::Pause()
 {
+	Log::Debug("[LocalGame] pausing...");
+
     if ( !IsPaused() ) {
         Scene::Pause();
         RemoveGame();
-        _locator.Get<Input>()->UnRegisterEventObserver(this);
-        _locator.Get<Input>()->UnRegisterMouseObserver(this);
+        _input->UnRegisterEventObserver(this);
+        _input->UnRegisterMouseObserver(this);
     }
 }
 void LocalGame::Resume()
 {
+	Log::Debug("[LocalGame] resuming...");
+
     if ( IsPaused() ) {
         Scene::Resume();
         ShowGame();
-        _locator.Get<Input>()->RegisterEventObserver(this);
-        _locator.Get<Input>()->RegisterMouseObserver(this);
+        _input->RegisterEventObserver(this);
+        _input->RegisterMouseObserver(this);
     }
 }
 
 void LocalGame::Release()
 {
+	Log::Debug("[LocalGame] releasing...");
+
     Scene::Release();
 }
 
@@ -119,112 +150,87 @@ void LocalGame::ShowGame()
 { }
 
 void LocalGame::RemoveGame()
-{ world->ClearLabels(); }
+{
+	_world->ClearLabels();
+}
 
-void LocalGame::Update( double delta ) {
-    Camera& camera = *_locator.Get<Camera>();
+void LocalGame::Update(const double delta)
+{
     UpdateMovement();
 
-    if ( world ) {
-        world->Update( delta );
-        if ( world->playerID ) {
-            Entity* player = world->entityMan->GetEntity(world->playerID);
+    if (_world ) {
+        _world->Update( delta );
+        if ( _world->playerID ) {
+            Entity* player = _entityManager->getEntity(_world->playerID);
             glm::vec3& pPos = player->GetAttributeDataPtr<glm::vec3>("position");
-            camera.targetPosition = pPos;
-            if ( camera.autoRotate ) {
+            _camera->targetPosition = pPos;
+            if ( _camera->autoRotate ) {
                 glm::quat& pRot = player->GetAttributeDataPtr<glm::quat>("rotation");
-                camera.targetRotation = glm::eulerAngles(pRot);
+                _camera->targetRotation = glm::eulerAngles(pRot);
             }
-            world->playerCoord = Coord3D();//World3D::WorldToChunk(pPos);
-
-            if ( inventory_player && inventory_player->WantsToClose() ) {
-                delete inventory_player;
-                inventory_player = NULL;
-            }
+            _world->playerCoord = Coord3D();
         } else {
-            world->playerCoord = Coord3D();//World3D::WorldToChunk(camera.position);
+            _world->playerCoord = Coord3D();//World3D::WorldToChunk(camera.position);
         }
-        if ( !world->paused ) {
-            _locator.Get<TextManager>();
+        if ( !_world->paused ) {
+            //_text->Update(delta);
             // Update particle systems
-            _locator.Get<Particles>()->Update(delta);
+            _particles->Update(delta);
             // Update sky and clouds
-            skyDome->Update( delta );
+            //skyDome->Update( delta );
         }
     }
 }
 
 // GAME MAIN DRAW FUNCTION
 void LocalGame::Draw()
-{
-    Renderer* renderer = _locator.Get<Renderer>();
-    
-    if ( world )
+{    
+    if (_world )
     {
         if ( loadLabelID != -1 ) {
-            _locator.Get<TextManager>()->RemoveText(loadLabelID);
+            //_text->RemoveText(loadLabelID);
             loadLabelID = -1;
         }
         glPolygonMode( GL_FRONT_AND_BACK,
-                      _locator.Get<Options>()->getOption<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
+                      _options->getOption<bool>("r_renderWireFrame") ? GL_LINE : GL_FILL );
         
         // Draw world and objects
-        world->Draw( renderer );
-        
-        // REFRESH GAME CURSOR
-//        renderer->Render3DCubes();
-//        renderer->Render3DLines();
-        
-        
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        skyDome->DrawClouds(renderer);
-        
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        //            glEnable(GL_STENCIL_TEST);
-        //            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        //            glStencilFunc(GL_GREATER, Stencil_Solid, 0xFF);
-        // Draw ground plane
-        //            Color fogColor = skyDome->GetFogColor();
-        //            renderer->RenderGroundPlane( fogColor );
-        //            glDisable(GL_STENCIL_TEST);
-        
-        // Draw sky background
-//        skyDome->Draw(renderer, *_locator.Get<Camera>());
-        
-        // Render particles
-        _locator.Get<Particles>()->drawLit(renderer);
-        
-        
-        // Render lighting
-        renderer->RenderLighting( skyDome->GetFogColor() );
+        _world->Draw();
+		_entityManager->draw();
     }
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
     
-    _locator.Get<Particles>()->drawUnlit(renderer);
-    
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     // Render game relevant info
-    Entity* player = world->entityMan->GetEntity(world->playerID);
+    Entity* player = _entityManager->getEntity(_world->playerID);
 
         if ( player ) {
             glm::vec3 pos = player->GetAttributeDataPtr<glm::vec3>("position");
+			glm::quat rot = player->GetAttributeDataPtr<glm::quat>("rotation");
+
             int playerHealth = player->GetAttributeDataPtr<int>("health");
-            renderer->Draw2DProgressBar(pos+glm::vec3(0.0f,1.5f,0.0f), 100, 16, playerHealth/100.0f, COLOR_GREY, COLOR_GREEN);
-//            HumanoidComponent* human = (HumanoidComponent*)world->player->GetComponent("Humanoid");
+            _renderer->Draw2DProgressBar(pos+glm::vec3(0.0f,1.5f,0.0f), 100, 16, playerHealth/100.0f, COLOR_GREY, COLOR_GREEN);
+//            HumanoidComponent* human = (HumanoidComponent*)world->player->getComponent("Humanoid");
 //            double timeNow = glfwGetTime();
 //            float throwTime = fmin(timeNow-human->throwTimer, 0.5f);
 //            renderer->Draw3DBar(pos+glm::vec3(0,1.5f,0), 1.0f, 0.25f, throwTime, 0.5f);
+			//CubeInstance playerCube = {
+			//	pos.x,pos.y,pos.z,0.5f,
+			//	rot.x,rot.y,rot.z,rot.w,
+			//	1
+			//};
+			//_renderer->bufferCubes(&playerCube, 1);
+			//SphereVertexData playerSphere = {
+			//	pos.x,pos.y,pos.z,1.0f,
+			//	1.0f,1.0f,1.0f,1.0f,
+			//	0.05f,0.35f,0.0f,1.0f
+			//};
+			//_renderer->BufferSpheres(&playerSphere, 1);
         }
- 
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
     // Render crosshair image
-    Color crossHairCol = COLOR_WHITE;
-    renderer->DrawImage(glm::vec2( cursorScrnPos.x, cursorScrnPos.y), 16, 16, "Crosshair.png", 0.0f, crossHairCol);
+    //Color crossHairCol = COLOR_WHITE;
+    //_renderer->DrawImage(glm::vec2( cursorScrnPos.x, cursorScrnPos.y), 16, 16, "Crosshair.png", 0.0f, crossHairCol);
+
+	_voxels->draw();
 }
 
 bool LocalGame::OnEvent(const std::string &theEvent,
@@ -232,60 +238,60 @@ bool LocalGame::OnEvent(const std::string &theEvent,
 {
     if ( amount == 1.0f ) {
         if (theEvent == INPUT_SHOOT) {
-            if (world && world->playerID) {
-                HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
+            if (_world && _world->playerID) {
+                HumanoidComponent* human = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
                 if (human) {
                     human->UseRightHand();
                 }
             }
         } else if ( theEvent == INPUT_SHOOT2 ) {
-            if ( world && world->playerID ) {
-                HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
+            if (_world && _world->playerID ) {
+                HumanoidComponent* human = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
                 human->ThrowStart();
             }
         } else if ( theEvent == INPUT_PAUSE ) {
-            if ( world ) {
-                if ( world->paused ) {
-                    world->paused = false;
+            if (_world ) {
+                if (_world->paused ) {
+                    _world->paused = false;
                 } else {
-                    world->paused = true;
+                    _world->paused = true;
                 }
             }
         } else if ( theEvent == INPUT_RUN ) {
-            if ( world && !world->paused && world->playerID ) {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
+            if (_world && !_world->paused && _world->playerID ) {
+                Entity* player = _entityManager->getEntity(_world->playerID);
                 player->GetAttributeDataPtr<bool>("running") = true;
             } else {
-                if ( _locator.Get<Camera>()->movementSpeedFactor == 10.0 ) {
-                    _locator.Get<Camera>()->movementSpeedFactor = 1.0;
+                if ( _camera->movementSpeedFactor == 10.0 ) {
+                    _camera->movementSpeedFactor = 1.0;
                 } else {
-                    _locator.Get<Camera>()->movementSpeedFactor = 50.0;
+                    _camera->movementSpeedFactor = 50.0;
                 }
             }
         } else if ( theEvent == INPUT_SNEAK ) {
-            if ( world && world->playerID && !world->paused ) {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
+            if (_world && _world->playerID && !_world->paused) {
+                Entity* player = _entityManager->getEntity(_world->playerID);
                 player->GetAttributeDataPtr<bool>("sneaking") = true;
             }
             else {
-                if ( _locator.Get<Camera>()->movementSpeedFactor == 50.0 ) {
-                    _locator.Get<Camera>()->movementSpeedFactor = 1.0;
+                if (_camera->movementSpeedFactor == 50.0) {
+                    _camera->movementSpeedFactor = 1.0;
                 } else {
-                    _locator.Get<Camera>()->movementSpeedFactor = 10.0;
+                    _camera->movementSpeedFactor = 10.0;
                 }
             }
         } else if (theEvent == "0") {
-                if ( world && world->playerID ) {
-                    HumanoidComponent* pHuman = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
-                    pHuman->Warp(_locator.Get<Camera>()->position);
+                if (_world && _world->playerID ) {
+                    HumanoidComponent* pHuman = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
+                    pHuman->Warp(_camera->position);
                 }
         } else if (theEvent == "2") {
-            if ( world ) {
-                world->AddHuman(cursorNewPos+glm::vec3(0,2,0));
+            if (_world) {
+                _world->AddHuman(cursorNewPos+glm::vec3(0,2,0));
             }
         } else if (theEvent == "3") {
-            if ( world ) {
-                world->AddSkeleton(cursorNewPos+glm::vec3(0,2,0));
+            if (_world) {
+                _world->AddSkeleton(cursorNewPos+glm::vec3(0,2,0));
             }
         } else if (theEvent == "4") {
         } else if (theEvent == "5") {
@@ -296,75 +302,53 @@ bool LocalGame::OnEvent(const std::string &theEvent,
         }
     } else if ( amount == -1.0f ) {
         if (theEvent == INPUT_SHOOT2) {
-            if ( world ) {
-                HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
+            if (_world ) {
+                HumanoidComponent* human = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
                 human->ThrowItem(cursorWorldPos);
             }
         }else if ( theEvent == INPUT_RUN ) {
-            if (  world && world->playerID && !world->paused ) {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
+            if (_world && _world->playerID && !_world->paused ) {
+                Entity* player = _entityManager->getEntity(_world->playerID);
                 player->GetAttributeDataPtr<bool>("running") = false;
             }
-            else { _locator.Get<Camera>()->movementSpeedFactor = 20.0; }
+            else { _camera->movementSpeedFactor = 20.0; }
         } else if ( theEvent == INPUT_SNEAK ) {
-            if (  world && world->playerID && !world->paused ) {
-                Entity* player = world->entityMan->GetEntity(world->playerID);
+            if (_world && _world->playerID && !_world->paused ) {
+                Entity* player = _entityManager->getEntity(_world->playerID);
                 player->GetAttributeDataPtr<bool>("sneaking")  = false;
             }
-            else { _locator.Get<Camera>()->movementSpeedFactor = 20.0; }
+            else { _camera->movementSpeedFactor = 20.0; }
         } else if ( theEvent == INPUT_INVENTORY ) {
-            if ( world && world->playerID ) {
-                if ( inventory_player == NULL ) {
-                    inventory_player = new UIInventory(-256,-256, world->playerID, world->entityMan);
-                } else {
-                    delete inventory_player;
-                    inventory_player = NULL;
-                }
-            }
-        } else if ( theEvent == INPUT_BACK ) {
-            if (Console::isVisible())
-            {
-                Console::ToggleVisibility();
-            } else {
-                _locator.Get<Options>()->getOption<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
-                SDL_ShowCursor(true);
-                // Show main menu
-                std::string prevState = _locator.Get<SceneManager>()->GetPreviousSceneName();
-                if ( !prevState.empty() ) {
-                    _locator.Get<SceneManager>()->SetActiveScene(prevState);
-                }
-            }
-            return true;
+
         } else if ( theEvent == INPUT_EDIT_BLOCKS ) {
-            if ( world ) {
-                // test exploding things
-                Entity* killed = world->entityMan->GetNearestEntity(cursorWorldPos,
-                                                                    world->playerID,
-                                                                    ENTITY_HUMANOID);
-                killed->GetAttributeDataPtr<int>("health") = 0;
-            }
+     //       if (_world ) {
+     //           // test exploding things
+     //           Entity* killed = _entityManager->getNearestEntity(
+					//cursorWorldPos,
+					//_world->playerID,
+					//ENTITY_HUMANOID);
+     //           killed->GetAttributeDataPtr<int>("health") = 0;
+     //       }
         } else if (theEvent == INPUT_EDIT_OBJECT ) {
-            _locator.Get<Options>()->getOption<bool>("r_renderMap") = !_locator.Get<Options>()->getOption<bool>("r_renderMap");
+            _options->getOption<bool>("r_renderMap") = !_options->getOption<bool>("r_renderMap");
         } else if ( theEvent == INPUT_START ) {
-            if ( world ) {
-                world->AddSkeleton(cursorNewPos+glm::vec3(0,2,0));
+            if (_world ) {
+                _world->AddSkeleton(cursorNewPos+glm::vec3(0,2,0));
             }
         } else if (theEvent == INPUT_GRAB) {
-            if ( world ) {
+            if (_world )
+			{
                 // Grab nearest item
-                Entity* player = world->entityMan->GetEntity(world->playerID);
-                HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
-                Entity* grabEntity = world->entityMan->GetNearestEntity(player->GetAttributeDataPtr<glm::vec3>("position"),
-                                                                        world->playerID,
-                                                                        ENTITY_ITEM);
+                Entity* player = _entityManager->getEntity(_world->playerID);
+                HumanoidComponent* human = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
+				Entity* grabEntity = _entityManager->getNearestEntity(
+					player->GetAttributeDataPtr<glm::vec3>("position"),
+					_world->playerID,
+					ENTITY_ITEM);
                 if ( grabEntity ) {
                     human->Grab(grabEntity);
                 }
-
             }
-        } else if ( theEvent == INPUT_CONSOLE ) {
-            Console::ToggleVisibility();
-            return true;
         }
     }
     if (theEvent == INPUT_MOVE_FORWARD) {
@@ -377,24 +361,24 @@ bool LocalGame::OnEvent(const std::string &theEvent,
             joyMoveInput.x += amount;
     } else if (theEvent == INPUT_GRAB_CURSOR ) {
         if ( amount == -1.0f ) {
-            bool& grabCursor = _locator.Get<Options>()->getOption<bool>("r_grabCursor");
+            bool& grabCursor = _options->getOption<bool>("r_grabCursor");
             grabCursor = !grabCursor;
             SDL_ShowCursor(!grabCursor);
         }
     } else if ( theEvent == INPUT_JUMP ) {
-        if ( world && world->playerID ) {
-            Entity* player = world->entityMan->GetEntity(world->playerID);
+        if (_world && _world->playerID ) {
+            Entity* player = _entityManager->getEntity(_world->playerID);
             player->GetAttributeDataPtr<bool>("jumping") = (amount > 0.5f);
         }
     } else if ( theEvent == INPUT_LOOK_DOWN ) {
-        _locator.Get<Camera>()->shakeAmount -= 1.0f;
+        _camera->shakeAmount -= 1.0f;
     } else if ( theEvent == INPUT_LOOK_UP ) {
-        _locator.Get<Camera>()->shakeAmount += 1.0f;
+        _camera->shakeAmount += 1.0f;
     } else if ( theEvent == INPUT_LOOK_LEFT ) {
     } else if ( theEvent == INPUT_LOOK_RIGHT ) {
     } else if (theEvent == INPUT_SCROLL_Y) {
-        if ( _locator.Get<Camera>()->thirdPerson ) {
-            _locator.Get<Camera>()->distance += amount;
+        if ( _camera->thirdPerson ) {
+            _camera->distance += amount;
         }
     }
     return false;
@@ -402,26 +386,27 @@ bool LocalGame::OnEvent(const std::string &theEvent,
 
 bool LocalGame::OnMouse(const glm::ivec2 &coord)
 {
-    int midWindowX = _locator.Get<Options>()->getOption<int>("r_resolutionX") / 2;     // Middle of the window horizontally
-    int midWindowY = _locator.Get<Options>()->getOption<int>("r_resolutionY") / 2;    // Middle of the window vertically
-    if ( _locator.Get<Options>()->getOption<bool>("r_grabCursor") ) {
+    int midWindowX = _options->getOption<int>("r_resolutionX") / 2;     // Middle of the window horizontally
+    int midWindowY = _options->getOption<int>("r_resolutionY") / 2;    // Middle of the window vertically
+    if ( _options->getOption<bool>("r_grabCursor") )
+	{
         
         float mouseSensitivity = 0.01f;
         float rotationX = (midWindowX-coord.x)*mouseSensitivity;
         float rotationY = (midWindowY-coord.y)*mouseSensitivity;
-        
-        if ( _locator.Get<Camera>()->thirdPerson) {
+		
+        if ( _camera->thirdPerson) {
             rotationX *= -1.0f;
             rotationY *= -1.0f;
         }
-        if ( world && world->playerID && !_locator.Get<Camera>()->thirdPerson ) {
-            HumanoidComponent* human = (HumanoidComponent*)world->entityMan->GetComponent(world->playerID, "Humanoid");
+        if (_world && _world->playerID && !_camera->thirdPerson ) {
+            HumanoidComponent* human = (HumanoidComponent*)_entityManager->getComponent(_world->playerID, "Humanoid");
             human->Rotate(rotationX, rotationY);
         } else {
-            _locator.Get<Camera>()->CameraRotate(rotationX, rotationY);
+            _camera->CameraRotate(rotationX, rotationY);
         }
         // Reset the mouse position to the centre of the window each frame
-        _locator.Get<Input>()->MoveCursor(glm::ivec2(midWindowX, midWindowY));
+        _input->MoveCursor(glm::ivec2(midWindowX, midWindowY));
         cursorScrnPos = glm::vec2();
     } else {
         cursorScrnPos.x = coord.x-midWindowX;
@@ -443,17 +428,18 @@ void LocalGame::HandleJoyAxis(int axis, float value)
 //    }
 }
 
-void LocalGame::UpdateMovement() {
+void LocalGame::UpdateMovement()
+{
     float deadZone = 0.35f;
     if ( fabsf(joyMoveInput.x)+fabsf(joyMoveInput.y) < deadZone ) joyMoveInput = glm::vec2();
     if ( fabsf(joyCameraInput.x)+fabsf(joyCameraInput.y) < deadZone ) joyCameraInput = glm::vec2();
-    if ( !world || world->paused ) {
-        _locator.Get<Camera>()->movement.x = joyMoveInput.x;
-        _locator.Get<Camera>()->movement.z = joyMoveInput.y;
-    } else if ( world && world->playerID ) {
-        Entity* player = world->entityMan->GetEntity(world->playerID);
-        if ( _locator.Get<Camera>()->thirdPerson ) {
-            glm::vec3 camRot = (_locator.Get<Camera>()->rotation);
+    if ( !_world || _world->paused ) {
+        _camera->movement.x = joyMoveInput.x;
+        _camera->movement.z = joyMoveInput.y;
+    } else if ( _world && _world->playerID ) {
+        Entity* player = _entityManager->getEntity(_world->playerID);
+        if ( _camera->thirdPerson ) {
+            glm::vec3 camRot = (_camera->rotation);
             glm::vec3 direction = glm::rotateY(glm::vec3(joyMoveInput.x, 0.0f, joyMoveInput.y), camRot.y);
             glm::vec3& dir = player->GetAttributeDataPtr<glm::vec3>("direction");
             dir = direction;
@@ -466,54 +452,50 @@ void LocalGame::UpdateMovement() {
     float joySensitivity = 2.0f;
     float rotationX = -joyCameraInput.x*joySensitivity;
     float rotationY = -joyCameraInput.y*joySensitivity;
-    _locator.Get<Camera>()->CameraRotate(rotationX, rotationY);
-    if ( world && world->playerID ) {
-        Entity* player = world->entityMan->GetEntity(world->playerID);
+    _camera->CameraRotate(rotationX, rotationY);
+    if ( _world && _world->playerID ) {
+        Entity* player = _entityManager->getEntity(_world->playerID);
         glm::vec3& lookDir = player->GetAttributeDataPtr<glm::vec3>("lookDirection");
-        lookDir = _locator.Get<Camera>()->rotation;
+        lookDir = _camera->rotation;
     }
 }
 
 void LocalGame::SaveWorld(const std::string fileName)
 {
-//    if ( fileSelectMenu ) { delete fileSelectMenu; fileSelectMenu = NULL; }
 }
 
 void LocalGame::LoadWorld(const std::string fileName)
 {
-//    if ( fileSelectMenu ) { delete fileSelectMenu; fileSelectMenu = NULL; }
-    if ( world ) {
+    if (_world ) {
     } else if ( !fileName.empty() ) {
-        world = new World3D(fileName,
-                            1337,
-                            _locator);
+        //world = new World3D(fileName,
+        //                    1337);
     }
 }
 
-void LocalGame::AddObject( const std::string fileName ) {
-//    if ( fileSelectMenu ) { delete fileSelectMenu; fileSelectMenu = NULL; }
+void LocalGame::AddObject( const std::string fileName )
+{
     if (fileName.length() > 0) {
         size_t fileNPos = fileName.find_last_of("/");
         std::string shortFileName = fileName.substr(fileNPos);
-        if ( world ) {
+        if (_world)
+		{
             // Add new decor object
             std::string newName = "Object_";
             newName.append(intToString(Entity::GetNextEntityID()));
-            int newEntID = world->entityMan->AddEntity(newName);
-            Entity* newEnt = world->entityMan->GetEntity(newEntID);
+            int newEntID = _entityManager->addEntity(newName);
+            Entity* newEnt = _entityManager->getEntity(newEntID);
             newEnt->GetAttributeDataPtr<int>("type") = ENTITY_ITEM;
             newEnt->GetAttributeDataPtr<glm::vec3>("position") = cursorWorldPos+glm::vec3(0,2.0f,0);
             newEnt->GetAttributeDataPtr<std::string>("objectFile") = shortFileName;
-            ItemComponent* itemComponent = new ItemComponent(newEntID,
-                                                             world->entityMan,
-                                                             _locator);
-            world->entityMan->SetComponent(newEntID, itemComponent);
+            ItemComponent* itemComponent = new ItemComponent(newEntID, _entityManager, _particles, _text);
+            _entityManager->setComponent(newEntID, itemComponent);
             newEnt->GetAttributeDataPtr<int>("damage") = 10;
-            PhysicsComponent* physComponent = new PhysicsComponent( newEntID, world->entityMan );
-            world->entityMan->SetComponent(newEntID, physComponent);
-            physComponent->SetPhysicsMode( Physics_Dynamic_AABBs );
-            CubeComponent* cubeComponent = new CubeComponent(newEntID, world->entityMan, shortFileName);
-            world->entityMan->SetComponent(newEntID, cubeComponent);
+            PhysicsComponent* physComponent = new PhysicsComponent( newEntID, _entityManager, _physics, _voxels );
+            _entityManager->setComponent(newEntID, physComponent);
+            physComponent->setPhysicsMode( Physics_Dynamic_AABBs );
+            CubeComponent* cubeComponent = new CubeComponent(newEntID, shortFileName, _entityManager, _voxels);
+            _entityManager->setComponent(newEntID, cubeComponent);
         }
     }
 }

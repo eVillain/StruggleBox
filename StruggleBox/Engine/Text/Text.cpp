@@ -1,47 +1,47 @@
 #include "Text.h"
 #include "TextDefaults.h"
 #include "Label.h"
-#include "Locator.h"
 #include "Renderer.h"
 #include "Shader.h"
 #include "Log.h"
-#include <string>
+#include "GLErrorUtil.h"
 #include <glm/gtc/matrix_transform.hpp>     // glm::translate, glm::rotate, glm::scale
+#include <string>
 
-Text::Text() :
-_renderer(nullptr),
+Text::Text(std::shared_ptr<Renderer> renderer) :
+_renderer(renderer),
 _initialized(false),
 _atlasFactory(nullptr),
 _textShader(nullptr),
 _textShaderDeferred(nullptr)
 {
-    Log::Debug("[Text] Constructor...");
+	Log::Info("[Text] constructor, instance at %p", this);
 }
 
 Text::~Text()
 {
-    Log::Debug("[Text] Destructor...");
+	Log::Info("[Text] destructor, instance at %p", this);
 }
 
-bool Text::Initialize(Locator& locator)
+bool Text::Initialize()
 {
     Log::Debug("[Text] Initializing...");
     if (_initialized) {
         Log::Error("[Text] can't initialize, already initialized!");
         return false;
     }
-    _renderer = locator.Get<Renderer>();
-    
+
     _atlasFactory = std::unique_ptr<FontAtlasPool>(new FontAtlasPool());
     _atlasFactory->Initialize();
     
     _textShader = std::make_unique<Shader>();
-    _textShader->InitFromSource(text_vertex_shader_forward,
+    _textShader->initialize(text_vertex_shader_forward,
                                 text_frag_shader_forward);
     _textShaderDeferred = std::make_unique<Shader>();
-    _textShaderDeferred->InitFromSource(text_vertex_shader_deferred,
+    _textShaderDeferred->initialize(text_vertex_shader_deferred,
                                         text_frag_shader_deferred);
-    
+	_vao = _renderer->addVertexArray();
+
     if (_textShader->GetProgram() == 0 ||
         _textShaderDeferred->GetProgram() == 0)
     {
@@ -64,12 +64,17 @@ void Text::Draw()
 {
     glm::mat4 uiMVP;
     _renderer->GetUIMatrix(uiMVP);
+	CHECK_GL_ERROR();
 
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindVertexArray(_vao);
 
-    _textShader->Begin();
+	CHECK_GL_ERROR();
+
+    _textShader->begin();
+
     for (auto labelPair : _labels2D)
     {
         std::shared_ptr<Label> label = labelPair.first;
@@ -106,13 +111,21 @@ void Text::Draw()
         labelMVP = glm::translate(labelMVP, labelOffset);
 
         TextVertBuffer* buffer = labelPair.second;
+		buffer->bind();
+
+		// FUGLY! TODO: Remove when render pipeline is cleaner
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(TexturedVertexData), 0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertexData), (GLvoid*)(4 * sizeof(GLfloat)));
+		CHECK_GL_ERROR();
 
         if (label->isDirty())
         {
             label->_size = CalculateTextSize(label->getText(),
                                              label->getFont(),
                                              label->getFontSize());
-            buffer->Buffer(label->getText(),
+            buffer->buffer(label->getText(),
                            *atlas.get(),
                            label->getFontSize());
             label->setNotDirty();
@@ -121,15 +134,17 @@ void Text::Draw()
         glBindTexture(GL_TEXTURE_2D, atlas->GetTextureID());
         _textShader->setUniformM4fv("MVP", uiMVP*labelMVP);
         _textShader->setUniform4fv("color", label->getColor());
-        buffer->Draw();
+        buffer->draw();
     }
+	CHECK_GL_ERROR();
+
 }
 
 std::shared_ptr<Label> Text::CreateLabel(const std::string text)
 {
     std::shared_ptr<Label> label = std::shared_ptr<Label>(new Label());
     label->setText(text);
-    _labels2D[label] = new TextVertBuffer();
+    _labels2D[label] = new TextVertBuffer(_renderer);
     return label;
 }
 

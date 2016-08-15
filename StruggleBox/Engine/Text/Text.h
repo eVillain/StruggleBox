@@ -15,10 +15,10 @@ class Renderer;
 class Text
 {
 public:
-    Text();
+    Text(std::shared_ptr<Renderer> renderer);
     ~Text();
     
-    bool Initialize(Locator& locator);
+    bool Initialize();
     bool Terminate();
     
     void Draw();
@@ -31,13 +31,14 @@ protected:
                                 Fonts::FontID font,
                                 const int fontSize);
 private:
-    Renderer* _renderer;
+    std::shared_ptr<Renderer> _renderer;
     bool _initialized;
     std::unique_ptr<FontAtlasPool> _atlasFactory;
     std::unique_ptr<Shader> _textShader;
     std::unique_ptr<Shader> _textShaderDeferred;
     std::map<std::shared_ptr<Label>, TextVertBuffer*> _labels2D;
     std::map<std::shared_ptr<Label>, TextVertBuffer*> _labels3D;
+	GLuint _vao;
 };
 
 

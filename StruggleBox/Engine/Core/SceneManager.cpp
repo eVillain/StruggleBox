@@ -1,21 +1,23 @@
 #include "SceneManager.h"
-#include "Locator.h"
 #include "Scene.h"
-#include "HyperVisor.h"
+#include "Log.h"
 #include <assert.h>
 
 #define DEBUGSCENES 0
 
-SceneManager::SceneManager(Locator& locator) :
-_locator(locator)
-{ }
+SceneManager::SceneManager()
+{
+	Log::Info("[SceneManager] constructor, instance at %p", this);
+}
 
 SceneManager::~SceneManager()
 {
+	Log::Info("[SceneManager] destructor, instance at %p", this);
+
     // Drop all active scenes
     while( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
         
         // Pop the currently active scene off the stack
         _stack.pop_back();
@@ -25,18 +27,12 @@ SceneManager::~SceneManager()
         
         // De-initialize the scene
         aScene->Release();
-        
-        // Just delete the scene now
-        delete aScene;
-        
-        // Don't keep pointers around we don't need
-        aScene = NULL;
     }
     
     // Delete all our dropped scenes
     while( !_dead.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = _dead.back();
+		std::shared_ptr<Scene> aScene = _dead.back();
         
         // Pop the currently active scene off the stack
         _dead.pop_back();
@@ -46,12 +42,6 @@ SceneManager::~SceneManager()
         
         // De-initialize the scene
         aScene->Release();
-                
-        // Just delete the scene now
-        delete aScene;
-        
-        // Don't keep pointers around we don't need
-        aScene = NULL;
     }
 }
 
@@ -60,7 +50,7 @@ bool SceneManager::IsEmpty()
     return _stack.empty();
 }
 
-void SceneManager::AddActiveScene(Scene* theScene)
+void SceneManager::AddActiveScene(std::shared_ptr<Scene> theScene)
 {
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddActiveScene() received a bad pointer");
@@ -81,7 +71,7 @@ void SceneManager::AddActiveScene(Scene* theScene)
     _stack.back()->Initialize();
 }
 
-void SceneManager::AddInactiveScene(Scene* theScene)
+void SceneManager::AddInactiveScene(std::shared_ptr<Scene> theScene)
 {
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddInactiveScene() received a bad pointer");
@@ -92,12 +82,12 @@ void SceneManager::AddInactiveScene(Scene* theScene)
     _stack.insert(_stack.begin(), theScene);
 }
 
-Scene& SceneManager::GetActiveScene()
+std::shared_ptr<Scene> SceneManager::GetActiveScene()
 {
     if ( _stack.empty() ) {
         printf("[SceneManager] WARNING: no active scene to get!");
     }
-    return *_stack.back();
+    return _stack.back();
 }
 
 void SceneManager::InactivateActiveScene()
@@ -108,7 +98,7 @@ void SceneManager::InactivateActiveScene()
     // Is there no currently active scene to drop?
     if(!_stack.empty()) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -118,16 +108,10 @@ void SceneManager::InactivateActiveScene()
         
         // Move this now inactive scene to the absolute back of our stack
         _stack.insert(_stack.begin(), aScene);
-        
-        // Don't keep pointers around we don't need anymore
-        aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(_locator.Satisfies<HyperVisor>()) {
-            printf("SceneManager: stack was empty on inactivation\n");
-            _locator.Get<HyperVisor>()->Stop();
-        }
-        return;
+        halt("SceneManager: stack was empty on inactivation");
+		return;
     }
     
     // Is there another scene to activate? then call Resume to activate it
@@ -152,7 +136,7 @@ void SceneManager::DropActiveScene()
     // Is there no currently active scene to drop?
     if( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -167,15 +151,9 @@ void SceneManager::DropActiveScene()
         
         // Move this now inactive scene to the absolute back of our stack
         _stack.insert(_stack.begin(), aScene);
-        
-        // Don't keep pointers around we don't need anymore
-        aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(_locator.Satisfies<HyperVisor>()) {
-            printf("SceneManager: stack was empty on scene drop\n");
-            _locator.Get<HyperVisor>()->Stop();
-        }
+		halt("SceneManager: stack was empty on scene drop");
         return;
     }
     
@@ -200,7 +178,7 @@ void SceneManager::ResetActiveScene()
     // Is there no currently active scene to reset?
     if(!_stack.empty()) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
                 
         // Pause the currently active scene
         aScene->Pause();
@@ -210,15 +188,9 @@ void SceneManager::ResetActiveScene()
         
         // Resume the currently active scene
         aScene->Resume();
-        
-        // Don't keep pointers around we don't need anymore
-        aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(_locator.Satisfies<HyperVisor>()) {
-            printf("SceneManager: stack was empty on scene reset\n");
-            _locator.Get<HyperVisor>()->Stop();
-        }
+		halt("SceneManager: stack was empty on scene reset");
         return;
     }
 }
@@ -231,7 +203,7 @@ void SceneManager::RemoveActiveScene()
     // Is there no currently active scene to drop?
     if( !_stack.empty() ) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -244,15 +216,9 @@ void SceneManager::RemoveActiveScene()
         
         // Move this scene to our dropped stack
         _dead.push_back(aScene);
-        
-        // Don't keep pointers around we don't need anymore
-        aScene = NULL;
     } else {
         // Quit the application with an error status response
-        if(_locator.Satisfies<HyperVisor>()) {
-            printf("SceneManager: stack was empty on scene removal\n");
-            _locator.Get<HyperVisor>()->Stop();
-        }
+		halt("SceneManager: stack was empty on scene removal");
         return;
     }
     
@@ -273,7 +239,7 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
 #if DEBUGSCENES
     printf("SceneManager: setting active scene - %s\n", theSceneID.c_str() );
 #endif
-    std::vector<Scene*>::iterator it;
+    std::vector<std::shared_ptr<Scene>>::iterator it;
     
     // Find the scene that matches theSceneID
     for( it=_stack.begin(); it != _stack.end(); it++ ) {
@@ -281,7 +247,7 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
         // currently active scene
         if( (*it)->GetID() == theSceneID ) {
             // Get a pointer to soon to be currently active scene
-            Scene* aScene = *it;
+			std::shared_ptr<Scene> aScene = *it;
             
             // Erase it from the list of previously active scenes
             _stack.erase(it);
@@ -295,9 +261,6 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
             
             // Add the new active scene
             _stack.push_back(aScene);
-            
-            // Don't keep pointers we don't need around
-            aScene = NULL;
             
             // Has this scene ever been initialized?
             if( _stack.back()->IsInitialized() ) {
@@ -319,7 +282,7 @@ void SceneManager::Cleanup(void)
     // Remove one of our dead scenes
     if( !_dead.empty() ) {
         // Retrieve the dead scene
-        Scene* aScene = _dead.back();
+		std::shared_ptr<Scene> aScene = _dead.back();
         assert(NULL != aScene && "SceneManagerager::HandleCleanup() invalid dropped scene pointer");
 #if DEBUGSCENES
         printf("SceneManager: cleaning up dead scene - %s\n", aScene->GetID().c_str() );
@@ -332,38 +295,33 @@ void SceneManager::Cleanup(void)
         if( aScene->IsInitialized() ) {
             aScene->Release();
         }
-        
-        // Just delete the scene now
-        delete aScene;
-        
-        // Don't keep pointers around we don't need
-        aScene = NULL;
     }
     
     // Make sure we still have an active scene
-    if( NULL == _stack.back() ) {
+    if( nullptr == _stack.back() ) {
         // There are no scenes on the stack, exit the program
-        if(_locator.Satisfies<HyperVisor>()) {
-            printf("SceneManager: stack was empty on cleanup\n");
-            _locator.Get<HyperVisor>()->Stop();
-        }
+        halt("SceneManager: stack was empty on cleanup\n");
     }
 }
-std::string SceneManager::GetPreviousSceneName(void) {
+
+std::string SceneManager::GetPreviousSceneName()
+{
     if ( _stack.size() > 1 ) {
         std::string theSceneID = (*(_stack.begin()+_stack.size()-2))->GetID();
         return theSceneID;
     }
     return "";
 }
-void SceneManager::KillPreviousScene(void) {
+
+void SceneManager::KillPreviousScene()
+{
     if ( _stack.size() > 1 ) {
         // Retrieve the currently active scene
-        Scene* aScene = _stack.back();
+		std::shared_ptr<Scene> aScene = _stack.back();
         // Pop the currently active scene off the stack
         _stack.pop_back();
         // Retrieve the previous scene
-        Scene* bScene = _stack.back();
+		std::shared_ptr<Scene> bScene = _stack.back();
         // Pop the previous scene off the stack
         _stack.pop_back();
         // Pause the currently active scene
@@ -379,4 +337,21 @@ void SceneManager::KillPreviousScene(void) {
 
 size_t SceneManager::NumScenes(void) {
     return _stack.size();
+}
+
+void SceneManager::SetHaltFunction(std::function<void(const std::string)> haltFunc)
+{
+	_haltFunc = haltFunc;
+}
+
+void SceneManager::halt(const std::string& error)
+{
+	if (_haltFunc)
+	{
+		_haltFunc(error);
+	}
+	else
+	{
+		Log::Error(error.c_str());
+	}
 }

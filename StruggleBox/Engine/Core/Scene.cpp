@@ -1,8 +1,6 @@
 #include "Scene.h"
 
-Scene::Scene(const std::string sceneID,
-             Locator& locator) :
-_locator(locator),
+Scene::Scene(const std::string sceneID) :
 _sceneID(sceneID),
 _init(false),
 _paused(false)

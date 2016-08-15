@@ -1,12 +1,14 @@
 #include "ShaderManager.h"
+#include "Shader.h"
 #include "FileUtil.h"
+#include "Log.h"
 
 /**********************************************************************
  * Default shader programs
  *********************************************************************/
 
-const GLchar *default_vertex_shader[] = {
-    "#version 330 core\n"
+const std::string default_vertex_shader = {
+    "#version 400\n"
     "layout(location = 0)in vec4 vCoord;\n"
     "layout(location = 1) in vec4 vColor;\n"
     "out vec4 fragmentColor;\n"
@@ -15,68 +17,119 @@ const GLchar *default_vertex_shader[] = {
     "{ gl_Position = MVP * vCoord;\n"
     " fragmentColor = vColor; }"
 };
-const GLchar *default_frag_shader[] = {
-    "#version 330 core\n"
+
+const std::string default_frag_shader = {
+    "#version 400\n"
     "in vec4 fragmentColor;\n"
     "out vec4 color;\n"
     "void main()\n"
     "{ color = fragmentColor; }"
 };
 
-namespace ShaderManager {
-    typedef std::vector<Shader*> ShaderList;
+std::shared_ptr<Shader> ShaderManager::load(
+	const std::string vshFile,
+	const std::string fshFile)
+{
 
-    ShaderList shaders;
+	std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+	std::string vshPath = FileUtil::GetPath().append("Shaders/");
+	vshPath.append(vshFile);
+	std::string fshPath = FileUtil::GetPath().append("Shaders/");
+	fshPath.append(fshFile);
 
-    void ClearShaders() {
-        if ( shaders.size() ) {
-            printf("[ShaderMan] Releasing shaders...\n");
-            for( unsigned int i=0; i< shaders.size(); i++ ) {
-                delete shaders[i];
-            }
-            shaders.clear();
-        }
-    }
-    Shader* LoadFromFile(const std::string vshPath, const std::string fshPath) {
-        
-        Shader* shader = new Shader();
-        std::string vertShader = FileUtil::GetPath().append("Shaders/");
-        vertShader.append(vshPath);
-        std::string fragShader = FileUtil::GetPath().append("Shaders/");
-        fragShader.append(fshPath);
-//        printf("Loading shader:\n %s\n %s", vertShader.c_str(), fragShader.c_str());
-        shader->InitFromFile( vertShader, fragShader );
-        if (shader->GetProgram() == 0) {
-            printf("Shader program loading failed, loading default\n");
-            shader->InitFromSource( default_vertex_shader, default_frag_shader );
-        } 
-        shaders.push_back(shader);
-        return shader;
-    }
-    Shader* LoadFromFile(const std::string gshPath, const std::string vshPath, const std::string fshPath) {
-        Shader* shader = new Shader();
-        std::string geomShader = FileUtil::GetPath().append("Shaders/");
-        geomShader.append(gshPath);
-        std::string vertShader = FileUtil::GetPath().append("Shaders/");
-        vertShader.append(vshPath);
-        std::string fragShader = FileUtil::GetPath().append("Shaders/");
-        fragShader.append(fshPath);
-        
-        shader->InitFromFile( geomShader, vertShader, fragShader );
-        if (shader->GetProgram() == 0) {
-            printf("Shader program loading failed, loading default\n");
-            shader->InitFromSource( default_vertex_shader, default_frag_shader );
-        } 
-        shaders.push_back(shader);
-        return shader;
-    }
-    
-    void ClearShader( Shader* oldShader ) {
-        ShaderList::iterator it = std::find(shaders.begin(), shaders.end(), oldShader);
-        if ( it != shaders.end() ) {
-            delete *it;
-            shaders.erase(it);
-        }
-    }
+	Log::Debug("[ShaderManager] Loading shader:\n %s\n %s",
+		vshPath.c_str(),
+		fshPath.c_str());
+
+	std::string vertShader = loadFile(vshPath);
+	std::string fragShader = loadFile(fshPath);
+
+	shader->initialize(
+		vertShader.c_str(),
+		fragShader.c_str());
+
+	if (shader->GetProgram() == 0)
+	{
+		Log::Warn("[ShaderManager] Shader program loading failed, loading default!");
+		shader->initialize(default_vertex_shader, default_frag_shader);
+	}
+	return shader;
 }
+
+std::shared_ptr<Shader> ShaderManager::load(
+	const std::string gshFile,
+	const std::string vshFile,
+	const std::string fshFile)
+{
+	std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+	std::string gshPath = FileUtil::GetPath().append("Shaders/" + gshFile);
+	std::string vshPath = FileUtil::GetPath().append("Shaders/" + vshFile);
+	std::string fshPath = FileUtil::GetPath().append("Shaders/" + fshFile);
+
+	Log::Debug("[ShaderManager] Loading shader:\n %s\n %s\n %s",
+		gshPath.c_str(),
+		vshPath.c_str(),
+		fshPath.c_str());
+
+	std::string geomShader = loadFile(gshPath);
+	std::string vertShader = loadFile(vshPath);
+	std::string fragShader = loadFile(fshPath);
+
+	shader->initialize(geomShader, vertShader, fragShader);
+
+	if (shader->GetProgram() == 0)
+	{
+		Log::Warn("[ShaderManager] Shader program loading failed, loading default!");
+		shader->initialize(default_vertex_shader, default_frag_shader);
+	}
+	return shader;
+}
+
+
+std::string ShaderManager::loadFile(const std::string filePath)
+{
+	long fileSize = FileUtil::GetFileSize(filePath);
+
+	const size_t blockSize = 1024;
+	char *source = (char*)malloc(fileSize+1);
+	if (!source)
+	{
+		Log::Error("[Shader] Unable to malloc %l bytes for reading", fileSize);
+		return "";
+	}
+
+	std::string fullPath = "";
+	fullPath.append(filePath);
+
+	FILE *fp;
+#ifdef _WIN32
+	fopen_s(&fp, fullPath.c_str(), "r");
+#else
+	fp = fopen(fullPath.c_str(), "r");
+#endif
+	if (!fp)
+	{
+		Log::Error("[Shader] Unable to open %s for reading", fullPath.c_str());
+		return "";
+	}
+
+	size_t blockBytes, readBytes = 0;
+	// Read one block at a time
+	while ((blockBytes = fread(source+readBytes, 1, blockSize, fp)) > 0)
+	{
+		readBytes += blockBytes;
+	}
+
+	/* close the file and null terminate the string */
+	fclose(fp);
+	
+	source[readBytes] = '\0';
+
+	std::string data(source);
+
+	delete source;
+
+	return data;
+}
+
 

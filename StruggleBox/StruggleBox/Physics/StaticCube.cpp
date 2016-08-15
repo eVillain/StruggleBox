@@ -1,15 +1,15 @@
-#include <iostream>
 #include "StaticCube.h"
-#include "World3D.h"
 #include "Renderer.h"
+#include "MaterialData.h"
+#include <iostream>
 
-StaticCube::StaticCube(const btVector3 & pos,
-                       const btVector3 & halfSize,
-                       World3D* world,
-                       const Color& col)
+StaticCube::StaticCube(
+	const btVector3 & pos,
+	const btVector3 & halfSize,
+	std::shared_ptr<Physics> physics,
+	const Color& col) :
+	_physics(physics)
 {
-    m_world = world;
-
     cubeShape = new btBoxShape(halfSize);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, 0, cubeShape);
     cubeRigidBody = new btRigidBody(rbInfo);
@@ -17,7 +17,7 @@ StaticCube::StaticCube(const btVector3 & pos,
     trans.setIdentity();
     trans.setOrigin(pos);
     cubeRigidBody->setWorldTransform(trans);
-    m_world->worldPhysics->dynamicsWorld->addRigidBody(cubeRigidBody);
+    _physics->dynamicsWorld->addRigidBody(cubeRigidBody);
     
     color = col;
     cubeSize = halfSize.x();
@@ -25,7 +25,7 @@ StaticCube::StaticCube(const btVector3 & pos,
 
 StaticCube::~StaticCube()
 {
-    m_world->worldPhysics->dynamicsWorld->removeRigidBody(cubeRigidBody);
+    _physics->dynamicsWorld->removeRigidBody(cubeRigidBody);
     delete cubeRigidBody;
     delete cubeShape;
 }
@@ -33,25 +33,18 @@ StaticCube::~StaticCube()
 void StaticCube::Draw(Renderer* renderer)
 {
     btTransform trans = cubeRigidBody->getWorldTransform();
-    CubeInstance cube = {
-        trans.getOrigin().x(),
-        trans.getOrigin().y(),
-        trans.getOrigin().z(),
-        cubeSize,
-        trans.getRotation().x(),
-        trans.getRotation().y(),
-        trans.getRotation().z(),
-        trans.getRotation().w(),
-        color.r,
-        color.g,
-        color.b,
-        color.a,
-        color.r,
-        color.g,
-        color.b,
-        1.0f
+	CubeInstance cube = {
+		trans.getOrigin().x(),
+		trans.getOrigin().y(),
+		trans.getOrigin().z(),
+		cubeSize,
+		trans.getRotation().x(),
+		trans.getRotation().y(),
+		trans.getRotation().z(),
+		trans.getRotation().w(),
+		MaterialData::texOffset(20)
     };
-    renderer->Buffer3DCube(cube);
+    renderer->bufferCubes(&cube, 1);
 }
 
 void StaticCube::SetPos(btVector3& pos)

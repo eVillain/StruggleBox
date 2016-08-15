@@ -1,12 +1,9 @@
-#ifndef NGN_LIGHT_SYSTEM2D_H
-#define NGN_LIGHT_SYSTEM2D_H
+#ifndef LIGHT_SYSTEM2D_H
+#define LIGHT_SYSTEM2D_H
 
 #include <vector>
 #include "Light2D.h"
 
-#if NE
-#include "Shape.h"
-#endif
 /**
  * Class containing a list of Lights in game world
  */
@@ -28,9 +25,7 @@ public:
     void HookRenderer( Renderer* renderer );
 
 //    unsigned long GetRenderedLights() { return renderedLights; };
-#if NE
-    void RenderLighting(cpSpace * space);
-#endif
+
     void RenderLighting(void * space);
 
     void Add(Light2D* newLight);

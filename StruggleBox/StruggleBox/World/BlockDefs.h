@@ -63,8 +63,7 @@ enum BlockType {
     Type_Blue = 67,
     Type_Yellow = 68,
     Type_Cyan = 69,
-    Type_Purple = 70,
-    
+    Type_Purple = 70, 
 };
 inline static std::string NameForType( BlockType type ) {
     switch (type) {

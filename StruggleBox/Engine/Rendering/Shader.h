@@ -12,24 +12,26 @@ class Shader
 public:
     Shader();
     ~Shader();
-    
-    void InitFromFile( const std::string vshPath, const std::string fshPath );
-    void InitFromFile( const std::string gshPath, const std::string vshPath, const std::string fshPath );
-    void InitFromSource( const GLchar** vshSource, const GLchar** fshSource );
-    void LinkProgram();
 
-    inline void Begin() const { glUseProgram(prog); };
-    inline void End() const { glUseProgram(0); };
+    void initialize(
+		const std::string vshSource,
+		const std::string fshSource);
+
+	void initialize(
+		const std::string gshSource,
+		const std::string vshSource,
+		const std::string fshSource);
+
+    inline void begin() const { glUseProgram(prog); };
+    inline void end() const { glUseProgram(0); };
+
     inline GLuint GetVertexShader() { return vertex_shader; };
     inline GLuint GetFragmentShader() { return fragment_shader; };
     inline GLuint GetProgram() { return prog; };
     
-    GLint GetAttribute( const std::string name ) const {
-        return glGetAttribLocation( prog, name.c_str() );
-    };
-    GLint GetUniform( const std::string name ) const {
-        return glGetUniformLocation( prog, name.c_str() );
-    };
+	GLint getAttribute(const std::string name) const;
+	GLint getUniform(const std::string name) const;
+
     void setUniform2fv(const char *name, float x,float y) const;
     void setUniform2fv(const char *name, const glm::vec2 & v) const;
     void setUniform3fv(const char *name,float x,float y, float z) const;
@@ -42,28 +44,16 @@ public:
     void setUniform1fv(const char *name, float val ) const;
     void setUniform1iv(const char *name, int val ) const;
     void setUniform1bv(const char *name, bool val ) const;
+
 private:
     GLuint geometry_shader;
     GLuint vertex_shader;
     GLuint fragment_shader;
     GLuint prog;
-    /*
-     * Returns a string containing the text in
-     * a vertex/fragment shader source file.
-     */
-    GLchar* ShaderLoadSource( const std::string filePath );
-    /*
-     * Returns a shader object containing a shader
-     * compiled from the given GLSL shader file.
-     */
-    GLuint ShaderCompileFromSource(GLenum type, const GLchar **source);
-    //    GLuint ShaderCompileFromFile(GLenum type, const char *filePath);
-    /*
-     * Compiles and attaches a shader of the
-     * given type to the given program object.
-     */
-    GLuint ShaderAttachFromSource(GLuint program, GLenum type, const GLchar **source);
-    GLuint ShaderAttachFromFile(GLuint program, GLenum type, const std::string filePath);
+
+    GLuint compile(GLenum type, const GLchar **source);
+    GLuint attach(GLuint program, GLenum type, const GLchar **source);
+	void linkProgram();
 };
 
 #endif /* SHADER_H*/

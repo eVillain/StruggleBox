@@ -1,11 +1,3 @@
-//
-//  SpriteBatch.cpp
-//  NeverEngine
-//
-//  Created by The Drudgerist on 1/19/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include "SpriteBatch.h"
 #include "TextureManager.h"
 #include "Texture.h"

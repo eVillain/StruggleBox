@@ -1,18 +1,14 @@
-//
-//  DynaCube.cpp
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 5/14/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include <iostream>
 #include "DynaCube.h"
-#include "World3D.h"
 #include "Renderer.h"
 
-DynaCube::DynaCube( const btVector3 & pos, const btVector3 & halfSize, World3D* world, const Color& col ) {
-    m_world = world;
+DynaCube::DynaCube(
+	const btVector3 & pos,
+	const btVector3 & halfSize,
+	std::shared_ptr<Physics> physics,
+	const Color& col) :
+	_physics(physics)
+{
 
     cubeShape = new btBoxShape(halfSize);
     btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1),pos));
@@ -24,7 +20,7 @@ DynaCube::DynaCube( const btVector3 & pos, const btVector3 & halfSize, World3D* 
     cubeRigidBody->setRestitution(0.0f);
     cubeRigidBody->setFriction(1.0);
     cubeRigidBody->setRollingFriction(1.0);
-    m_world->worldPhysics->dynamicsWorld->addRigidBody(cubeRigidBody);
+    _physics->dynamicsWorld->addRigidBody(cubeRigidBody);
     color = col;
     cubeSize = halfSize.x();
     if ( Physics::physicsCCD ) {
@@ -38,7 +34,7 @@ DynaCube::DynaCube( const btVector3 & pos, const btVector3 & halfSize, World3D* 
 }
 
 DynaCube::~DynaCube() {
-    m_world->worldPhysics->dynamicsWorld->removeRigidBody(cubeRigidBody);
+	_physics->dynamicsWorld->removeRigidBody(cubeRigidBody);
     delete cubeRigidBody->getMotionState();
     delete cubeRigidBody;
     delete cubeShape;
@@ -56,18 +52,12 @@ void DynaCube::Draw( Renderer* renderer ) {
         trans.getRotation().y(),
         trans.getRotation().z(),
         trans.getRotation().w(),
-        color.r,
-        color.g,
-        color.b,
-        color.a,
-        color.r,
-        color.g,
-        color.b,
-        1.0f
+		1	// TODO: SET MATERIAL TYPE!
     };
-    renderer->Buffer3DCube(cube);
+    renderer->bufferCubes(&cube, 1);
 }
 
+// TODO: Obviously move this to world3d
 void DynaCube::Update( double delta ) {
     if ( timer != 0.0 || !cubeRigidBody->isActive() ) {
         timer -= delta;
@@ -75,11 +65,12 @@ void DynaCube::Update( double delta ) {
             color.a = timer;
             if ( timer < 0.0 ) {
                 // Cube is dead
-                m_world->RemoveDynaCube(this);
+                //m_world->RemoveDynaCube(this);
             }
         }
     }
 }
+
 void DynaCube::SetPos(btVector3& pos) {
     btTransform cubeTrans;
 	cubeTrans.setIdentity();

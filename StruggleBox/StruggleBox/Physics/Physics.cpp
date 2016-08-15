@@ -1,10 +1,10 @@
-#include <iostream>
 #include "Physics.h"
-#include "SysCore.h"
 #include "CollisionDispatcher.h"
 #include "Camera.h"
+#include "Log.h"
 
 #include "btGhostObject.h"
+#include <iostream>
 
 bool Physics::physicsCCD=false;
 bool Physics::fixedTime=false;
@@ -14,6 +14,8 @@ Physics* Physics::g_physics = NULL;
 
 Physics::Physics()
 {
+	Log::Info("[Physics] constructor, instance at %p", this);
+
     // Bullet physics engine setup
     broadphase = new btDbvtBroadphase();
     collisionConfiguration = new btDefaultCollisionConfiguration();

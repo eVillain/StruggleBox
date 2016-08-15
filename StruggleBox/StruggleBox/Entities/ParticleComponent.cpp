@@ -1,5 +1,4 @@
 #include "ParticleComponent.h"
-#include "Locator.h"
 #include "EntityManager.h"
 #include "FileUtil.h"
 #include "Particles.h"
@@ -7,49 +6,55 @@
 #include "World3D.h"
 #include "Entity.h"
 
-ParticleComponent::ParticleComponent(const int ownerID,
-                                     const std::string& fileName,
-                                     Locator& locator) :
-EntityComponent(ownerID),
-_locator(locator)
+ParticleComponent::ParticleComponent(
+	const int ownerID,
+	const std::string& fileName,
+	std::shared_ptr<EntityManager> entityManager,
+	std::shared_ptr<Particles> particles) :
+	EntityComponent(ownerID, "Particle"),
+	_entityManager(entityManager),
+	_particles(particles)
 {
-    m_family = "Particle";
-    if ( fileName.length() != 0 ) { // Load particle system from filename given
-        _particleSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"), fileName);
-//        m_particleSys->duration = -1.0f;
-        offset = glm::vec3();
-    } else {    // No filename given, load from attributes
-        Entity* m_owner = _locator.Get<EntityManager>()->GetEntity(m_ownerID);
-        std::string particleFile = m_owner->GetAttributeDataPtr<std::string>("particleFile");
-        _particleSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"), particleFile);
-        offset = m_owner->GetAttributeDataPtr<glm::vec3>("particleOffset");
-    }
+	if (fileName.length() != 0)
+	{ // Load particle system from filename given
+		_particleSys = _particles->create(FileUtil::GetPath().append("Data/Particles/"), fileName);
+		offset = glm::vec3();
+	}
+	else
+	{    // No filename given, load from attributes
+		Entity* m_owner = _entityManager->getEntity(_ownerID);
+		std::string particleFile = m_owner->GetAttributeDataPtr<std::string>("particleFile");
+		_particleSys = _particles->create(FileUtil::GetPath().append("Data/Particles/"), particleFile);
+		offset = m_owner->GetAttributeDataPtr<glm::vec3>("particleOffset");
+	}
 }
 
 ParticleComponent::~ParticleComponent()
 {
-    if (_particleSys ) {
-        _locator.Get<Particles>()->destroy(_particleSys);
-        _particleSys = NULL;
-    }
+	if (_particleSys)
+	{
+		_particles->destroy(_particleSys);
+		_particleSys = NULL;
+	}
 }
 
-void ParticleComponent::Update(double delta)
+void ParticleComponent::update(const double delta)
 {
-    if ( _particleSys ) {
-        Entity* m_owner = _locator.Get<EntityManager>()->GetEntity(m_ownerID);
-        glm::vec3 ownerPos = m_owner->GetAttributeDataPtr<glm::vec3>("position");
-        glm::quat ownerRot = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
-        _particleSys->sourcePos = ownerPos+(ownerRot*offset);
-    }
-}
-void ParticleComponent::Activate()
-{
-    if ( _particleSys ) {  _particleSys->active = true; }
+	if (_particleSys) {
+		Entity* m_owner = _entityManager->getEntity(_ownerID);
+		glm::vec3 ownerPos = m_owner->GetAttributeDataPtr<glm::vec3>("position");
+		glm::quat ownerRot = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
+		_particleSys->sourcePos = ownerPos + (ownerRot*offset);
+	}
 }
 
-void ParticleComponent::DeActivate()
+void ParticleComponent::activate()
 {
-    if ( _particleSys ) {  _particleSys->active = false; }
+	if (_particleSys) { _particleSys->active = true; }
+}
+
+void ParticleComponent::deActivate()
+{
+	if (_particleSys) { _particleSys->active = false; }
 }
 

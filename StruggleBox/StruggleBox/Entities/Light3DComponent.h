@@ -2,29 +2,31 @@
 #define LIGHT3D_COMPONENT_H
 
 #include "EntityComponent.h"
-#include "GFXIncludes.h"
+#include "Light3D.h"
 
-class Locator;
-class Light3D;
 class EntityManager;
 
 class Light3DComponent : public EntityComponent
 {
 public:
     Light3DComponent(const int ownerID,
-                     EntityManager* owner,
-                     Locator& locator);
+		std::shared_ptr<EntityManager> entityManager);
     ~Light3DComponent();
-    void Update( double delta );
-    void Activate();
-    void DeActivate();
+
+    void update(const double delta);
+
+    void activate();
+    void deActivate();
+
     // Relative offset from main object
     glm::vec3 offset;
     
+	const LightInstance& getLight() { return _light; }
+
 private:
-    Locator& _locator;
-    EntityManager* m_manager;
-    Light3D* m_light;
+	std::shared_ptr<EntityManager> _entityManager;
+	
+	LightInstance _light;
 };
 
 #endif /* LIGHT3D_COMPONENT_H */

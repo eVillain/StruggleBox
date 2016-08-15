@@ -1,20 +1,14 @@
-//
-//  ParticleSys.cpp
-//  Ingenium
-//
-//  Created by The Drudgerist on 01/03/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
 #include "ParticleSys.h"
 #include "Dictionary.h"
 #include "Texture.h"
 #include "TextureManager.h"
 #include "Base64.h"
 #include "zlib.h"
-#include "VertexBuffer.h"
-#include "SysCore.h"
+#include "Random.h"
+#include "Timer.h"
 #include "GFXHelpers.h"
+#include "VertBuffer.h"
+#include "Log.h"
 #include <fstream>              // File input/output
 
 // ugly hack to avoid zlib corruption on win systems
@@ -26,7 +20,13 @@
 #  define SET_BINARY_MODE(file)
 #endif
 
-ParticleSys::ParticleSys( const std::string filePath, const std::string fileName ) {
+ParticleSys::ParticleSys(
+	std::shared_ptr<Renderer> renderer,
+	const std::string filePath,
+	const std::string fileName) :
+	_renderer(renderer),
+	_vertData(128)
+{
     maxParticles = 0;
     position = glm::vec3();
     active = true;
@@ -34,35 +34,31 @@ ParticleSys::ParticleSys( const std::string filePath, const std::string fileName
     particleCount = 0;
     elapsed = 0.0f;
     emitCounter = 0.0f;
-    vBuffer = NULL;
     texture = NULL;
     particles = NULL;
-    
+	_vertBuffer = _renderer->addVertBuffer(SpriteVerts);
+
     lifeSpan = 0.0f;
 
     InitFromFile(filePath, fileName);
 }
 
-ParticleSys::~ParticleSys() {
+ParticleSys::~ParticleSys()
+{
     delete [] particles;
     particles = NULL;
     
-    if (vBuffer ) {
-        delete vBuffer;
-        vBuffer = NULL;
-    }
-    if ( texture ) {
+    if ( texture )
+	{
         texture->refCount--;
         TextureManager::Inst()->UnloadTexture(texture);
         texture = NULL;
     }
 }
-void ParticleSys::InitFromFile( const std::string filePath, const std::string fileName ) {
-    if ( vBuffer != NULL ) {
-        delete vBuffer;
-        vBuffer = NULL;
-    }
-
+void ParticleSys::InitFromFile(
+	const std::string filePath,
+	const std::string fileName)
+{
     std::string dictPath = std::string(filePath).append(fileName);
     
     Dictionary dict;
@@ -222,10 +218,13 @@ void ParticleSys::InitFromFile( const std::string filePath, const std::string fi
         maxParticles = 100;
     }
     particles = new Particle[maxParticles];
-    vBuffer = new VertexBuffer(-1, RType_SpriteVerts);
-    vBuffer->c_verts = new ColorVertexData[maxParticles];
+	_vertData.resize(maxParticles);
 }
-void ParticleSys::SaveToFile( const std::string filePath, const std::string fileName ) {
+
+void ParticleSys::SaveToFile(
+	const std::string filePath,
+	const std::string fileName )
+{
     std::string dictPath = std::string(filePath).append(fileName);
     
     Dictionary dict;
@@ -302,13 +301,13 @@ void ParticleSys::SaveToFile( const std::string filePath, const std::string file
 }
 
 
-void ParticleSys::Update( const double dt ) {
-    if ( vBuffer == NULL ) return;
-
-    if( active && emissionRate ) {
+void ParticleSys::Update(const double dt)
+{
+    if( active && emissionRate )
+	{
 		float rate = 1.0f / emissionRate;
         
-		//issue #1201, prevent bursts of particles, due to too high emitCounter
+		// prevent bursts of particles due to too high emitCounter value
 		if (particleCount < maxParticles)
 			emitCounter += dt;
         
@@ -325,8 +324,10 @@ void ParticleSys::Update( const double dt ) {
             StopSystem();
         }
 	}
+
     int particleIdx = 0;
-    while ( particleIdx < particleCount ) {
+    while (particleIdx < particleCount)
+	{
         Particle& p = particles[particleIdx];
         // life
         p.timeToLive -= dt;
@@ -388,31 +389,47 @@ void ParticleSys::Update( const double dt ) {
             //
             // update values in quad
             //
-            if ( p.size == 0.0f ) p.size = 0.000000000001f;
             float particleSize = p.size*0.5f;
-//            if ( dimensions == ParticleSys3D ) {
-//                particleSize /= 128.0f;     // 128 pixels per meter ratio
-//            }
-            vBuffer->c_verts[particleIdx] = {
-                p.pos.x+position.x,p.pos.y+position.y,p.pos.z+position.z,particleSize,
-                p.color.r,p.color.g,p.color.b,p.color.a
-            };
+			if (particleSize == 0.0f) particleSize = 0.000000000001f;
+			ColorVertexData vert = {
+				p.pos.x + position.x,p.pos.y + position.y,p.pos.z + position.z,particleSize,
+				p.color.r,p.color.g,p.color.b,p.color.a
+			};
+			if (_vertData.getCount() <= particleIdx)
+			{
+				_vertData.buffer(&vert, 1);
+			}
+			else 
+			{
+				_vertData.getData()[particleIdx] = vert;
+			}
             // update particle counter
             particleIdx++;
-            
-        } else {
-            // life < 0
-            if( particleIdx != particleCount-1 ) {
-                // Switch pointer with last in buffer
-                particles[particleIdx] = particles[particleCount-1];
-            }
+			_dirty = true;
+        }
+		else // life < 0
+		{
+			if( particleIdx != particleCount-1 )
+			{
+                // Swap last particle in buffer into this slot
+				particles[particleIdx] = particles[particleCount - 1];
+            } else {
+				return;
+			}
             particleCount--;
         }
-    }//while
-    vBuffer->numVerts = particleCount;
-    vBuffer->updated = true;
+    } // while
+
+	// Particle verts have been updated and need to be uploaded
+	if (_dirty)
+	{
+		_vertBuffer->bind();
+		_vertBuffer->upload(_vertData.getData(), particleCount * sizeof(ColorVertexData), true);
+	}
 }
-int GetBlendMode( int particleBlend ) {
+
+int GetBlendMode( int particleBlend )
+{
     if ( particleBlend == 1 ) {
         return GL_ONE;
     } else if ( particleBlend == 770 ) {
@@ -430,68 +447,81 @@ int GetBlendMode( int particleBlend ) {
     } else {
         return GL_ONE;
     }
-
 }
-void ParticleSys::Draw( Renderer *renderer ) {
-    if ( vBuffer != NULL ) {
-        if ( lighting == ParticleSysLightOn ) { glDisable(GL_BLEND); }
-        else { glEnable(GL_BLEND); }
-        
-        int srcBlend = GetBlendMode(blendFuncSrc);
-        int dstBlend = GetBlendMode(blendFuncDst);
-        glBlendFunc(srcBlend, dstBlend);
-        if ( dimensions == ParticleSys2D ) {
-            glDisable(GL_DEPTH_TEST);
-            glDepthMask(GL_FALSE);
-        } else {
-            glEnable(GL_DEPTH_TEST);
-            if ( lighting == ParticleSysLightOff ) {
-                glDepthMask(GL_FALSE);
-            } else {
-                glDepthMask(GL_TRUE);
-            }
-        }
 
-        glEnable(GL_STENCIL_TEST);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, Stencil_Solid, 0xFF);
-        renderer->RenderVertBuffer(vBuffer, particleCount, 0, texture, dimensions);
-        glDisable(GL_STENCIL_TEST);
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
-    }
+void ParticleSys::Draw()
+{
+	BlendMode blendMode = {
+		GetBlendMode(blendFuncSrc),
+		GetBlendMode(blendFuncDst),
+		lighting == ParticleSysLightOff
+	};
+	DepthMode depthMode = {
+		true,
+		lighting == ParticleSysLightOn
+	};
+	bool render3D = dimensions == ParticleSys3D;
+
+	if (lighting == ParticleSysLightOff) {
+		_renderer->queueForwardBuffer(
+			_vertBuffer->getType(),
+			_vertBuffer->getVBO(),
+			particleCount,
+			0,
+			texture->GetID(),
+			blendMode,
+			depthMode,
+			render3D);
+	}
+	else {
+		_renderer->queueDeferredBuffer(
+			_vertBuffer->getType(),
+			_vertBuffer->getVBO(),
+			particleCount,
+			0,
+			texture->GetID(),
+			blendMode,
+			depthMode);
+	}   
 }
-void ParticleSys::StopSystem() {
+
+void ParticleSys::StopSystem()
+{
     active = false;
     elapsed = 0.0f;
     emitCounter = 0.0f;
 }
-bool ParticleSys::AddParticle() {
-    if ( particleCount == maxParticles ) return false;
-    SysCore::RandomSeed((int)SysCore::GetMicroseconds());
-    Particle& particle = particles[particleCount];
-    
-    
-    particle.timeToLive = lifeSpan + lifeSpanVar * SysCore::RandomDouble();
+
+bool ParticleSys::AddParticle()
+{
+	if (particleCount == maxParticles)
+	{
+		return false;
+	}
+    Random::RandomSeed((int)Timer::Microseconds());
+
+	Particle& particle = particles[particleCount];
+
+    particle.timeToLive = lifeSpan + lifeSpanVar * Random::RandomDouble();
 	particle.timeToLive = float_max(0.0f, particle.timeToLive);
     
 	// position
-	particle.pos.x = sourcePos.x + sourcePosVar.x * SysCore::RandomDouble();
-	particle.pos.y = sourcePos.y + sourcePosVar.y * SysCore::RandomDouble();
-    particle.pos.z = sourcePos.z + sourcePosVar.z * SysCore::RandomDouble();
+	particle.pos.x = sourcePos.x + sourcePosVar.x * Random::RandomDouble();
+	particle.pos.y = sourcePos.y + sourcePosVar.y * Random::RandomDouble();
+    particle.pos.z = sourcePos.z + sourcePosVar.z * Random::RandomDouble();
 
 	// Colorm
 	Color start;
-	start.r = float_clamp( startColor.r + startColorVar.r * SysCore::RandomDouble(), 0, 1);
-	start.g = float_clamp( startColor.g + startColorVar.g * SysCore::RandomDouble(), 0, 1);
-	start.b = float_clamp( startColor.b + startColorVar.b * SysCore::RandomDouble(), 0, 1);
-	start.a = float_clamp( startColor.a + startColorVar.a * SysCore::RandomDouble(), 0, 1);
+	start.r = float_clamp( startColor.r + startColorVar.r * Random::RandomDouble(), 0, 1);
+	start.g = float_clamp( startColor.g + startColorVar.g * Random::RandomDouble(), 0, 1);
+	start.b = float_clamp( startColor.b + startColorVar.b * Random::RandomDouble(), 0, 1);
+	start.a = float_clamp( startColor.a + startColorVar.a * Random::RandomDouble(), 0, 1);
     
 	Color end;
-	end.r = float_clamp( finishColor.r + finishColorVar.r * SysCore::RandomDouble(), 0, 1);
-	end.g = float_clamp( finishColor.g + finishColorVar.g * SysCore::RandomDouble(), 0, 1);
-	end.b = float_clamp( finishColor.b + finishColorVar.b * SysCore::RandomDouble(), 0, 1);
-	end.a = float_clamp( finishColor.a + finishColorVar.a * SysCore::RandomDouble(), 0, 1);
+	end.r = float_clamp( finishColor.r + finishColorVar.r * Random::RandomDouble(), 0, 1);
+	end.g = float_clamp( finishColor.g + finishColorVar.g * Random::RandomDouble(), 0, 1);
+	end.b = float_clamp( finishColor.b + finishColorVar.b * Random::RandomDouble(), 0, 1);
+	end.a = float_clamp( finishColor.a + finishColorVar.a * Random::RandomDouble(), 0, 1);
     
 	particle.color = start;
 	particle.deltaColor.r = (end.r - start.r) / particle.timeToLive;
@@ -500,21 +530,21 @@ bool ParticleSys::AddParticle() {
 	particle.deltaColor.a = (end.a - start.a) / particle.timeToLive;
     
 	// size
-	float startS = startSize + startSizeVar * SysCore::RandomDouble();
+	float startS = startSize + startSizeVar * Random::RandomDouble();
 	startS = float_max(0, startS); // No negative value
     
 	particle.size = startS;
 	if( finishParticleSize == -1 )
 		particle.deltaSize = 0;
 	else {
-		float endS = finishParticleSize + finishParticleSizeVar * SysCore::RandomDouble();
+		float endS = finishParticleSize + finishParticleSizeVar * Random::RandomDouble();
 		endS = float_max(0, endS);	// No negative values
 		particle.deltaSize = (endS - startS) / particle.timeToLive;
 	}
     
 	// rotation
-	float startA = rotStart + rotStartVar * SysCore::RandomDouble();
-	float endA = rotEnd + rotEndVar * SysCore::RandomDouble();
+	float startA = rotStart + rotStartVar * Random::RandomDouble();
+	float endA = rotEnd + rotEndVar * Random::RandomDouble();
 	particle.rotation = startA;
 	particle.deltaRotation = (endA - startA) / particle.timeToLive;
     
@@ -526,13 +556,13 @@ bool ParticleSys::AddParticle() {
 //		particle->startPos = position;
     
 	// direction
-	float a = toRads( angle + angleVar * SysCore::RandomDouble() );
+	float a = toRads( angle + angleVar * Random::RandomDouble() );
     
 	// Mode Gravity: A
 	if( emitterType == 0 ) {
         
         glm::vec3 v = glm::vec3(cosf( a ), sinf( a ), 0.0f);
-		float s = speed + speedVar * SysCore::RandomDouble();
+		float s = speed + speedVar * Random::RandomDouble();
         
 		// direction
 		particle.mode.A.dirX =  v.x * s;
@@ -540,16 +570,16 @@ bool ParticleSys::AddParticle() {
 		particle.mode.A.dirZ =  v.z * s;
 
 		// radial accel
-		particle.mode.A.radialAccel = radialAccel + radialAccelVar * SysCore::RandomDouble();
+		particle.mode.A.radialAccel = radialAccel + radialAccelVar * Random::RandomDouble();
         
 		// tangential accel
-		particle.mode.A.tangentialAccel = tangAccel + tangAccelVar * SysCore::RandomDouble();
+		particle.mode.A.tangentialAccel = tangAccel + tangAccelVar * Random::RandomDouble();
 	}
 	// Mode Radius: B
 	else {
 		// Set the default diameter of the particle from the source position
-		float startRadius = maxRadius + maxRadiusVar * SysCore::RandomDouble();
-		float endRadius = minRadius + minRadiusVar * SysCore::RandomDouble();
+		float startRadius = maxRadius + maxRadiusVar * Random::RandomDouble();
+		float endRadius = minRadius + minRadiusVar * Random::RandomDouble();
         
 		particle.mode.B.radius = startRadius;
         
@@ -559,7 +589,7 @@ bool ParticleSys::AddParticle() {
 			particle.mode.B.deltaRadius = (endRadius - startRadius) / particle.timeToLive;
         
 		particle.mode.B.angle = a;
-		particle.mode.B.degreesPerSecond = toRads(rotPerSec + rotPerSecVar * SysCore::RandomDouble());
+		particle.mode.B.degreesPerSecond = toRads(rotPerSec + rotPerSecVar * Random::RandomDouble());
 	}
     
     particleCount++;

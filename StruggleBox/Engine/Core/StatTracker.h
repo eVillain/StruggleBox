@@ -2,15 +2,18 @@
 #define STAT_TRACKER_H
 
 #include <vector>
+#include <memory>
 
-class Locator;
-class TextManager;
+class Options;
+class Text;
 class Renderer;
 
 class StatTracker
 {
 public:
-    StatTracker(Locator& locator);
+    StatTracker(
+		std::shared_ptr<Options> options,
+		std::shared_ptr<Text> text);
     ~StatTracker();
     bool IsVisible( void ) { return s_showStats; };
 
@@ -42,7 +45,8 @@ public:
 //    void SetPConstraints( int newConstraints );
 //    void SetPKE( double newKE );
 private:
-    Locator& _locator;
+	std::shared_ptr<Options> _options;
+	std::shared_ptr<Text> _text;
 
     // Whether StatTracker is visible
     bool s_showStats;

@@ -7,19 +7,19 @@
 #include <SDL2/SDL_events.h>
 #include <map>
 #include <vector>
+#include <memory>
 
-class Locator;
+class OSWindow;
 
 ///  Takes keyboard/mouse/joystick events from SDL and passes them to
 ///  the currently active listener
 class Input
 {
 public:
-    Input(Locator& locator);
+    Input(std::shared_ptr<OSWindow> window);
     
     bool Initialize();
     bool Terminate();
-    void Update(const double deltaTime);
     
     void RegisterEventObserver(InputEventListener* observer);
     void UnRegisterEventObserver(InputEventListener* observer);
@@ -35,15 +35,15 @@ public:
     void Bind(std::string input,
               std::string event);
     
-    void ProcessInput();
+    bool ProcessInput(const SDL_Event& event);
     
     void SetDefaultBindings();
     
     void MoveCursor(const glm::ivec2 coord);
 
-private:
-    Locator& _locator;
-    
+private:    
+	std::shared_ptr<OSWindow> _window;
+
     bool ProcessTextInput(const SDL_Event& event);
     // Map of inputs to events
     std::map<std::string, std::string> _inputBindings;

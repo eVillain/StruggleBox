@@ -3,21 +3,27 @@
 
 #include <GL/glew.h>
 #include <string>
+#include <memory>
 
+class Renderer;
+class VertBuffer;
 class FontAtlas;
 
 class TextVertBuffer
 {
 public:
-    TextVertBuffer();
+    TextVertBuffer(std::shared_ptr<Renderer> renderer);
     
-    void Buffer(const std::string& text,
+	void bind();
+
+    void buffer(const std::string& text,
                 const FontAtlas& atlas,
                 const int fontSize);
-    void Draw();
+
+    void draw();
     
 private:
-    GLuint _vao, _vbo;
+    std::shared_ptr<VertBuffer> _vertBuffer;
     unsigned int _count;
     unsigned int _size;
 };

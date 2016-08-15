@@ -1,5 +1,5 @@
-#ifndef NGN_CVAR_H
-#define NGN_CVAR_H
+#ifndef CONSOLE_VAR_H
+#define CONSOLE_VAR_H
 #include "GFXHelpers.h"
 #include <string>
 #include <memory>

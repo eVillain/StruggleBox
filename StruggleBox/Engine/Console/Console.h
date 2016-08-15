@@ -7,22 +7,17 @@
 #include <map>
 #include <string>
 
-class Locator;
-class Renderer;
 class CommandProcessor;
-class TextInput;
 
 class Console
 {
+	friend class ConsoleDisplay;
 public:
-    static void Initialize(Locator& locator);
-    static void Terminate();
+    static void Initialize();
+    //static void Terminate();
     static void Print(const char * format, ... );
     static void PrintString(std::string text, Color col = COLOR_WHITE);
     static void AddMessage(std::string text, Color col);
-    static void ToggleVisibility();
-    static bool isVisible();
-    static void Draw(double deltaTime);
     
     static void SaveLog();
     static void Process(std::string input);
@@ -39,16 +34,8 @@ public:
 private:
     static std::map<std::string, ConsoleVar*> _cvars;
     static std::vector<ConsoleLine> _textLines;
-    static std::vector<std::shared_ptr<Label>> _textLabels;
-    static std::shared_ptr<TextInput> _textInput;
-    static bool _visible;
 
-    static Locator* _locator;
     
-    static void Refresh();
-    static void Show();
-    static void Hide();
-    static void OnTextInput(const std::string& input);
     static void Tokenize(const std::string& input,
                   std::vector<std::string>& tokens);
 };

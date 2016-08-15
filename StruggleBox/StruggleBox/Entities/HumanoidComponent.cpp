@@ -1,10 +1,9 @@
 #include "HumanoidComponent.h"
-#include "World3D.h"
+#include "VoxelFactory.h"
 #include "EntityManager.h"
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "Renderer.h"
-#include "SysCore.h"
 #include "PhysicsComponent.h"
 #include "ParticleComponent.h"
 #include "ItemComponent.h"
@@ -13,7 +12,6 @@
 #include "ExplosiveComponent.h"
 #include "Light3DComponent.h"
 #include "HealthComponent.h"
-#include "Cubeject.h"
 #include "Physics.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletDynamics/Character/btKinematicCharacterController.h"
@@ -23,19 +21,22 @@
 
 const bool useCapsuleShape = true;
 
-HumanoidComponent::HumanoidComponent(const int ownerID,
-                                     EntityManager* manager) :
-EntityComponent(ownerID)
-{
-    m_family = "Humanoid";
-    m_manager = manager;
+HumanoidComponent::HumanoidComponent(
+	const int ownerID,
+	std::shared_ptr<EntityManager> entityManager,
+	std::shared_ptr<Physics> physics,
+	std::shared_ptr<VoxelFactory> voxels) :
+EntityComponent(ownerID, "Humanoid"),
+_entityManager(entityManager),
+_physics(physics),
+_voxels(voxels)
+{    
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
-    
-    physicsWorld = m_manager->world->worldPhysics->dynamicsWorld;
+    physicsWorld = _physics->dynamicsWorld;
     
     sizeScale           = 0.1f;
-    float cubeRadius = BLOCK_RADIUS*sizeScale;
+    float cubeRadius = DEFAULT_VOXEL_MESHING_WIDTH*sizeScale;
     characterRadius     = cubeRadius*16.0f;
     characterHeight     = cubeRadius*64.0f-(characterRadius*2.0f);
     walkSpeed           = 0.125f;
@@ -82,7 +83,7 @@ EntityComponent(ownerID)
     Rotate(rotation);
     // Load player model files
     const int charType = m_owner->GetAttributeDataPtr<int>("type");
-    SetCharacterType(charType);
+    setCharacterType(charType);
     
     m_owner->GetAttributeDataPtr<int>("rightHandItemID") = -1;
     m_owner->GetAttributeDataPtr<int>("leftHandItemID") = -1;
@@ -118,14 +119,15 @@ HumanoidComponent::~HumanoidComponent() {
 //    delete backPack;
 //    backPack = NULL;
 }
-void HumanoidComponent::SetCharacterType( const int newType ) {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+void HumanoidComponent::setCharacterType( const int newType )
+{
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
 
     float sizeH = sizeScale;
     float sizeV = sizeScale;
     glm::vec3 scale = glm::vec3(sizeH,sizeV,sizeH);
     
-    float scaleCube = BLOCK_RADIUS*sizeScale;
+    float scaleCube = DEFAULT_VOXEL_MESHING_WIDTH*sizeScale;
     glm::vec3 torsoPos  = glm::vec3( 0.0f,  0.0f, 0.0f );
     glm::vec3 headPos   = glm::vec3( 0.0f, 26*scaleCube, 0.0f );
     glm::vec3 footLPos  = glm::vec3( 8*scaleCube, -14*scaleCube, 0.0f );
@@ -140,14 +142,6 @@ void HumanoidComponent::SetCharacterType( const int newType ) {
     int& leftArmID = m_owner->GetAttributeDataPtr<int>("leftArmID");
     int& rightArmID = m_owner->GetAttributeDataPtr<int>("rightArmID");
 
-    if ( torsoID != -1 ) { m_manager->world->RemoveObject(torsoID); }
-    if ( headID != -1 ) { m_manager->world->RemoveObject(headID); }
-    if ( headAccessoryID != -1 ) { m_manager->world->RemoveObject(headAccessoryID); }
-    if ( leftFootID != -1 ) { m_manager->world->RemoveObject(leftFootID); }
-    if ( rightFootID != -1 ) { m_manager->world->RemoveObject(rightFootID); }
-    if ( leftArmID != -1 ) { m_manager->world->RemoveObject(leftArmID); }
-    if ( rightArmID != -1 ) { m_manager->world->RemoveObject(rightArmID); }
-
     std::string& torsoObject = m_owner->GetAttributeDataPtr<std::string>("torsoObject");
     std::string& headObject = m_owner->GetAttributeDataPtr<std::string>("headObject");
     std::string& headAccessoryObject = m_owner->GetAttributeDataPtr<std::string>("headAccessoryObject");
@@ -156,7 +150,16 @@ void HumanoidComponent::SetCharacterType( const int newType ) {
     std::string& leftArmObject = m_owner->GetAttributeDataPtr<std::string>("leftArmObject");
     std::string& rightArmObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
 
-    if ( newType == ENTITY_SKELETON ) {
+	if (torsoID != -1) { _voxels->getMesh(torsoObject)->removeInstance(torsoID); }
+	if (headID != -1) { _voxels->getMesh(headObject)->removeInstance(headID); }
+//	if (headAccessoryID != -1) { _voxels->getMesh(headAccessoryObject)->removeInstance(headAccessoryID); }
+	if (leftFootID != -1) { _voxels->getMesh(leftFootObject)->removeInstance(leftFootID); }
+	if (rightFootID != -1) { _voxels->getMesh(rightFootObject)->removeInstance(rightFootID); }
+	if (leftArmID != -1) { _voxels->getMesh(leftArmObject)->removeInstance(leftArmID); }
+	if (rightArmID != -1) { _voxels->getMesh(rightArmObject)->removeInstance(rightArmID); }
+
+    if ( newType == ENTITY_SKELETON )
+	{
         torsoObject = "Skeleton_Torso.bwo";
         headObject = "Skull.bwo";
         headAccessoryObject = "";
@@ -164,37 +167,30 @@ void HumanoidComponent::SetCharacterType( const int newType ) {
         rightFootObject = "FootRSkeleton.bwo";
         leftArmObject = "HandLSkeleton.bwo";
         rightArmObject = "HandRSkeleton.bwo";
-        torsoID = m_manager->world->AddObject(torsoObject, torsoPos, scale);
-        headID = m_manager->world->AddObject(headObject, headPos, scale);
-        headAccessoryID = -1;
-        leftFootID = m_manager->world->AddObject(leftFootObject, footLPos, scale);
-        rightFootID = m_manager->world->AddObject(rightFootObject, footRPos, scale);
-        leftArmID = m_manager->world->AddObject(leftArmObject, handLPos, scale);
-        rightArmID = m_manager->world->AddObject(rightArmObject, handRPos, scale);
-
-    } else if ( newType == ENTITY_HUMANOID ) {
+    }
+	else if ( newType == ENTITY_HUMANOID ) {
         torsoObject = "Naked_Torso.bwo";
-        headObject = "Head1.bwo";
-//        headAccessoryObject = "Helmet_Iron.bwo";
+        headObject = "Head.bwo";
         headAccessoryObject = "";
         leftFootObject = "Naked_FootL.bwo";
         rightFootObject = "Naked_FootR.bwo";
         leftArmObject = "Naked_HandL.bwo";
         rightArmObject = "Naked_HandR.bwo";
-        // Load the object instances
-        torsoID         = m_manager->world->AddObject(torsoObject, torsoPos, scale);
-        headID          = m_manager->world->AddObject(headObject, headPos, scale);
-//        headAccessoryID = m_manager->world->AddObject(headAccessoryObject, headPos, scale);
-        headAccessoryID = -1;
-        leftFootID      = m_manager->world->AddObject(leftFootObject, footLPos, scale);
-        rightFootID     = m_manager->world->AddObject(rightFootObject, footRPos, scale);
-        leftArmID       = m_manager->world->AddObject(leftArmObject, handLPos, scale);
-        rightArmID      = m_manager->world->AddObject(rightArmObject, handRPos, scale);
     }
+	// Load the object instances
+	torsoID = _voxels->getMesh(torsoObject)->addInstance(torsoPos, glm::quat(), scale);
+	headID = _voxels->getMesh(headObject)->addInstance(headPos, glm::quat(), scale);
+	headAccessoryID = -1;
+	leftFootID = _voxels->getMesh(leftFootObject)->addInstance(footLPos, glm::quat(), scale);
+	rightFootID = _voxels->getMesh(rightFootObject)->addInstance(footRPos, glm::quat(), scale);
+	leftArmID = _voxels->getMesh(leftArmObject)->addInstance(handLPos, glm::quat(), scale);
+	rightArmID = _voxels->getMesh(rightArmObject)->addInstance(handRPos, glm::quat(), scale);
 }
-// The update funtion takes input data and picks wanted animation states
-void HumanoidComponent::Update( double delta ) {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+
+/// The update funtion takes input data and picks wanted animation states
+void HumanoidComponent::update(const double delta)
+{
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
 
     const int health = m_owner->GetAttributeDataPtr<int>("health");
     if ( health <= 0 ) {
@@ -228,8 +224,6 @@ void HumanoidComponent::Update( double delta ) {
         btQuaternion playerRotation = trans.getRotation();
         torsoLeanAngle = 0.0f;
         
-        // Calculate new wanted angle from movement direction
-        wantedAngle = atan2(direction.x, direction.z);
         bool grounded = character->onGround();
         if ( !grounded ) {
             legsAnimState = Legs_Jumping;
@@ -240,6 +234,9 @@ void HumanoidComponent::Update( double delta ) {
                 // No movement input, not moving, set legs to idle
                 legsAnimState = Legs_Idle;
             } else {
+                // Calculate new wanted angle from movement direction
+                wantedAngle = atan2(direction.x, direction.z);
+
                 if ( jumping ) { character->jump(); }
                 // If running slow down turn and lean forward
                 if (running && !sneaking) {
@@ -267,7 +264,8 @@ void HumanoidComponent::Update( double delta ) {
             }
         }
         
-        if ( !m_manager->world->paused ) {        // Update movement and rotation
+        if ( delta != 0.0 ) 
+		{        // Update movement and rotation
             btQuaternion newRotation = btQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
 			ghostObject->getWorldTransform().setRotation(newRotation);
 			//printf("Player rotation:%f,%f,%f,%f\n", newRot.x,newRot.y,newRot.z,newRot.w);
@@ -292,12 +290,12 @@ void HumanoidComponent::Update( double delta ) {
             }
         }
     }
-    UpdateAnimations(delta);
+    updateAnimations(delta);
 }
 
-void HumanoidComponent::UpdateAnimations(double delta)
+void HumanoidComponent::updateAnimations(double delta)
 {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     int torsoID = m_owner->GetAttributeDataPtr<int>("torsoID");
     int headID = m_owner->GetAttributeDataPtr<int>("headID");
     int headAccessoryID = m_owner->GetAttributeDataPtr<int>("headAccessoryID");
@@ -312,23 +310,9 @@ void HumanoidComponent::UpdateAnimations(double delta)
     std::string rightFootObject = m_owner->GetAttributeDataPtr<std::string>("rightFootObject");
     std::string leftHandObject = m_owner->GetAttributeDataPtr<std::string>("leftArmObject");
     std::string rightHandObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
-    
-    Cubeject* torsoObj = m_manager->world->GetObject(torsoObject);
-    Cubeject* headObj = m_manager->world->GetObject(headObject);
-    Cubeject* leftFootObj = m_manager->world->GetObject(leftFootObject);
-    Cubeject* rightFootObj = m_manager->world->GetObject(rightFootObject);
-    Cubeject* leftHandObj = m_manager->world->GetObject(leftHandObject);
-    Cubeject* rightHandObj = m_manager->world->GetObject(rightHandObject);
-    
-    InstanceData* torso       = torsoObj->GetInstance(torsoID);
-    InstanceData* head        = headObj->GetInstance(headID);
-    InstanceData* leftFoot    = leftFootObj->GetInstance(leftFootID);
-    InstanceData* rightFoot   = rightFootObj->GetInstance(rightFootID);
-    InstanceData* leftHand    = leftHandObj->GetInstance(leftHandID);
-    InstanceData* rightHand   = rightHandObj->GetInstance(rightHandID);
 
     const float animationSpeed = 20.0f;
-    const float scaleCube = BLOCK_RADIUS*sizeScale;
+    const float scaleCube = DEFAULT_VOXEL_MESHING_WIDTH*sizeScale;
 
     // Update object positions and rotations based on physics transform
     btTransform trans = ghostObject->getWorldTransform();
@@ -349,8 +333,8 @@ void HumanoidComponent::UpdateAnimations(double delta)
         torsoBobAmount = std::sin(time*10.0f)*0.01f;
         float newF_ratio = 1.0f*delta*10.0f;
         float oldF_ratio = 1.0f - newF_ratio;
-        leftFootAngle = (leftFoot->rotation.x*oldF_ratio);
-        rightFootAngle = (rightFoot->rotation.x*oldF_ratio);
+        leftFootAngle = _voxels->getMesh(leftFootObject)->getRotation(leftFootID).x*oldF_ratio;
+        rightFootAngle = _voxels->getMesh(rightFootObject)->getRotation(rightFootID).x*oldF_ratio;
     } else if ( legsAnimState == Legs_Sneaking ) {
         leftFootAngle *= toRads(15.0f);
         rightFootAngle *= toRads(15.0f);
@@ -371,8 +355,8 @@ void HumanoidComponent::UpdateAnimations(double delta)
     } else if ( legsAnimState == Legs_Jumping ) {
         float newF_ratio = 0.9f *delta*10.0f;
         float oldF_ratio = 1.0f - newF_ratio;
-        leftFootAngle = (leftFoot->rotation.x*oldF_ratio)+(toRads(60.0f)*newF_ratio);
-        rightFootAngle = (rightFoot->rotation.x*oldF_ratio)+(toRads(60.0f)*newF_ratio);
+        leftFootAngle = (_voxels->getMesh(leftFootObject)->getRotation(leftFootID).x*oldF_ratio)+(toRads(60.0f)*newF_ratio);
+        rightFootAngle = (_voxels->getMesh(rightFootObject)->getRotation(rightFootID).x*oldF_ratio)+(toRads(60.0f)*newF_ratio);
     }
     torsoRotation = torsoRotation* glm::angleAxis(torsoLeanAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -422,9 +406,9 @@ void HumanoidComponent::UpdateAnimations(double delta)
                     // Use potion and delete it from inventory
                     int potionID = rightHandItem->GetAttributeDataPtr<int>("ID");
                     int health = rightHandItem->GetAttributeDataPtr<int>("health");
-                    HealthComponent* hc = (HealthComponent*)m_manager->GetComponent(potionID, "Health");
-                    if ( hc ) hc->AddHealth( health );
-                    m_manager->KillEntity(potionID);
+                    HealthComponent* hc = (HealthComponent*)_entityManager->getComponent(potionID, "Health");
+                    if ( hc ) hc->addHealth( health );
+                    _entityManager->killEntity(potionID);
                     rightHandItem = NULL;
                 }
             }
@@ -457,20 +441,19 @@ void HumanoidComponent::UpdateAnimations(double delta)
         rightHandRot = rightHandRot*rightHandSwing;
     }
     
-    leftFoot->rotation = torsoRotation*leftFootRot;
-    rightFoot->rotation = torsoRotation*rightFootRot;
+	_voxels->getMesh(leftFootObject)->setRotation(torsoRotation*leftFootRot, leftFootID);
+	_voxels->getMesh(rightFootObject)->setRotation(torsoRotation*rightFootRot, rightFootID);
 
     glm::quat hipRot = glm::angleAxis(hipRotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::quat tiltRot = glm::angleAxis(torsoTiltAngle, glm::vec3(1.0f, 0.0f, 0.0f));
     
-    torso->rotation = torsoRotation*hipRot*tiltRot;
+	_voxels->getMesh(torsoObject)->setRotation(torsoRotation*hipRot*tiltRot, torsoID);
     
     // Slerp hand rotations
-    leftHand->rotation = glm::slerp(leftHand->rotation, torsoRotation*hipRot*leftHandRot, leftHandSlerp);
-    rightHand->rotation = glm::slerp(rightHand->rotation, torsoRotation*hipRot*rightHandRot, rightHandSlerp);
-
-//    leftHand->rotation = torsoRotation*hipRot*leftHandRot;
-//    rightHand->rotation = torsoRotation*hipRot*rightHandRot;
+	leftHandRot = glm::slerp(_voxels->getMesh(leftHandObject)->getRotation(leftHandID), torsoRotation*hipRot*leftHandRot, leftHandSlerp);
+	rightHandRot = glm::slerp(_voxels->getMesh(rightHandObject)->getRotation(rightHandID), torsoRotation*hipRot*rightHandRot, rightHandSlerp);
+	_voxels->getMesh(leftHandObject)->setRotation(leftHandRot, leftHandID);
+	_voxels->getMesh(rightHandObject)->setRotation(rightHandRot, rightHandID);
     
     m_owner->GetAttributeDataPtr<glm::quat>("rotation") = torsoRotation;
 
@@ -490,34 +473,24 @@ void HumanoidComponent::UpdateAnimations(double delta)
     handLPos = torsoRotation*handLPos;
     handRPos = torsoRotation*handRPos;
     
-    head->position = glm::vec3(centerPos+headPos);
+	_voxels->getMesh(headObject)->setPosition(glm::vec3(centerPos + headPos), headID);
     
-    // Head accessory (hats, hair, etc)
-    if ( headAccessoryID != -1 ) {
-        Cubeject* headAccObj = m_manager->world->GetObject(headAccessoryObject);
-        if ( headAccObj ) {
-            InstanceData* headAccessory = headAccObj->GetInstance(headAccessoryID);
-            if ( headAccessory ) {
-                headAccessory->position = glm::vec3(centerPos+headPos+glm::vec3(0.0f,2*scaleCube,0.0f));
-                headAccessory->rotation = torsoRotation;
-            }
-        }
-    }
-    torso->position = centerPos+torsoPos;
-    leftFoot->position = glm::vec3(centerPos+footLPos);
-    rightFoot->position = glm::vec3(centerPos+footRPos);
-    leftHand->position = glm::vec3(centerPos+handLPos);
-    rightHand->position = glm::vec3(centerPos+handRPos);
+	_voxels->getMesh(torsoObject)->setPosition(centerPos+torsoPos, torsoID);
+	_voxels->getMesh(leftFootObject)->setPosition(glm::vec3(centerPos+footLPos), leftFootID);
+	_voxels->getMesh(rightFootObject)->setPosition(glm::vec3(centerPos+footRPos), rightFootID);
+	_voxels->getMesh(leftHandObject)->setPosition(glm::vec3(centerPos+handLPos), leftHandID);
+	_voxels->getMesh(rightHandObject)->setPosition(glm::vec3(centerPos+handRPos), rightHandID);
     if ( rightHandItem ) {
         glm::vec3 rHandItemPos = glm::vec3( -14*scaleCube, torsoBobAmount, 0.0f );
         rHandItemPos += glm::vec3( -2*scaleCube, -12*scaleCube, 22*scaleCube );
-        rHandItemPos = rightHand->rotation*rHandItemPos;
+        rHandItemPos = rightHandRot*rHandItemPos;
         rightHandItem->GetAttributeDataPtr<glm::vec3>("position") = glm::vec3(centerPos+rHandItemPos);
         glm::quat itemrot = glm::angleAxis(toRads(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        rightHandItem->GetAttributeDataPtr<glm::quat>("rotation") = rightHand->rotation*itemrot;
+        rightHandItem->GetAttributeDataPtr<glm::quat>("rotation") = rightHandRot*itemrot;
+
     }
     // Head looking (slightly) in camera direction
-    head->rotation = torsoRotation;
+	_voxels->getMesh(headObject)->setRotation(torsoRotation, headID);
     
     if ( backPack != NULL
         ) {
@@ -526,10 +499,11 @@ void HumanoidComponent::UpdateAnimations(double delta)
     }
 }
 
-
-
-const void HumanoidComponent::Rotate( const float rotX, const float rotY ) {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+const void HumanoidComponent::Rotate(
+	const float rotX,
+	const float rotY )
+{
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     glm::quat& rotation = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
     glm::quat xRot = glm::angleAxis(rotX, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::quat yRot = glm::angleAxis(rotY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -537,36 +511,41 @@ const void HumanoidComponent::Rotate( const float rotX, const float rotY ) {
     rotation = rotation*yRot;
     Rotate(rotation);
 }
-void HumanoidComponent::Rotate( glm::quat orientation ) {
+
+void HumanoidComponent::Rotate( glm::quat orientation )
+{
     btQuaternion rotation = btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w);
     ghostObject->getWorldTransform().setRotation(rotation);
 }
-void HumanoidComponent::Warp( glm::vec3 position ) {
+void HumanoidComponent::Warp( glm::vec3 position )
+{
     character->warp(btVector3(position.x,position.y,position.z));
 }
 
-
-void HumanoidComponent::Wield( Entity *wieldObject ) {
+void HumanoidComponent::Wield( Entity *wieldObject )
+{
     if ( rightHandItem ) { Store(rightHandItem); rightHandItem = NULL; }
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     if ( !wieldObject  || wieldObject == m_owner ) return; // Can't grab yourself
     int wieldObjectID = wieldObject->GetAttributeDataPtr<int>("ID");
-    CubeComponent* cubeComp = (CubeComponent*)m_manager->GetComponent(wieldObjectID, "Cube");
-    if ( cubeComp ) cubeComp->LoadObject();
-    PhysicsComponent* pComp = (PhysicsComponent*)m_manager->GetComponent(wieldObjectID, "Physics");
-    if ( pComp ) { pComp->SetPhysicsMode( Physics_Dynamic_AABBs, true ); }
-    ParticleComponent* particleComp = (ParticleComponent*)m_manager->GetComponent(wieldObjectID, "Particle");
-    if ( particleComp ) particleComp->Activate();
-    Light3DComponent* light3DComp = (Light3DComponent*)m_manager->GetComponent(wieldObjectID, "Light3D");
-    if ( light3DComp ) light3DComp->Activate();
+    CubeComponent* cubeComp = (CubeComponent*)_entityManager->getComponent(wieldObjectID, "Cube");
+    if ( cubeComp ) cubeComp->loadObject();
+    PhysicsComponent* pComp = (PhysicsComponent*)_entityManager->getComponent(wieldObjectID, "Physics");
+    if ( pComp ) { pComp->setPhysicsMode( Physics_Dynamic_AABBs, true ); }
+    ParticleComponent* particleComp = (ParticleComponent*)_entityManager->getComponent(wieldObjectID, "Particle");
+    if ( particleComp ) particleComp->activate();
+    Light3DComponent* light3DComp = (Light3DComponent*)_entityManager->getComponent(wieldObjectID, "Light3D");
+    if ( light3DComp ) light3DComp->activate();
     
     rightHandItem = wieldObject;
     const int itemID = rightHandItem->GetAttributeDataPtr<int>("ID");
-    rightHandItem->GetAttributeDataPtr<int>("ownerID") = m_ownerID;
+    rightHandItem->GetAttributeDataPtr<int>("ownerID") = _ownerID;
     m_owner->GetAttributeDataPtr<int>("rightHandItemID") = itemID;
 }
-void HumanoidComponent::Grab( Entity* grabbedObject ) {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+
+void HumanoidComponent::Grab( Entity* grabbedObject )
+{
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     if ( !grabbedObject  || grabbedObject == m_owner ) return; // Can't grab yourself
     // Check for known types of items to grab
     if ( grabbedObject->GetAttributeDataPtr<int>("type") != ENTITY_ITEM ) { return; }
@@ -574,9 +553,9 @@ void HumanoidComponent::Grab( Entity* grabbedObject ) {
     if ( itemType == Item_Backpack && backPack == NULL ) {      // Grabbed backpack
         backPack = grabbedObject;
         const int backPackID = backPack->GetAttributeDataPtr<int>("ID");
-        backPack->GetAttributeDataPtr<int>("ownerID") = m_ownerID;
-        PhysicsComponent* pComp = (PhysicsComponent*)m_manager->GetComponent(backPackID, "Physics");
-        if ( pComp ) { pComp->SetPhysicsMode( Physics_Off ); }
+        backPack->GetAttributeDataPtr<int>("ownerID") = _ownerID;
+        PhysicsComponent* pComp = (PhysicsComponent*)_entityManager->getComponent(backPackID, "Physics");
+        if ( pComp ) { pComp->setPhysicsMode( Physics_Off ); }
     } else {
         if ( !backPack ) {
             if ( !rightHandItem ) Wield(grabbedObject);
@@ -585,78 +564,86 @@ void HumanoidComponent::Grab( Entity* grabbedObject ) {
         }
     }
 }
-void HumanoidComponent::Store( Entity *storedObject ) {
+
+void HumanoidComponent::Store( Entity *storedObject )
+{
     if ( backPack ) { // Put item in backpack
         const int backPackID = backPack->GetAttributeDataPtr<int>("ID");
-        InventoryComponent* inventoryC = (InventoryComponent*)m_manager->GetComponent(backPackID, "Inventory");
+        InventoryComponent* inventoryC = (InventoryComponent*)_entityManager->getComponent(backPackID, "Inventory");
         if ( inventoryC ) {
             const int objectID = storedObject->GetAttributeDataPtr<int>("ID");
-            PhysicsComponent* pComp = (PhysicsComponent*)m_manager->GetComponent(objectID, "Physics");
-            if ( pComp ) { pComp->SetPhysicsMode( Physics_Off ); }
-            storedObject->GetAttributeDataPtr<int>("ownerID") = m_ownerID;
-            CubeComponent* cubeComp = (CubeComponent*)m_manager->GetComponent(objectID, "Cube");
-            if ( cubeComp ) cubeComp->UnloadObject();
-            ParticleComponent* particleComp = (ParticleComponent*)m_manager->GetComponent(objectID, "Particle");
-            if ( particleComp ) particleComp->DeActivate();
-            Light3DComponent* light3DComp = (Light3DComponent*)m_manager->GetComponent(objectID, "Light3D");
-            if ( light3DComp ) light3DComp->DeActivate();
-            inventoryC->AddItem(storedObject);
+            PhysicsComponent* pComp = (PhysicsComponent*)_entityManager->getComponent(objectID, "Physics");
+            if ( pComp ) { pComp->setPhysicsMode( Physics_Off ); }
+            storedObject->GetAttributeDataPtr<int>("ownerID") = _ownerID;
+            CubeComponent* cubeComp = (CubeComponent*)_entityManager->getComponent(objectID, "Cube");
+            if ( cubeComp ) cubeComp->unloadObject();
+            ParticleComponent* particleComp = (ParticleComponent*)_entityManager->getComponent(objectID, "Particle");
+            if ( particleComp ) particleComp->deActivate();
+            Light3DComponent* light3DComp = (Light3DComponent*)_entityManager->getComponent(objectID, "Light3D");
+            if ( light3DComp ) light3DComp->deActivate();
+            inventoryC->addItem(storedObject);
         }
     }
 }
-void HumanoidComponent::ThrowStart() {
+
+void HumanoidComponent::ThrowStart()
+{
     rHandTimer = Timer::Seconds();
     rightArmAnimState = Arm_Throwing;
 }
 void HumanoidComponent::ThrowItem( const glm::vec3 targetPos ) {
-    if ( rHandTimer == 0.0 ) return;
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
-    const double timeNow = Timer::Seconds();
-    const float strength = fminf(timeNow-rHandTimer, 1.0f)*100.0f;
-    int rightArmID = m_owner->GetAttributeDataPtr<int>("rightArmID");
-    std::string rightArmObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
-    Cubeject* rightArmObj = m_manager->world->GetObject(rightArmObject);
-    InstanceData* rightHand = rightArmObj->GetInstance(rightArmID);
-    glm::vec3 pos = rightHand->position;
-    
-    glm::vec3 dir = targetPos-pos;
-    glm::vec3 vel = glm::normalize(dir);
-    btVector3 newVel = btVector3(vel.x,vel.y,vel.z);
-    btVector3 newPos = btVector3(pos.x,pos.y,pos.z)+newVel*2.0f;
-    newVel *= strength;
-    if ( rightHandItem ) {  // Throw item in hand
+   // if ( rHandTimer == 0.0 ) return;
+   // Entity* m_owner = _entityManager->getEntity(_ownerID);
+   // const double timeNow = Timer::Seconds();
+   // const float strength = fminf(timeNow-rHandTimer, 1.0f)*100.0f;
+   // int rightArmID = m_owner->GetAttributeDataPtr<int>("rightArmID");
+   // std::string rightArmObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
+   // //Cubeject* rightArmObj = _world->GetObject(rightArmObject);
+   // //InstanceData* rightHand = _voxels->getMesh(rightArmObject)->GetInstance(rightArmID);
+   // glm::vec3 pos = rightHand->position;
+   // 
+   // glm::vec3 dir = targetPos-pos;
+   // glm::vec3 vel = glm::normalize(dir);
+   // btVector3 newVel = btVector3(vel.x,vel.y,vel.z);
+   // btVector3 newPos = btVector3(pos.x,pos.y,pos.z)+newVel*2.0f;
+   // newVel *= strength;
+   // if ( rightHandItem ) {  // Throw item in hand
 
-        rightHandItem->GetAttributeDataPtr<glm::vec3>("position") = glm::vec3(newPos.x(),newPos.y(),newPos.z());
-        const int rhiID = rightHandItem->GetAttributeDataPtr<int>("ID");
-        PhysicsComponent* itemPhysComp = (PhysicsComponent*)m_manager->GetComponent(rhiID, "Physics");
-        if ( itemPhysComp ) {
-            itemPhysComp->SetPhysicsMode( Physics_Dynamic_AABBs, false );
-            itemPhysComp->SetLinearVelocity(&newVel);
-        }
-        // If weapon type is axe or knife, add rotation
-        if ( rightHandItem->GetAttributeDataPtr<int>("itemType") == Item_Weapon_Axe ) {
-            btVector3 angVel = btVector3(strength,0.0f,0.0f)*strength;
-            if ( itemPhysComp ) itemPhysComp->SetAngularVelocity(&angVel);
-        } else if ( rightHandItem->GetAttributeDataPtr<int>("itemType") == Item_Grenade ) {
-            ExplosiveComponent* explosive = (ExplosiveComponent*)m_manager->GetComponent(rhiID, "Explosive");
-            if ( explosive ) explosive->Activate();
-        }
-        rightHandItem->GetAttributeDataPtr<glm::vec3>("velocity") = glm::vec3(0,0,0);
-        rightHandItem->GetAttributeDataPtr<bool>("generateCollisions") = true;
-        rightHandItem->GetAttributeDataPtr<int>("ownerID") = -1;
-        rightHandItem = NULL;
-        m_owner->GetAttributeDataPtr<int>("rightHandItemID") = -1;
-        
-    } else {    // Throw rock
-        const float rockRadius = BLOCK_RADIUS;
-        DynaCube* cube = m_manager->world->AddDynaCube(newPos, btVector3(rockRadius,rockRadius,rockRadius), ColorForType(Type_Rock));
-        cube->SetVelocity(newVel);
-        cube->timer = 10.0;
-    }
-    rHandTimer = 0.0;
-    rightArmAnimState = Arm_Idle;
+   //     rightHandItem->GetAttributeDataPtr<glm::vec3>("position") = glm::vec3(newPos.x(),newPos.y(),newPos.z());
+   //     const int rhiID = rightHandItem->GetAttributeDataPtr<int>("ID");
+   //     PhysicsComponent* itemPhysComp = (PhysicsComponent*)_entityManager->getComponent(rhiID, "Physics");
+   //     if ( itemPhysComp ) {
+   //         itemPhysComp->setPhysicsMode( Physics_Dynamic_AABBs, false );
+   //         itemPhysComp->setLinearVelocity(&newVel);
+   //     }
+   //     // If weapon type is axe or knife, add rotation
+   //     if ( rightHandItem->GetAttributeDataPtr<int>("itemType") == Item_Weapon_Axe ) {
+   //         btVector3 angVel = btVector3(strength,0.0f,0.0f)*strength;
+   //         if ( itemPhysComp ) itemPhysComp->setAngularVelocity(&angVel);
+   //     } else if ( rightHandItem->GetAttributeDataPtr<int>("itemType") == Item_Grenade ) {
+   //         ExplosiveComponent* explosive = (ExplosiveComponent*)_entityManager->getComponent(rhiID, "Explosive");
+   //         if ( explosive ) explosive->activate();
+   //     }
+   //     rightHandItem->GetAttributeDataPtr<glm::vec3>("velocity") = glm::vec3(0,0,0);
+   //     rightHandItem->GetAttributeDataPtr<bool>("generateCollisions") = true;
+   //     rightHandItem->GetAttributeDataPtr<int>("ownerID") = -1;
+   //     rightHandItem = NULL;
+   //     m_owner->GetAttributeDataPtr<int>("rightHandItemID") = -1;
+   //     
+   // } else {    // Throw rock
+   //     const float rockRadius = BLOCK_RADIUS;
+   //     DynaCube* cube = _world->AddDynaCube(
+			//newPos,
+			//btVector3(rockRadius,rockRadius,rockRadius),
+			//ColorForType(Type_Rock));
+   //     cube->SetVelocity(newVel);
+   //     cube->timer = 10.0;
+   // }
+   // rHandTimer = 0.0;
+   // rightArmAnimState = Arm_Idle;
 }
-void HumanoidComponent::UseRightHand() {
+void HumanoidComponent::UseRightHand()
+{
     rHandTimer = Timer::Seconds();
     if ( rightHandItem ) {
         if ( rightHandItem->GetAttributeDataPtr<int>("itemType") == Item_Potion_Health ) {
@@ -670,8 +657,10 @@ void HumanoidComponent::UseRightHand() {
         }
     }
 }
-void HumanoidComponent::Die() {
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+
+void HumanoidComponent::Die()
+{
+    Entity* m_owner = _entityManager->getEntity(_ownerID);
     int torsoID = m_owner->GetAttributeDataPtr<int>("torsoID");
     int headID = m_owner->GetAttributeDataPtr<int>("headID");
     int headAccessoryID = m_owner->GetAttributeDataPtr<int>("headAccessoryID");
@@ -679,73 +668,39 @@ void HumanoidComponent::Die() {
     int rightFootID = m_owner->GetAttributeDataPtr<int>("rightFootID");
     int leftHandID = m_owner->GetAttributeDataPtr<int>("leftArmID");
     int rightHandID = m_owner->GetAttributeDataPtr<int>("rightArmID");
+	int rightHandItemID = m_owner->GetAttributeDataPtr<int>("rightHandItemID");
+
     std::string torsoObject = m_owner->GetAttributeDataPtr<std::string>("torsoObject");
     std::string headObject = m_owner->GetAttributeDataPtr<std::string>("headObject");
     std::string leftFootObject = m_owner->GetAttributeDataPtr<std::string>("leftFootObject");
     std::string rightFootObject = m_owner->GetAttributeDataPtr<std::string>("rightFootObject");
     std::string leftHandObject = m_owner->GetAttributeDataPtr<std::string>("leftArmObject");
     std::string rightHandObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
-    
-    Cubeject* torsoObj = m_manager->world->GetObject(torsoObject);
-    Cubeject* headObj = m_manager->world->GetObject(headObject);
-    Cubeject* leftFootObj = m_manager->world->GetObject(leftFootObject);
-    Cubeject* rightFootObj = m_manager->world->GetObject(rightFootObject);
-    Cubeject* leftHandObj = m_manager->world->GetObject(leftHandObject);
-    Cubeject* rightHandObj = m_manager->world->GetObject(rightHandObject);
-    
-    InstanceData* torso       = torsoObj->GetInstance(torsoID);
-    InstanceData* head        = headObj->GetInstance(headID);
-    InstanceData* leftFoot    = leftFootObj->GetInstance(leftFootID);
-    InstanceData* rightFoot   = rightFootObj->GetInstance(rightFootID);
-    InstanceData* leftHand    = leftHandObj->GetInstance(leftHandID);
-    InstanceData* rightHand   = rightHandObj->GetInstance(rightHandID);
-    
-    if ( headAccessoryID != -1 ) {
-        std::string headAccessoryObject = m_owner->GetAttributeDataPtr<std::string>("headAccessoryObject");
-        Cubeject* headAccObj = m_manager->world->GetObject(headAccessoryObject);
-        if ( headAccObj ) {
-            InstanceData* headAccessory = headAccObj->GetInstance(headAccessoryID);
-            if ( headAccessory ) {
-                m_manager->world->AddDecor(headAccessoryObject, headAccessory->position, headAccessory->rotation);
-//                headAccObj->cubes->GetDynaBlocks(m_owner->world, headAccessory->position, headAccessory->scale.x);
-                headAccObj->RemoveInstance(headAccessoryID);
-            }
-        }
-    }
+	std::string rightHandItemObject = m_owner->GetAttributeDataPtr<std::string>("rightHandItemObject");
 
-    if ( torso ) {
-        m_manager->world->AddDecor(torsoObject, torso->position, torso->rotation);
-        torsoObj->RemoveInstance(torsoID);
+    if ( torsoID != -1 ) {
+		_voxels->getMesh(torsoObject)->removeInstance(torsoID);
     }
-    if ( head ) {
-        m_manager->world->AddDecor(headObject, head->position, head->rotation);
-//        headObj->cubes->GetDynaBlocks(m_owner->world, head->position, head->scale.x);
-        headObj->RemoveInstance(headID);
+    if ( headID != -1) {
+		_voxels->getMesh(headObject)->removeInstance(headID);
+	}
+    if ( leftFootID != -1) {
+		_voxels->getMesh(leftFootObject)->removeInstance(leftFootID);
     }
-    if ( leftFoot ) {
-        m_manager->world->AddDecor(leftFootObject, leftFoot->position, leftFoot->rotation);
-        leftFootObj->RemoveInstance(leftFootID);
+    if ( rightFootID != -1) {
+		_voxels->getMesh(rightFootObject)->removeInstance(rightFootID);
     }
-    if ( rightFoot ) {
-        m_manager->world->AddDecor(rightFootObject, rightFoot->position, rightFoot->rotation);
-        rightFootObj->RemoveInstance(rightFootID);
-    }
-    if ( leftHand ) {
-        m_manager->world->AddDecor(leftHandObject, leftHand->position, leftHand->rotation);
-        leftHandObj->RemoveInstance(leftHandID);
+    if ( leftHandID != -1) {
+		_voxels->getMesh(leftHandObject)->removeInstance(leftHandID);
     }
     
-    if ( rightHandItem ) {
-        glm::vec3 pos = rightHand->position;
+    if ( rightHandItemID != -1) {
+		glm::vec3 pos = _voxels->getMesh(rightHandItemObject)->getPosition(rightHandItemID);
         ThrowItem(pos+glm::vec3(0.0f,1.0f,0.0f));
     }
-    if ( rightHand ) {
-        m_manager->world->AddDecor(rightHandObject, rightHand->position, rightHand->rotation);
-        rightHandObj->RemoveInstance(rightHandID);
+    if ( rightHandID != -1) {
+		_voxels->getMesh(rightHandObject)->removeInstance(rightHandID);
     }
 
-    m_manager->world->entityMan->KillEntity(m_ownerID);
+    _entityManager->killEntity(_ownerID);
 }
-
-
-

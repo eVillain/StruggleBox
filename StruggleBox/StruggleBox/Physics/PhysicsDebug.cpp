@@ -1,21 +1,19 @@
-//
-//  PhysicsDebug.cpp
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 7/29/13.
-//
-//
-
 #include "PhysicsDebug.h"
 #include "Renderer.h"
+#include "Log.h"
+
 //static Renderer* g_renderer = NULL;
 
 PhysicsDebug::PhysicsDebug( )
 :m_debugMode(0) {
+	Log::Info("[PhysicsDebug] constructor, instance at %p", this);
+
     m_renderer = NULL;
 }
 
-PhysicsDebug::~PhysicsDebug() {
+PhysicsDebug::~PhysicsDebug()
+{
+	Log::Info("[PhysicsDebug] destructor, instance at %p", this);
 }
 
 void PhysicsDebug::drawLine(const btVector3& from,const btVector3& to,

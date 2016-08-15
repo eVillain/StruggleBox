@@ -1,17 +1,10 @@
-//
-//  Frustum.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 4/28/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
-#ifndef BWO_FRUSTUM_H
-#define BWO_FRUSTUM_H
+#ifndef FRUSTUM_H
+#define FRUSTUM_H
 
 #include "GFXDefines.h"
 
-namespace Frustum {
+namespace Frustum
+{
     void Extract( glm::mat4& mvp );
     bool PointInFrustum( GLfloat x, GLfloat y, GLfloat z );
     GLfloat SphereInFrustumDist( GLfloat x, GLfloat y, GLfloat z, GLfloat radius );

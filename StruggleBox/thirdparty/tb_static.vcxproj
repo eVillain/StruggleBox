@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="turbobadger\src\tb\animation\tb_animation.cpp" />
+    <ClCompile Include="turbobadger\src\tb\animation\tb_widget_animation.cpp" />
+    <ClCompile Include="turbobadger\src\tb\image\tb_image_manager.cpp" />
+    <ClCompile Include="turbobadger\src\tb\image\tb_image_widget.cpp" />
+    <ClCompile Include="turbobadger\src\tb\parser\tb_parser.cpp" />
+    <ClCompile Include="turbobadger\src\tb\renderers\tb_renderer_batcher.cpp" />
+    <ClCompile Include="turbobadger\src\tb\renderers\tb_renderer_gl.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_bitmap_fragment.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_clipboard_win.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_color.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_core.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_debug.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_dimension.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_editfield.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_file_posix.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_freetype.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_stb.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_tbbf.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_geometry.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_hash.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_hashtable.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_id.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_image_loader_stb.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_inline_select.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_language.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_layout.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_linklist.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_list.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_menu_window.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_message_window.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_msg.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_node_ref_tree.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_node_tree.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_object.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_popup_window.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_renderer.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_scroller.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_scroll_container.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_select.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_select_item.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_skin.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_skin_util.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_str.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_style_edit.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_style_edit_content.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_tab_container.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_tempbuffer.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_toggle_container.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_value.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widgets.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_common.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_listener.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_reader.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widget_skin_condition_context.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_widget_value.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tb_window.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\tb_test.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_color.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_dimension.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_geometry.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_linklist.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_node_ref_tree.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_object.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_parser.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_value.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_space_allocator.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_style_edit.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_tempbuffer.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_test.cpp" />
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_widget_value.cpp" />
+    <ClCompile Include="turbobadger\src\tb\utf8\utf8.cpp" />
+    <ClCompile Include="turbobadger_binding\tb_system_win.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="turbobadger\src\tb\image\tb_image_manager.h" />
+    <ClInclude Include="turbobadger\src\tb\image\tb_image_widget.h" />
+    <ClInclude Include="turbobadger\tbanimation\tb_animation_utils.h" />
+    <ClInclude Include="turbobadger\src\tb\animation\tb_animation.h" />
+    <ClInclude Include="turbobadger\src\tb\animation\tb_animation_utils.h" />
+    <ClInclude Include="turbobadger\src\tb\animation\tb_widget_animation.h" />
+    <ClInclude Include="turbobadger\src\tb\parser\tb_parser.h" />
+    <ClInclude Include="turbobadger\src\tb\renderers\tb_renderer_batcher.h" />
+    <ClInclude Include="turbobadger\src\tb\renderers\tb_renderer_gl.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_bitmap_fragment.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_color.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_core.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_debug.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_dimension.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_editfield.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_font_desc.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_font_renderer.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_hash.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_hashtable.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_id.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_inline_select.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_language.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_layout.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_linklist.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_list.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_menu_window.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_message_window.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_msg.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_node_ref_tree.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_node_tree.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_object.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_popup_window.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_renderer.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_scroller.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_scroll_container.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_select.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_select_item.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_skin.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_skin_util.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_str.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_style_edit.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_style_edit_content.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_system.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_tab_container.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_tempbuffer.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_toggle_container.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_types.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_value.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widgets.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_common.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_listener.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_reader.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widget_skin_condition_context.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_widget_value.h" />
+    <ClInclude Include="turbobadger\src\tb\tb_window.h" />
+    <ClInclude Include="turbobadger\src\tb\tests\tb_test.h" />
+    <ClInclude Include="turbobadger\src\tb\utf8\utf8.h" />
+    <ClInclude Include="turbobadger_binding\tb_config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="turbobadger\integration.txt" />
+    <None Include="turbobadger\readme.md" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{156102D7-F2DD-4618-B2EB-2DFE607EE6DD}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>tb_static</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)thirdparty\libs\</OutDir>
+    <IntDir>$(SolutionDir)thirdparty\objs\$(ProjectName)\$(Platform)_$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_debug</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)thirdparty\libs\</OutDir>
+    <IntDir>$(SolutionDir)thirdparty\objs\$(ProjectName)\$(Platform)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(SolutionDir);turbobadger/src/tb/;turbobadger/</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>glew/include/;freetype2/include/;turbobadger/src/tb/;turbobadger/;turbobadger_binding/;../Engine/Utils/</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>del $(SolutionDir)thirdparty\turbobadger\src\tb\tb_config.h</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Remove TurboBadger default config</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(SolutionDir);turbobadger/src/tb/;turbobadger/</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>glew/include/;freetype2/include/;turbobadger/src/tb/;turbobadger/;turbobadger_binding/;../Engine/Utils/</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>del $(SolutionDir)thirdparty\turbobadger\src\tb\tb_config.h</Command>
+      <Message>Remove TurboBadger default config</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

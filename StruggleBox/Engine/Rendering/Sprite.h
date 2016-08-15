@@ -1,11 +1,13 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include "CoreTypes.h"
 #include "GFXDefines.h"
 #include "Rect2D.h"
 #include "Color.h"
 #include <string>
+
+class Texture;
+class SpriteBatch;
 
 class Sprite
 {

@@ -10,10 +10,8 @@ uniform samplerCube textureMap;
 uniform float texScale = 1.0;
 uniform vec4 u_color;
 
-void main(){
-	// Output color = color specified in the vertex shader, 
-	// interpolated between all 3 surrounding vertices
-	color = vec4(texture(textureMap, fragment.texCoord*texScale).r)* u_color;
-    if ( color.a < 0.0001 ) discard;
-	//color = vec4(texCoord.x,texCoord.y,0,1);
+void main()
+{
+	//color = vec4(texture(textureMap, fragment.texCoord*texScale).r)* u_color;
+  color = textureLod(textureMap, fragment.texCoord*texScale, 0)* u_color;
 }

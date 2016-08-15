@@ -18,7 +18,7 @@
 ///
 ///  Usage for static functions (this function takes an std::string as an argument):
 /// CommandProcessor::AddCommand("commandName1", Command<std::string>(StaticFunction));
-// CommandProcessor::Execute("commandName1", std::string("This string gets passed to the function"));
+/// CommandProcessor::Execute("commandName1", std::string("This string gets passed to the function"));
 ///
 ///  Usage for member functions (where std::string is the input for those functions):
 /// CommandProcessor::AddCommand("commandName2", Command<ClassName*,std::string>(&ClassName::MemberFunction));
@@ -106,7 +106,7 @@ public:
                 Log::Warn("[CmdProcessor] Bad command exec - %s", cmdName.c_str());
             }
         } else {
-            Log::Warn("Unknown command: %s", cmdName.c_str());
+            Log::Warn("[CmdProcessor] Unknown command: %s", cmdName.c_str());
         }
     }
     // Removes a command from the map
@@ -127,7 +127,7 @@ private:
     // The command map (string holds the name of the command)
     static CommandMap commandMap;
     // The command buffer, contains next command to execute at front
-    static std::deque<const std::string> commandBuffer;
+    static std::deque<std::string> commandBuffer;
 };
 
 #endif /* COMMAND_PROCESSOR_H */

@@ -1,15 +1,6 @@
-//
-//  Rect2D.h
-//  NeverEngine
-//
-//  Created by The Drudgerist on 1/19/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
+#ifndef RECT2D_H
+#define RECT2D_H
 
-#ifndef BWO_RECT2D_H
-#define BWO_RECT2D_H
-
-//#include "Vector2D.h"
 #include "glm/glm.hpp"
 
 class Rect2D

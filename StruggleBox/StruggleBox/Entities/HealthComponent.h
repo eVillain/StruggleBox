@@ -1,31 +1,30 @@
-//
-//  HealthComponent.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 10/4/13.
-//
-//
-
-#ifndef BWO_HEALTHCOMPONENT_H
-#define BWO_HEALTHCOMPONENT_H
+#ifndef HEALTH_COMPONENT_H
+#define HEALTH_COMPONENT_H
 
 #include "EntityComponent.h"
 class EntityManager;
 
-class HealthComponent : public EntityComponent {
-    EntityManager* m_manager;
-    int* health;
-    int* maxHealth;
-    double damageTimer;
+class HealthComponent : public EntityComponent
+{
 public:
-    HealthComponent( const int ownerID, EntityManager* manager );
-    ~HealthComponent();
-    
-    void Update( double delta );
-    
-    void AddHealth( int newHealth, Entity* healer = NULL);
-    void TakeDamage( int damage, Entity* damager = NULL);
+	HealthComponent(
+		const int ownerID,
+		std::shared_ptr<EntityManager> manager);
+	~HealthComponent();
+
+	void update(const double delta);
+
+	void addHealth(
+		int newHealth,
+		Entity* healer = NULL);
+	void takeDamage(
+		int damage,
+		Entity* damager = NULL);
+private:
+	std::shared_ptr<EntityManager> _manager;
+	int* health;
+	int* maxHealth;
+	double damageTimer;
 };
 
-
-#endif /* defined(BWO_HEALTHCOMPONENT_H) */
+#endif /* HEALTH_COMPONENT_H */

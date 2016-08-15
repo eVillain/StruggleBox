@@ -1,6 +1,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+// TODO: Clean up gfx includes, this shouldnt include glew directly
 #include <GL/glew.h>
 
 // This structure is used for OpenGL colors with alpha channel

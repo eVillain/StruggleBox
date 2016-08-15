@@ -49,28 +49,28 @@ void LightSystem2D::RenderLighting(void * space) {
     if ( !m_lightRenderer ) return;
 //    if ( Options::getInst()->GetBool("r_useShaders") ) return;
     
-    float resX = m_renderer->windowWidth;
-    float resY = m_renderer->windowHeight;
-//        GLfloat camX = Renderer::GetCamX();
-//        GLfloat camY = Renderer::GetCamY();
-//        GLfloat camScale = Renderer::GetCamZoom();
-    GLfloat camX = 0.0f;
-    GLfloat camY = 0.0f;
-    GLfloat camScale = 1.0f;
-    
-    // Get only lights that are visible
-    std::vector<Light2D*> onScrnLights;
-    GetLightsForArea( -camX*camScale, -camY*camScale, resX, resY, onScrnLights );
-    
-    renderedLights = onScrnLights.size();
-//    GLuint fbo = 0;
-//    if ( Options::getInst()->GetBool("r_useShaders") && Options::getInst()->GetBool("r_deferred") ) {
-//        fbo = ((RendererGLProg*)m_renderer)->GetFBO();
-//    }
-    if ( renderedLights > 0 ) {
-        m_lightRenderer->RenderLights(onScrnLights, space, 0);
-    };
-    m_lightRenderer->UpdateLightStats();
+//    float resX = m_renderer->windowWidth;
+//    float resY = m_renderer->windowHeight;
+////        GLfloat camX = Renderer::GetCamX();
+////        GLfloat camY = Renderer::GetCamY();
+////        GLfloat camScale = Renderer::GetCamZoom();
+//    GLfloat camX = 0.0f;
+//    GLfloat camY = 0.0f;
+//    GLfloat camScale = 1.0f;
+//    
+//    // Get only lights that are visible
+//    std::vector<Light2D*> onScrnLights;
+//    GetLightsForArea( -camX*camScale, -camY*camScale, resX, resY, onScrnLights );
+//    
+//    renderedLights = onScrnLights.size();
+////    GLuint fbo = 0;
+////    if ( Options::getInst()->GetBool("r_useShaders") && Options::getInst()->GetBool("r_deferred") ) {
+////        fbo = ((RendererGLProg*)m_renderer)->GetFBO();
+////    }
+//    if ( renderedLights > 0 ) {
+//        m_lightRenderer->RenderLights(onScrnLights, space, 0);
+//    };
+//    m_lightRenderer->UpdateLightStats();
 }
 
 
@@ -145,6 +145,6 @@ void LightSystem2D::Clear() {
     for (unsigned int i = 0; i < _lights.size(); ++i) {
         delete _lights.at(i);
     }
-    printf("cleared %lu lights\n", _lights.size());
+    printf("cleared %i lights\n", _lights.size());
     _lights.clear();
 }

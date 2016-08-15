@@ -1,0 +1,436 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\parser">
+      <UniqueIdentifier>{4e6b1255-e084-41b7-bbe3-48e48893b9f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tests">
+      <UniqueIdentifier>{d80a3164-f81d-4858-b1ea-d515dd3c9d1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utf8">
+      <UniqueIdentifier>{39488b9f-57ff-4a32-8b13-84b3b68c74b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\renderers">
+      <UniqueIdentifier>{e3dccb00-1283-4413-a12a-4ef486295a84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\animation">
+      <UniqueIdentifier>{12e88d74-9c68-4f34-b7e1-8141af493ab9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\image">
+      <UniqueIdentifier>{fc5ee9aa-7458-4068-8a14-eb97b73ec7f6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="turbobadger\src\tb\tb_language.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_linklist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_list.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_message_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_msg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_scroll_container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_select.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_skin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_style_edit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_style_edit_content.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_tab_container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_tempbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_toggle_container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widget_skin_condition_context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widget_value.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_listener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_widgets_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_bitmap_fragment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_editfield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_tbbf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_hashtable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_style_edit.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_tempbuffer.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_test.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_widget_value.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\tb_test.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_linklist.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_parser.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_value.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_space_allocator.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\utf8\utf8.cpp">
+      <Filter>Source Files\utf8</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_select_item.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_inline_select.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_clipboard_win.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_skin_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_color.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_object.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_popup_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_menu_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_dimension.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_scroller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_geometry.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_node_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\parser\tb_parser.cpp">
+      <Filter>Source Files\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\renderers\tb_renderer_batcher.cpp">
+      <Filter>Source Files\renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\renderers\tb_renderer_gl.cpp">
+      <Filter>Source Files\renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_image_loader_stb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_node_ref_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tests\test_tb_node_ref_tree.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_dimension.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_str.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_id.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_color.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_core.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\animation\tb_animation.cpp">
+      <Filter>Source Files\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\animation\tb_widget_animation.cpp">
+      <Filter>Source Files\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_freetype.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_font_renderer_stb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\tb_file_posix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\image\tb_image_widget.cpp">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger\src\tb\image\tb_image_manager.cpp">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="turbobadger_binding\tb_system_win.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="turbobadger\src\tb\tb_language.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_layout.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_linklist.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_list.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_message_window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_msg.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_renderer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_scroll_container.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_select.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_skin.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_style_edit.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_style_edit_content.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_system.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_tab_container.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_tempbuffer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_toggle_container.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_types.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_value.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widget_skin_condition_context.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widget_value.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widgets.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_common.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_listener.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_widgets_reader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_bitmap_fragment.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_editfield.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_font_renderer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_hash.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_hashtable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tests\tb_test.h">
+      <Filter>Source Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\utf8\utf8.h">
+      <Filter>Source Files\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_select_item.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_inline_select.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_skin_util.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_object.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_popup_window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_menu_window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_debug.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_scroller.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_node_tree.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\parser\tb_parser.h">
+      <Filter>Source Files\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\renderers\tb_renderer_batcher.h">
+      <Filter>Source Files\renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\renderers\tb_renderer_gl.h">
+      <Filter>Source Files\renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_node_ref_tree.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_dimension.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_str.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_id.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_font_desc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_color.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\tb_core.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\tbanimation\tb_animation_utils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\animation\tb_animation.h">
+      <Filter>Source Files\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\animation\tb_animation_utils.h">
+      <Filter>Source Files\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\animation\tb_widget_animation.h">
+      <Filter>Source Files\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\image\tb_image_manager.h">
+      <Filter>Source Files\image</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger\src\tb\image\tb_image_widget.h">
+      <Filter>Source Files\image</Filter>
+    </ClInclude>
+    <ClInclude Include="turbobadger_binding\tb_config.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="turbobadger\integration.txt" />
+    <None Include="turbobadger\readme.md" />
+  </ItemGroup>
+</Project>

@@ -1,43 +1,46 @@
-//
-//  LightSystem3D.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 11/01/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_LIGHT_SYSTEM3D_H
-#define NGN_LIGHT_SYSTEM3D_H
+#ifndef LIGHT_SYSTEM3D_H
+#define LIGHT_SYSTEM3D_H
 
 #include "Light3D.h"
 #include <vector>
+#include <memory>
+
 class Renderer;
-class LightSystem3D {
-private:
-    std::vector<Light3D*> m_lights;		/**< The list of Light pointers */
-    unsigned long renderedLights;        // Number of lights on screen in last render pass
-    
-    Renderer* m_renderer;
-    
+class Shader;
+class ShaderManager;
+class GBuffer;
+
+class LightSystem3D
+{
 public:
-    
-    LightSystem3D();
+    LightSystem3D(std::shared_ptr<ShaderManager> shaders);
     ~LightSystem3D();
-    void HookRenderer( Renderer* renderer );
 
-    void RenderLighting(GLuint fbo);
-    
-    void Add(Light3D* newLight);
-    void Remove(Light3D* oldLight);
-    void Clear();
-    
-    const unsigned long NumLights();
-    const bool Contains(Light3D* theLight);
-    
-    const int Find(Light3D* theLight);
+    void RenderLighting(
+		const std::vector<LightInstance> lights,
+		const glm::mat4& model,
+		const glm::mat4& projection,
+		const glm::vec4& viewPort,
+		const glm::vec3& position,
+		const glm::vec2& ratio,
+		const float nearDepth,
+		const float farDepth,
+		const GLuint finalFBO,
+		const GBuffer& gBuffer,
+		const glm::vec3& reflectionPos,
+		const float reflectionSize,
+		const GLuint reflectionCubeMap,
+		const bool renderSSAO,
+		const GLuint ssaoTex,
+		const GLuint ssaoNoiseTex);
 
-    void GetLightsForArea(glm::vec3 pos, glm::vec3 radius, std::vector<Light3D*>& containedLights);
-    std::vector<Light3D*>& GetLights() { return m_lights; };
+	std::shared_ptr<Shader> getShader() { return _lightShader; }
+private:
+	std::shared_ptr<ShaderManager> _shaders;
+	std::shared_ptr<Shader> _lightShader;
+
+	Color _fogColor;
+	GLuint vertex_vbo, vertex_vao;
 };
 
 #endif /* defined(NGN_LIGHT_SYSTEM3D_H) */

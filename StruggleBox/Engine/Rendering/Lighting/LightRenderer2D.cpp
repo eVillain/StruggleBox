@@ -66,140 +66,140 @@ void LightRenderer2D::RenderLights(std::vector<Light2D *> &lights, void* space, 
     GLfloat camX = 0.0f;
     GLfloat camY = 0.0f;
     GLfloat camScale = 1.0f;
-    float resX = m_renderer->windowWidth;
-    float resY = m_renderer->windowHeight;
-    glm::vec2 camPosPX = glm::vec2( camX*camScale, camY*camScale );
-    
-//    glEnableClientState(GL_VERTEX_ARRAY);
-
-    for ( unsigned int i=0; i < lights.size(); i++ ) {
-        Light2D * theLight = lights.at( i );
-        glm::vec2 lightPos = glm::vec2(theLight->position.x, theLight->position.y);
-        float lightRadius = theLight->lightWidth;
-        
-        // Units in pixels
-        float lightRadiusPX = lightRadius*camScale;
-        if ( lightRadiusPX < 2.0f ) continue;
-        glm::vec2 lightPosPX = lightPos * camScale;
-        
-        float lightAngle = 0.0f;
-//            if ( theLight->entityBody ) { lightAngle = theLight->entityBody->getAngle(); }
-        Color lightColor = theLight->lightColor;
-        
-        // Intersect light with screen
-        Rect2D lightRectPX = Rect2D( (float)(lightPosPX.x-lightRadiusPX), (float)(lightPosPX.y-lightRadiusPX),
-                                    (float)(lightRadiusPX*2.0f), (float)(lightRadiusPX*2.0f) );
-        Rect2D screenRectPX = Rect2D( (float)(-camPosPX.x-resX*0.5f), (float)(-camPosPX.y-resY*0.5f),
-                                     (float)resX, (float)resY );
-        Rect2D lightScrnRectPX = Rect2D::GetIntersection( lightRectPX, screenRectPX );
-        // Non pixel scaled rects for visualization
-        Rect2D lightRect = Rect2D( (float)(lightRectPX.x/camScale), (float)(lightRectPX.y/camScale),
-                                  (float)(lightRectPX.w/camScale), (float)(lightRectPX.h/camScale) );
-        Rect2D screenRect = Rect2D((float)(screenRectPX.x/camScale), (float)(screenRectPX.y/camScale),
-                                   (float)(screenRectPX.w/camScale), (float)(screenRectPX.h/camScale) );
-        Rect2D lightScrnRect = Rect2D((float)(lightScrnRectPX.x/camScale), (float)(lightScrnRectPX.y/camScale),
-                                      (float)(lightScrnRectPX.w/camScale), (float)(lightScrnRectPX.h/camScale) );
-        
-        // Dynamically scale the light rendering resolution
-        GLfloat renderScale = 1.0f;
-        glm::vec2 viewPort = glm::vec2(lightRadiusPX*2.0f, lightRadiusPX*2.0f);
-        glm::vec2 lightFBOPos = lightPosPX - glm::vec2(lightScrnRectPX.x, lightScrnRectPX.y);
-        
-//        if ( Options::getInst()->GetBool("r_debugLights") ) {
-////                Renderer::Render2D();
-//            m_renderer->Draw2DRect(lightRect, COLOR_YELLOW);
-//            m_renderer->Draw2DRect(screenRect, COLOR_YELLOW);
-//            m_renderer->Draw2DRect(lightScrnRect, COLOR_GREEN);
-//        }
-        
-        // Viewport scaling
-        float scaleX = FBO_width/lightScrnRectPX.w;
-        float scaleY = FBO_height/lightScrnRectPX.h;
-        renderScale = scaleX < scaleY ? scaleX : scaleY;
-        viewPort = glm::vec2( lightScrnRectPX.w*renderScale, lightScrnRectPX.h*renderScale );
-        
-        // FBO texture coordinates range 0.0 to 1.0
-        GLfloat texCoordBottom = 0.0f;
-        GLfloat texCoordLeft = 0.0f;
-        GLfloat texCoordTop = (GLfloat)(viewPort.y/FBO_height);
-        GLfloat texCoordRight = (GLfloat)(viewPort.x/FBO_width);
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, light_fbo); // Bind our frame buffer for rendering
-        glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); // Push our glEnable and glViewport states
-        {
-            glViewport(0, 0, (GLsizei)viewPort.x, (GLsizei)viewPort.y); // Set the size of the frame buffer view port
-            
-//            if ( Options::getInst()->GetBool("r_debugLights") )
-//            { glClearColor(1.0f, 0.0f, 0.0f, 0.2f); }
-//            else
-            { glClearColor(0.0f, 0.0f, 0.0f, 0.0f); }
-            
-            glClear( GL_COLOR_BUFFER_BIT ); // Clear the color buffer
-            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-            glDisable(GL_BLEND);
-            glDisable(GL_TEXTURE_2D);       // Disable texturing so we can draw the light gradient
-            glMatrixMode(GL_PROJECTION);    // Select The Projection Matrix
-            
-            glPushMatrix(); {
-                glLoadIdentity();
-                glOrtho(0, viewPort.x, 0.0, viewPort.y, -1.0, 1.0);
-                glTranslatef(0.0f, 0.0f, 0.0f);
-                glScalef(renderScale, renderScale, 1.0f);
-                
-                int segs = (int)(lightRadiusPX/4);
-                if ( segs < 4 ) segs = 4;
-                if ( segs > 128 ) segs = 128;
-                
-                // Render light circle or beam
-                //                    if (theLight->subType == LIGHT_SPOT ||
-                //                        theLight->subType == LIGHT_SUN )
-                { Draw2DLightCircle(lightFBOPos, (float)lightRadiusPX, (float)lightAngle, segs, lightColor); }
-                //                    else if (theLight->subType == LIGHT_BEAM)
-                //                    { LightRenderer::DrawLightBeam( cpv(0.0f, lightFBOPos.y), (float)(theLight->lightArc), (float)lightRadiusPX, (float)lightAngle, segs, lightColor); }
-                
-                // Move and scale rendering for shadows
-                glScalef(camScale, camScale, 1.0f);
-                glm::vec2 lightOffset = glm::vec2(lightRect.x-lightScrnRect.x, lightRect.y-lightScrnRect.y);
-                //                    if (theLight->subType == LIGHT_SPOT ||
-                //                        theLight->subType == LIGHT_SUN )
-                { glTranslatef( (GLfloat)(-lightPos.x+lightOffset.x+lightRadius), (GLfloat)(-lightPos.y+lightOffset.y+lightRadius), 0.0f); }
-                //                    else if (theLight->subType == LIGHT_BEAM)
-                //                    { glTranslatef( (GLfloat)(-lightPos.x+lightOffset.x+lightRadius), (GLfloat)(-lightPos.y+lightOffset.y+lightRadius), 0.0f); }
-                if ( space ) {
-                    //                        if ( Options::getInst()->r_colorShadows ) {
-                    ////                            theLight->subType == LIGHT_SUN ) {
-                    //                            glEnable(GL_BLEND);
-                    //                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);      // Blend object color with shadow
-                    //                            glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-                    //                            // Render shadows for that light
-                    //                            RenderShadowsForLight(theLight, space);
-                    //                            glBlendEquation(GL_FUNC_ADD);
-                    //                        } else {
-                    // Render hard shadows for that light
-//                    RenderShadowsForLight(theLight, (cpSpace*)space);
-                    //                        }
-                }
-                
-//                if ( Options::getInst()->GetBool("r_debugLights") ) {
-                    //                        glLoadIdentity();
-                    //                        glOrtho(0, viewPort.x, 0.0, viewPort.y, -1.0, 1.0);
-                    //                        glTranslatef(0.0f, 0.0f, 0.0f);
-                    //                        Renderer::DrawCross(cpv(viewPort.x*0.5f, viewPort.y*0.5f), viewPort.x/2, 0.0f);
-                    //                        Renderer::DrawCross(cpv(1.0f, 1.0f), viewPort.x/2, 0.0f);
-                    //                        Renderer::DrawCross(cpv(viewPort.x, viewPort.y), viewPort.x/2, 0.0f);
+//    float resX = m_renderer->windowWidth;
+//    float resY = m_renderer->windowHeight;
+//    glm::vec2 camPosPX = glm::vec2( camX*camScale, camY*camScale );
+//    
+////    glEnableClientState(GL_VERTEX_ARRAY);
+//
+//    for ( unsigned int i=0; i < lights.size(); i++ ) {
+//        Light2D * theLight = lights.at( i );
+//        glm::vec2 lightPos = glm::vec2(theLight->position.x, theLight->position.y);
+//        float lightRadius = theLight->lightWidth;
+//        
+//        // Units in pixels
+//        float lightRadiusPX = lightRadius*camScale;
+//        if ( lightRadiusPX < 2.0f ) continue;
+//        glm::vec2 lightPosPX = lightPos * camScale;
+//        
+//        float lightAngle = 0.0f;
+////            if ( theLight->entityBody ) { lightAngle = theLight->entityBody->getAngle(); }
+//        Color lightColor = theLight->lightColor;
+//        
+//        // Intersect light with screen
+//        Rect2D lightRectPX = Rect2D( (float)(lightPosPX.x-lightRadiusPX), (float)(lightPosPX.y-lightRadiusPX),
+//                                    (float)(lightRadiusPX*2.0f), (float)(lightRadiusPX*2.0f) );
+//        Rect2D screenRectPX = Rect2D( (float)(-camPosPX.x-resX*0.5f), (float)(-camPosPX.y-resY*0.5f),
+//                                     (float)resX, (float)resY );
+//        Rect2D lightScrnRectPX = Rect2D::GetIntersection( lightRectPX, screenRectPX );
+//        // Non pixel scaled rects for visualization
+//        Rect2D lightRect = Rect2D( (float)(lightRectPX.x/camScale), (float)(lightRectPX.y/camScale),
+//                                  (float)(lightRectPX.w/camScale), (float)(lightRectPX.h/camScale) );
+//        Rect2D screenRect = Rect2D((float)(screenRectPX.x/camScale), (float)(screenRectPX.y/camScale),
+//                                   (float)(screenRectPX.w/camScale), (float)(screenRectPX.h/camScale) );
+//        Rect2D lightScrnRect = Rect2D((float)(lightScrnRectPX.x/camScale), (float)(lightScrnRectPX.y/camScale),
+//                                      (float)(lightScrnRectPX.w/camScale), (float)(lightScrnRectPX.h/camScale) );
+//        
+//        // Dynamically scale the light rendering resolution
+//        GLfloat renderScale = 1.0f;
+//        glm::vec2 viewPort = glm::vec2(lightRadiusPX*2.0f, lightRadiusPX*2.0f);
+//        glm::vec2 lightFBOPos = lightPosPX - glm::vec2(lightScrnRectPX.x, lightScrnRectPX.y);
+//        
+////        if ( Options::getInst()->GetBool("r_debugLights") ) {
+//////                Renderer::Render2D();
+////            m_renderer->Draw2DRect(lightRect, COLOR_YELLOW);
+////            m_renderer->Draw2DRect(screenRect, COLOR_YELLOW);
+////            m_renderer->Draw2DRect(lightScrnRect, COLOR_GREEN);
+////        }
+//        
+//        // Viewport scaling
+//        float scaleX = FBO_width/lightScrnRectPX.w;
+//        float scaleY = FBO_height/lightScrnRectPX.h;
+//        renderScale = scaleX < scaleY ? scaleX : scaleY;
+//        viewPort = glm::vec2( lightScrnRectPX.w*renderScale, lightScrnRectPX.h*renderScale );
+//        
+//        // FBO texture coordinates range 0.0 to 1.0
+//        GLfloat texCoordBottom = 0.0f;
+//        GLfloat texCoordLeft = 0.0f;
+//        GLfloat texCoordTop = (GLfloat)(viewPort.y/FBO_height);
+//        GLfloat texCoordRight = (GLfloat)(viewPort.x/FBO_width);
+//        
+//        glBindFramebuffer(GL_FRAMEBUFFER, light_fbo); // Bind our frame buffer for rendering
+//        glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT); // Push our glEnable and glViewport states
+//        {
+//            glViewport(0, 0, (GLsizei)viewPort.x, (GLsizei)viewPort.y); // Set the size of the frame buffer view port
+//            
+////            if ( Options::getInst()->GetBool("r_debugLights") )
+////            { glClearColor(1.0f, 0.0f, 0.0f, 0.2f); }
+////            else
+//            { glClearColor(0.0f, 0.0f, 0.0f, 0.0f); }
+//            
+//            glClear( GL_COLOR_BUFFER_BIT ); // Clear the color buffer
+//            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+//            glDisable(GL_BLEND);
+//            glDisable(GL_TEXTURE_2D);       // Disable texturing so we can draw the light gradient
+//            glMatrixMode(GL_PROJECTION);    // Select The Projection Matrix
+//            
+//            glPushMatrix(); {
+//                glLoadIdentity();
+//                glOrtho(0, viewPort.x, 0.0, viewPort.y, -1.0, 1.0);
+//                glTranslatef(0.0f, 0.0f, 0.0f);
+//                glScalef(renderScale, renderScale, 1.0f);
+//                
+//                int segs = (int)(lightRadiusPX/4);
+//                if ( segs < 4 ) segs = 4;
+//                if ( segs > 128 ) segs = 128;
+//                
+//                // Render light circle or beam
+//                //                    if (theLight->subType == LIGHT_SPOT ||
+//                //                        theLight->subType == LIGHT_SUN )
+//                { Draw2DLightCircle(lightFBOPos, (float)lightRadiusPX, (float)lightAngle, segs, lightColor); }
+//                //                    else if (theLight->subType == LIGHT_BEAM)
+//                //                    { LightRenderer::DrawLightBeam( cpv(0.0f, lightFBOPos.y), (float)(theLight->lightArc), (float)lightRadiusPX, (float)lightAngle, segs, lightColor); }
+//                
+//                // Move and scale rendering for shadows
+//                glScalef(camScale, camScale, 1.0f);
+//                glm::vec2 lightOffset = glm::vec2(lightRect.x-lightScrnRect.x, lightRect.y-lightScrnRect.y);
+//                //                    if (theLight->subType == LIGHT_SPOT ||
+//                //                        theLight->subType == LIGHT_SUN )
+//                { glTranslatef( (GLfloat)(-lightPos.x+lightOffset.x+lightRadius), (GLfloat)(-lightPos.y+lightOffset.y+lightRadius), 0.0f); }
+//                //                    else if (theLight->subType == LIGHT_BEAM)
+//                //                    { glTranslatef( (GLfloat)(-lightPos.x+lightOffset.x+lightRadius), (GLfloat)(-lightPos.y+lightOffset.y+lightRadius), 0.0f); }
+//                if ( space ) {
+//                    //                        if ( Options::getInst()->r_colorShadows ) {
+//                    ////                            theLight->subType == LIGHT_SUN ) {
+//                    //                            glEnable(GL_BLEND);
+//                    //                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);      // Blend object color with shadow
+//                    //                            glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+//                    //                            // Render shadows for that light
+//                    //                            RenderShadowsForLight(theLight, space);
+//                    //                            glBlendEquation(GL_FUNC_ADD);
+//                    //                        } else {
+//                    // Render hard shadows for that light
+////                    RenderShadowsForLight(theLight, (cpSpace*)space);
+//                    //                        }
 //                }
-            } glPopMatrix();
-        } glPopAttrib(); // Restore our glEnable and glViewport states
-        
-        // The light_fbo now contains the rendered light and shadows
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, renderFBO);               // Unbind our light framebuffer
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);        // Screen blend light colors
-
-        m_renderer->DrawTexture(lightScrnRect, Rect2D(texCoordLeft,texCoordBottom,texCoordRight-texCoordLeft,texCoordTop-texCoordBottom), light_texture, 10.0f);
-    }
-    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA);
+//                
+////                if ( Options::getInst()->GetBool("r_debugLights") ) {
+//                    //                        glLoadIdentity();
+//                    //                        glOrtho(0, viewPort.x, 0.0, viewPort.y, -1.0, 1.0);
+//                    //                        glTranslatef(0.0f, 0.0f, 0.0f);
+//                    //                        Renderer::DrawCross(cpv(viewPort.x*0.5f, viewPort.y*0.5f), viewPort.x/2, 0.0f);
+//                    //                        Renderer::DrawCross(cpv(1.0f, 1.0f), viewPort.x/2, 0.0f);
+//                    //                        Renderer::DrawCross(cpv(viewPort.x, viewPort.y), viewPort.x/2, 0.0f);
+////                }
+//            } glPopMatrix();
+//        } glPopAttrib(); // Restore our glEnable and glViewport states
+//        
+//        // The light_fbo now contains the rendered light and shadows
+//        
+//        glBindFramebuffer(GL_FRAMEBUFFER, renderFBO);               // Unbind our light framebuffer
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);        // Screen blend light colors
+//
+//        //m_renderer->DrawTexture(lightScrnRect, Rect2D(texCoordLeft,texCoordBottom,texCoordRight-texCoordLeft,texCoordTop-texCoordBottom), light_texture, 10.0f);
+//    }
+//    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA);
 }
 
 //static void RenderShadowForLight(cpShape*shape, void* data) {

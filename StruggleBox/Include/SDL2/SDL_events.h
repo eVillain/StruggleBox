@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -94,6 +94,9 @@ typedef enum
     SDL_KEYUP,                  /**< Key released */
     SDL_TEXTEDITING,            /**< Keyboard text editing (composition) */
     SDL_TEXTINPUT,              /**< Keyboard text input */
+    SDL_KEYMAPCHANGED,          /**< Keymap changed due to a system event such as an
+                                     input language or keyboard layout change.
+                                */
 
     /* Mouse events */
     SDL_MOUSEMOTION    = 0x400, /**< Mouse moved */
@@ -453,8 +456,8 @@ typedef struct SDL_DollarGestureEvent
 
 /**
  *  \brief An event used to request a file open by the system (event.drop.*)
- *         This event is disabled by default, you can enable it with SDL_EventState()
- *  \note If you enable this event, you must free the filename in the event.
+ *         This event is enabled by default, you can disable it with SDL_EventState().
+ *  \note If this event is enabled, you must free the filename in the event.
  */
 typedef struct SDL_DropEvent
 {

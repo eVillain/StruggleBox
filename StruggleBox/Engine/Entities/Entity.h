@@ -48,6 +48,7 @@ inline static std::string NameForEntity(const EntityType type)
             return "Light entity";
             break;
         default:
+			return "Unknown entity";
             break;
     }
 };

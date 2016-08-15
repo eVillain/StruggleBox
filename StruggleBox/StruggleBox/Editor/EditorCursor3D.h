@@ -1,7 +1,7 @@
 #ifndef EDITOR_CURSOR3D_H
 #define EDITOR_CURSOR3D_H
 
-#include "GFXDefines.h"
+#include <glm\glm.hpp>
 
 struct EditorCursor3D
 {

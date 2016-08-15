@@ -1,7 +1,8 @@
-#include <iostream>
 #include "HyperVisor.h"
 #include "Game/MainMenu.h"
-#include "SceneManager.h"
+#include "Injector.h"
+#include <iostream>
+#include <memory>
 
 int main(int argc, const char * argv[])
 {
@@ -13,11 +14,13 @@ int main(int argc, const char * argv[])
 	HyperVisor hv;
 	hv.Initialize("StruggleBox", argc, argv);
 
-    SceneManager* sceneMan = hv.GetLocator().Get<SceneManager>();
-	MainMenu * mainMenu = new MainMenu(hv.GetLocator());
-    sceneMan->AddActiveScene(mainMenu);
+    //SceneManager* sceneMan = hv.GetLocator().Get<SceneManager>();
+	//MainMenu * mainMenu = new MainMenu(hv.GetLocator());
+    //sceneMan->AddActiveScene(mainMenu);
 
-    hv.Run();
+	auto mainMenu = hv.getInjector()->instantiateUnmapped<MainMenu,
+	Injector, Renderer, Particles, Text, SceneManager, TBGUI, Options>();
+    hv.Run(mainMenu);
     hv.Terminate();
     
     return 0;

@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "Random.h"
 #include "Timer.h"
+#include "Log.h"
 #include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 
@@ -8,6 +9,8 @@ Camera::Camera() :
 _followTarget(false),
 physicsFunc(nullptr)
 {
+	Log::Info("[Camera] constructor, instance at %p", this);
+
     fieldOfView = 70.0f;
     nearDepth = 0.1f;
     farDepth = 250.1f;
@@ -32,22 +35,19 @@ physicsFunc(nullptr)
     elasticity = 30.0f;
     distance = 6.0f;
     maxDistance = 20.0f;
-    height = 1.0f;
+    height = 0.0f;
 }
 
-Camera::~Camera()
-{ }
-
-void Camera::Update(double delta)
+void Camera::Update(const double deltaTime)
 {
-    if ( delta <= 0.0 ) return;
+    if (deltaTime <= 0.0 ) return;
 
     if ( elasticMovement ) {
         if ( targetRotation.y - rotation.y < -180.0f ) targetRotation.y += 360.0f;
         else if ( targetRotation.y - rotation.y > 180.0f ) targetRotation.y -= 360.0f;
 
         // Dampen rotation
-        float new_ratio = elasticity*0.02f * delta;
+        float new_ratio = elasticity*0.02f * deltaTime;
         float old_ratio = 1.0 - new_ratio;
         glm::vec3 new_dir = (rotation * old_ratio) + (targetRotation * new_ratio);
         rotation = new_dir;
@@ -55,7 +55,7 @@ void Camera::Update(double delta)
         if ( glm::length(movement) > 0.0f ) {
             // Apply direct camera movement
             CalculateCameraMovement( movement );
-            targetPosition += speed*float(delta);
+            targetPosition += speed*float(deltaTime);
         }
         if ( thirdPerson ) {
             // Find coordinate for camera
@@ -67,13 +67,6 @@ void Camera::Update(double delta)
             glm::vec3 behindTarget = targetPosition + zPos;
             behindTarget.y += height;
             
-//            glm::vec3 move = behindTarget - position;
-//            float dist = glm::length(move);
-//            if ( dist > 20.0f ) {
-//                move = glm::normalize(move)*20.0f;
-//            }
-//            speed = move*(elasticity*0.1f)*float(delta);
-            
             if ( physicsClip && physicsFunc ) {
                 position = physicsFunc(targetPosition, behindTarget);
             } else {
@@ -81,7 +74,7 @@ void Camera::Update(double delta)
             }
         } else {
             glm::vec3 move = targetPosition - position;
-            speed = move*elasticity*0.1f*float(delta);
+            speed = move*elasticity*0.1f*float(deltaTime);
             position = position+speed;
         }
     } else {
@@ -111,7 +104,7 @@ void Camera::Update(double delta)
                 position = targetPosition;
             } else {
                 CalculateCameraMovement( movement );
-                position += speed*float(delta);
+                position += speed*float(deltaTime);
             }
         }
     }

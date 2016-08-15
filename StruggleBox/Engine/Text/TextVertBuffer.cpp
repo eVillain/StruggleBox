@@ -1,35 +1,24 @@
 #include "TextVertBuffer.h"
 #include "FontAtlas.h"
+#include "VertBuffer.h"
+#include "Renderer.h"
 #include "Log.h"
 
-typedef struct {
-    GLfloat x,y,z,w;
-    GLfloat u,v;
-} TextVertexData;
-
-TextVertBuffer::TextVertBuffer() :
-_vao(0),
-_vbo(0),
+TextVertBuffer::TextVertBuffer(std::shared_ptr<Renderer> renderer) :
+	_vertBuffer(nullptr),
 _count(0),
 _size(0)
 {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
-                          sizeof(TextVertexData),
-                          0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(TextVertexData),
-                          (GLvoid*)(4*sizeof(GLfloat)));
-    glBindVertexArray(0);
-    Log::Debug("[TextVertBuffer] generated");
+	Log::Debug("[TextVertBuffer] Constructor, instance at: %p", this);
+	_vertBuffer = renderer->addVertBuffer(TexturedVerts);
 }
 
-void TextVertBuffer::Buffer(const std::string &text,
+void TextVertBuffer::bind()
+{
+	_vertBuffer->bind();
+}
+
+void TextVertBuffer::buffer(const std::string &text,
                             const FontAtlas &atlas,
                             const int fontSize)
 {
@@ -41,7 +30,7 @@ void TextVertBuffer::Buffer(const std::string &text,
     float z = 0;
     
     // Temporary storage for one quad
-    TextVertexData* verts = new TextVertexData[text.length()*6];
+    TexturedVertexData* verts = new TexturedVertexData[text.length()*6];
     
     _count = 0;
     int aw = atlas.GetWidth();
@@ -99,23 +88,18 @@ void TextVertBuffer::Buffer(const std::string &text,
             g[*p].tx + g[*p].bw / aw, g[*p].ty + g[*p].bh / ah
         };
     }
-    Log::Debug("[TextVertBuffer] buffering %i verts (%i bytes) to GPU",
-              _count, sizeof(TextVertexData)*_count);
+    //Log::Debug("[TextVertBuffer] buffering %i verts (%i bytes) to GPU",
+    //          _count, sizeof(TexturedVertexData)*_count);
 
     // Upload verts
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(TextVertexData)*_count,
-                 verts,
-                 GL_STATIC_DRAW);
+	_vertBuffer->upload(verts, sizeof(TexturedVertexData)*_count, false);
+	delete[] verts;
 }
 
-void TextVertBuffer::Draw()
+void TextVertBuffer::draw()
 {
-    if (_count == 0) return;
-    
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glDrawArrays(GL_TRIANGLES, 0, _count);
+    if (_count == 0)
+		return;
+
+	_vertBuffer->draw(GL_TRIANGLES, _count);
 }

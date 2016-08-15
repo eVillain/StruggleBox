@@ -5,7 +5,7 @@
 #include <map>
 #include "Attribute.h"
 
-class CmdProcessor;
+//class CmdProcessor;
 
 //  Holds options values
 //  Key:

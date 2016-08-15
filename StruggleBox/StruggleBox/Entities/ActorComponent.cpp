@@ -1,28 +1,23 @@
-//
-//  ActorComponent.cpp
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 8/29/13.
-//
-//
-
 #include "ActorComponent.h"
 #include "EntityManager.h"
-#include "HumanoidComponent.h"
-#include "SysCore.h"
-#include "World3D.h"    // paused?
+#include "Timer.h"
+#include "Random.h"
+//#include "HumanoidComponent.h"
+//#include "World3D.h"    // paused?
 
 const float brainUpdateTime = 3.0f;
 const float movementUpdateTime = 0.4f;
 const float brainViewDist = 10.0f;
 
-ActorComponent::ActorComponent( const int ownerID, EntityManager* manager ) :
-EntityComponent( ownerID ) {
-    m_family = "Actor";
-    m_manager = manager;
+ActorComponent::ActorComponent(
+	const int ownerID,
+	std::shared_ptr<EntityManager> manager) :
+EntityComponent(ownerID, "Actor"),
+_manager(manager)
+{
     lastUpdateTime=0.0;
     lastMoveTime=0.0;
-    targetPosition = manager->GetEntity(ownerID)->GetAttributeDataPtr<glm::vec3>("position");
+    targetPosition = _manager->getEntity(ownerID)->GetAttributeDataPtr<glm::vec3>("position");
     targetState = Target_Move;
     targetEntity = NULL;
 }
@@ -30,11 +25,12 @@ ActorComponent::~ActorComponent() {
     targetEntity = NULL;
 }
 
-void ActorComponent::Update( double delta ) {
-    if ( m_manager->world->paused ) return;
+void ActorComponent::update(const double delta)
+{
+    //if ( m_manager->world->paused ) return;
     lastUpdateTime += delta;
     lastMoveTime += delta;
-    Entity* m_owner = m_manager->GetEntity(m_ownerID);
+    Entity* m_owner = _manager->getEntity(_ownerID);
     const glm::vec3 position = m_owner->GetAttributeDataPtr<glm::vec3>("position");
     if ( lastUpdateTime > brainUpdateTime ) {       // Time to update the brain
         // Try to gather data about us and the environment in 0.0 to 1.0 ranges
@@ -48,8 +44,8 @@ void ActorComponent::Update( double delta ) {
         // TODO:: Get value for weapon damage etc to prioritize grabbing new weapons
         
         // Gather nearby entities
-        std::map<int, Entity*> nearbyEnts = m_manager->GetNearbyEntities(position,
-                                                                         m_ownerID,
+        std::map<int, Entity*> nearbyEnts = _manager->getNearbyEntities(position,
+                                                                         _ownerID,
                                                                          ENTITY_NONE,
                                                                          brainViewDist);
         std::map<int, Entity*>::iterator it;
@@ -92,9 +88,9 @@ void ActorComponent::Update( double delta ) {
             }
 //            printf("Got most interesting entity type %i, with %f points, state: %i!\n", interestType, topInterest, targetState);
         } else {    // Can't see anything interesting, walk somewhere randomly
-            SysCore::RandomSeed(int(SysCore::GetMicroseconds()));
-            int randX = SysCore::RandomInt(-2, +2);
-            int randZ = SysCore::RandomInt(-2, +2);
+            Random::RandomSeed(int(Timer::Microseconds()));
+            int randX = Random::RandomInt(-2, +2);
+            int randZ = Random::RandomInt(-2, +2);
             targetPosition = position + glm::vec3(randX,1.0f,randZ);
             targetState = Target_Move;
             targetEntity = NULL;
@@ -123,24 +119,24 @@ void ActorComponent::Update( double delta ) {
                     targetEntity = NULL;
                     targetState = Target_Move;
                 } else {
-                    HumanoidComponent* human = (HumanoidComponent*)m_manager->GetComponent(m_ownerID, "Humanoid");
-                    human->Grab(targetEntity);
-                    targetEntity = NULL;
-                    targetState = Target_Move;
+                    //HumanoidComponent* human = (HumanoidComponent*)_manager->getComponent(_ownerID, "Humanoid");
+                    //human->Grab(targetEntity);
+                    //targetEntity = NULL;
+                    //targetState = Target_Move;
                 }
             } else if ( targetState == Target_Attack && targetEntity ) {
-                HumanoidComponent* human = (HumanoidComponent*)m_manager->GetComponent(m_ownerID, "Humanoid");
-                if ( human->rHandTimer == 0.0f ) {
-                    human->UseRightHand();
-                }
-                else {
+                //HumanoidComponent* human = (HumanoidComponent*)_manager->getComponent(_ownerID, "Humanoid");
+                //if ( human->rHandTimer == 0.0f ) {
+                //    human->UseRightHand();
+                //}
+                //else {
 //                    glm::vec3 rot = human->GetRotation();
                     
 //                    double timeNow = SysCore::GetSeconds();
 //                    if ( (timeNow - human->throwTimer) > 0.7f ) {
 //                        human->ThrowItem(targetPosition);
 //                    }
-                }
+                //}
             }
             targetDir *= 0.1f;
         }

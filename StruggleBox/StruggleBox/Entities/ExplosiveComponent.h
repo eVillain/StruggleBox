@@ -1,33 +1,33 @@
-//
-//  ExplosiveComponent.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 14/04/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-
-#ifndef NGN_EXPLOSIVE_COMPONENT_H
-#define NGN_EXPLOSIVE_COMPONENT_H
+#ifndef EXPLOSIVE_COMPONENT_H
+#define EXPLOSIVE_COMPONENT_H
 
 #include "EntityComponent.h"
+#include <memory>
+
 class EntityManager;
-class Locator;
+class World3D;
+class Particles;
 
 class ExplosiveComponent : public EntityComponent
 {
 public:
-    ExplosiveComponent(const int ownerID,
-                       Locator& locator);
+    ExplosiveComponent(
+		const int ownerID,
+		std::shared_ptr<EntityManager> manager,
+		std::shared_ptr<World3D> world,
+		std::shared_ptr<Particles> particles);
     ~ExplosiveComponent();
     
-    void Update( const double delta );
+    void update(const double delta);
 
-    void Activate();
+    void activate();
+    
 private:
-    Locator& _locator;
-    EntityManager* m_manager;
-    double m_timer;
-    double m_duration;
+	std::shared_ptr<EntityManager> _manager;
+	std::shared_ptr<World3D> _world;
+	std::shared_ptr<Particles> _particles;
+    double _timer;
+    double _duration;
 };
 
-#endif /* defined(NGN_EXPLOSIVE_COMPONENT_H) */
+#endif /* EXPLOSIVE_COMPONENT_H */

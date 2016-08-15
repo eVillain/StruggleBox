@@ -1,15 +1,7 @@
-//
-//  Frustum.cpp
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 4/28/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include "Frustum.h"
 
-
-namespace Frustum {
+namespace Frustum
+{
     GLdouble frustum[6][4];
     
     //========================================================================

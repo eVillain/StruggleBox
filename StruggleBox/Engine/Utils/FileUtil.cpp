@@ -17,11 +17,17 @@
 #include <sys/types.h>      // Creating folders
 #include <sstream>          // string stream
 
-std::string FileUtil::relativePath = "PATH_NOT_SET";
-std::string FileUtil::GetPath() { return relativePath; };
+std::string FileUtil::relativePath = "";
+std::string FileUtil::GetPath()
+{
+	if (relativePath.length() == 0) {
+		UpdateRelativePath();
+	}
+	return relativePath;
+}
 
 #if defined(_WIN32)
-// ----> TODO: Use console instead of printf
+// ----> TODO: Use log instead of printf
 // ----> TODO: Fix for windows - functions moved to StringUtils class
 
 //========================================================================
@@ -37,8 +43,8 @@ void FileUtil::UpdateRelativePath()
         std::wstring widePath( path, pathLength );
         std::string utf8Path = StringUtil::utf8_encode( widePath );
         // Cull executable name from path
-        int found=utf8Path.find_last_of("/\\") + 1; //leave last forwardslash
-        relativePath = utf8Path.substr(0,found);
+        size_t found=utf8Path.find_last_of("/\\") + 1; //leave last forwardslash
+        relativePath = utf8Path.substr(0, found);
         Log::Debug("FileUtil - Runtime path: %s", relativePath.c_str() );
     } else {
         relativePath = "FAILTRAIN, ALL ABOARD!";
@@ -56,15 +62,24 @@ bool GetFiles(const std::string dir, std::vector<std::string> &fileNames)
 	StringUtil::string2wchar_t(dir, FileName);
     HANDLE hFind = FindFirstFile(FileName, &FindFileData);
     
-    if (hFind == INVALID_HANDLE_VALUE) {
+    if (hFind == INVALID_HANDLE_VALUE)
+	{
         return false;
     }
-    
-	fileNames.push_back(StringUtil::wchar_t2string(FindFileData.cFileName));
-    
-    while (FindNextFile(hFind, &FindFileData))
+
+	if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+	{
 		fileNames.push_back(StringUtil::wchar_t2string(FindFileData.cFileName));
+	}
     
+	while (FindNextFile(hFind, &FindFileData))
+	{
+		if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		{
+			fileNames.push_back(StringUtil::wchar_t2string(FindFileData.cFileName));
+		}
+	}
+
     return true;
 }
 //========================================================================
@@ -87,6 +102,41 @@ bool FileUtil::GetFilesOfType(const std::string dir, const std::string type, std
     directory.append("*");
     directory.append(type);
     return GetFiles(directory, fileNames);;
+}
+
+bool FileUtil::GetSubfolders(
+	const std::string dir,
+	std::vector<std::string>& fileNames)
+{
+	std::string workDir = dir;
+	if (dir.substr(dir.length() - 1, 1) != "/\\")
+	{
+		workDir = dir + "/";
+	}
+	WIN32_FIND_DATA FindFileData;
+	wchar_t FileName[260];
+	StringUtil::string2wchar_t(workDir +"*", FileName);
+	HANDLE hFind = FindFirstFile(FileName, &FindFileData);
+
+	if (hFind == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+	{
+		fileNames.push_back(StringUtil::wchar_t2string(FindFileData.cFileName));
+	}
+
+	while (FindNextFile(hFind, &FindFileData))
+	{
+		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			fileNames.push_back(StringUtil::wchar_t2string(FindFileData.cFileName));
+		}
+	}
+
+	return true;
 }
 //========================================================================
 // DoesFolderExist()
@@ -263,3 +313,21 @@ bool FileUtil::CreateFolder( const std::string dir ) {
 }
 #endif
 
+long FileUtil::GetFileSize(const std::string filename)
+{
+	struct stat stat_buf;
+	int rc = stat(filename.c_str(), &stat_buf);
+	return rc == 0 ? stat_buf.st_size : -1;
+}
+
+std::string FileUtil::GetContainingFolder(const std::string path)
+{
+	std::string containingPath = path;
+	size_t lastSlash = containingPath.find_last_of("/\\");
+	if (lastSlash == path.length()-1)	// path had trailing slash, ignore it
+	{
+		containingPath = path.substr(0, path.length() - 1);
+		lastSlash = containingPath.find_last_of("/\\");
+	}
+	return containingPath.substr(0, lastSlash+1);
+}

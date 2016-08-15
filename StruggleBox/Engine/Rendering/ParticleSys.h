@@ -1,32 +1,25 @@
-//
-//  ParticleSys.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 01/03/14.
-//  Copyright (c) 2014 The Drudgerist. All rights reserved.
-//
-//  Defines a particle system and particles contained within
-//  Heavily inspired by Cocos2D and Particle Designer
-
-#ifndef NGN_PARTICLE_SYS_H
-#define NGN_PARTICLE_SYS_H
+#ifndef PARTICLE_SYS_H
+#define PARTICLE_SYS_H
 
 #include "GFXDefines.h"
 #include "Texture.h"
 #include "Renderer.h"
-#include <vector>
+#include "VertexData.h"
 #include "Dictionary.h"
+#include <vector>
+#include <queue>
+#include <memory>
 
-/** The Particle emitter lives forever. */
+/// The Particle emitter lives forever
 #define ParticleSystemDurationInfinity -1
 
-/** The starting size of the particle is equal to the ending size. */
+/// The starting size of the particle is equal to the ending size
 #define ParticleSystemStartSizeEqualToEndSize -1
 
-/** The starting radius of the particle is equal to the ending radius.  */
+/// The starting radius of the particle is equal to the ending radius
 #define ParticleSystemStartRadiusEqualToEndRadius -1
 
-/** Contains the values of each individual particle. */
+/// Contains the values of each individual particle.
 typedef struct sParticle {
 public:
     glm::vec3   pos;
@@ -74,22 +67,26 @@ enum ParticleSysLighting {      // System lighting (self lit or requires lightin
     ParticleSysLightOff = 0,
     ParticleSysLightOn = 1
 };
-class ParticleSys {
-    Texture* texture;
-    VertexBuffer* vBuffer;
-    Particle* particles; // Array of particles
+
+///  Defines a particle system and particles contained within
+///  Heavily inspired by Cocos2D and Particle Designer
+class ParticleSys
+{
 public:
-    
-    ParticleSys( const std::string filePath, const std::string fileName );
+    ParticleSys(
+		std::shared_ptr<Renderer> renderer,
+		const std::string filePath,
+		const std::string fileName);
+
     ~ParticleSys();
+
     void InitFromFile( const std::string filePath, const std::string fileName );
     void SaveToFile( const std::string filePath, const std::string fileName );
     
     void Update( const double dt );
-    void Draw( Renderer* renderer);
+    void Draw();
 
     void StopSystem();
-    bool AddParticle();
     
     glm::vec3 position;
     int dimensions;     // 0=2D or 1=3D
@@ -127,6 +124,16 @@ public:
     float tangAccel, tangAccelVar;  // Tangential acceleration and variance
     
     std::string texFileName;    // Texture filename
+
+private:
+	std::shared_ptr<Renderer> _renderer;
+	Texture* texture;
+	std::shared_ptr<VertBuffer> _vertBuffer;
+	VertexData<ColorVertexData> _vertData;
+	Particle* particles;        // Array of particles
+	bool _dirty;
+
+	bool AddParticle();
 };
 
-#endif /* defined(NGN_PARTICLE_SYS_H) */
+#endif

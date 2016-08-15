@@ -1,29 +1,33 @@
-//
-//  CubeComponent.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 8/29/13.
-//
-//
-
-#ifndef BWO_CUBE_COMPONENT_H
-#define BWO_CUBE_COMPONENT_H
+#ifndef CUBE_COMPONENT_H
+#define CUBE_COMPONENT_H
 
 #include "EntityComponent.h"
-class Cubeject;
-class EntityManager;
 
-class CubeComponent : public EntityComponent {
-    EntityManager* m_manager;
-    Cubeject* m_object;
-    int m_instanceID;
+class EntityManager;
+class VoxelFactory;
+class InstancedMesh;
+
+class CubeComponent : public EntityComponent
+{
 public:
-    CubeComponent( const int ownerID, EntityManager* manager, const std::string& objectName );
+    CubeComponent(
+		const int ownerID,
+		const std::string& objectName,
+		std::shared_ptr<EntityManager> manager,
+		std::shared_ptr<VoxelFactory> voxels);
+
     virtual ~CubeComponent();
-    void LoadObject();
-    void UnloadObject();
-    virtual void Update( double delta );
+
+    void loadObject();
+    void unloadObject();
+
+    virtual void update(const double delta);
     
+private:
+	std::shared_ptr<EntityManager> _manager;
+	std::shared_ptr<VoxelFactory> _voxels;
+	std::shared_ptr<InstancedMesh> _mesh;
+	int _instanceID;
 };
 
 #endif

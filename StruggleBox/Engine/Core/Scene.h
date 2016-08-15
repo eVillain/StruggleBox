@@ -3,13 +3,10 @@
 
 #include <string>
 
-class Locator;
-
 class Scene
 {
 public:
-    Scene(const std::string sceneID,
-          Locator& locator);
+    Scene(const std::string sceneID);
     virtual ~Scene() {};
     const std::string GetID() const;
 
@@ -20,15 +17,12 @@ public:
     virtual void Pause();
     virtual void Resume();
     
-    virtual void Update(double delta) = 0;
+    virtual void Update(const double delta) = 0;
     virtual void Draw() = 0;
     
     bool IsInitialized() { return _init; };
     bool IsPaused() { return _paused; };
     
-protected:
-    Locator& _locator;
-
 private:
     const std::string _sceneID;
     bool _init;

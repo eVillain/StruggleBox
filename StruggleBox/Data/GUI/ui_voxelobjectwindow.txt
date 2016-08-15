@@ -1,0 +1,33 @@
+WindowInfo
+	title Voxel Object
+	position 200 200
+	size 300 600
+TBLayout: axis: y, distribution-position: "left top", distribution: "available"
+	TBSection: value: 1, text: "Tools"
+		TBLayout: position: left top, axis: y
+			TBLayout: axis: x, distribution: "preferred"
+				TBButton: id: "button-cursor"
+					TBSkinImage: skin: Cursor
+				TBButton: id: "button-selection"
+					TBSkinImage: skin: Selection
+				TBButton: id: "button-block"
+					TBSkinImage: skin: Cube
+				TBButton: id: "button-column"
+					TBSkinImage: skin: Column
+			TBLayout: axis: x
+				TBButton: id: "button-sphere"
+					TBSkinImage: skin: Sphere
+				TBButton: id: "button-cylinder"
+					TBSkinImage: skin: Cylinder
+			TBButton: id: "button-clear", text: "Clear"
+			TBButton: id: "button-generateTree", text: "Generate Tree"
+				TBSkinImage: skin: Tree
+			TBButton: id: "button-rotateYPos", text: "Rotate Y+"
+			TBButton: id: "button-rotateYNeg", text: "Rotate Y-"
+	TBSection: value: 1, text: "Materials:"
+		TBLayout: axis: y
+			TBLayout: axis: x
+				TBTextField: text: "Current:"
+				TBTextField: id: "material-name", text: "unknown"
+			TBScrollContainer
+				TBLayout: id: "materials-list", axis: y, distribution-position: "left top"

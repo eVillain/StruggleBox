@@ -1,23 +1,18 @@
-//
-//  RendererNULL.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 16/11/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-//  This class is a debug renderer which only contains
-//  logging capabilities without the actual rendering
 
-#ifndef NGN_RENDERER_NULL_H
-#define NGN_RENDERER_NULL_H
+#ifndef RENDERER_NULL_H
+#define RENDERER_NULL_H
 
 #include "Renderer.h"
 
-class RendererNULL : public Renderer {
+//  This class is a debug renderer which only contains
+//  logging capabilities without the actual rendering
+// TODO: Complete implementation and route printfs to Log
+class RendererNULL : public Renderer
+{
     
 public:
     RendererNULL() { printf("[RendererNULL] created\n"); };
-    ~RendererNULL(); { printf("[RendererNULL] destroyed\n"); };
+    ~RendererNULL() { printf("[RendererNULL] destroyed\n"); };
     
     void Initialize() { initialized = true; printf("[RendererNULL] initialized.\n"); };
     void ShutDown() { initialized =  false; printf("[RendererNULL] shut down.\n"); };

@@ -1,0 +1,21 @@
+[submodule "StruggleBox/thirdparty/turbobadger"]
+	path = StruggleBox/thirdparty/turbobadger
+	url = https://github.com/tesch1/turbobadger.git
+[submodule "StruggleBox/thirdparty/freetype2"]
+	path = StruggleBox/thirdparty/freetype2
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "StruggleBox/thirdparty/libpng"]
+	path = StruggleBox/thirdparty/libpng
+	url = git://git.code.sf.net/p/libpng/code
+[submodule "StruggleBox/thirdparty/zlib"]
+	path = StruggleBox/thirdparty/zlib
+	url = https://github.com/madler/zlib
+[submodule "StruggleBox/thirdparty/bullet"]
+	path = StruggleBox/thirdparty/bullet
+	url = https://github.com/bulletphysics/bullet3
+[submodule "StruggleBox/thirdparty/pugixml"]
+	path = StruggleBox/thirdparty/pugixml
+	url = https://github.com/zeux/pugixml
+[submodule "StruggleBox/thirdparty/sdl"]
+	path = StruggleBox/thirdparty/sdl
+	url = https://github.com/spurious/SDL-mirror

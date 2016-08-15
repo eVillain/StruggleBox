@@ -1,7 +1,7 @@
 #ifndef ITEXT_H
 #define ITEXT_H
 
-#include "RenderDefines.h"
+#include "GFXDefines.h"
 #include "Color.h"
 #include "TextConstants.h"
 #include <string>

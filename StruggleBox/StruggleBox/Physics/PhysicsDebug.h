@@ -1,23 +1,15 @@
-//
-//  PhysicsDebug.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 7/29/13.
-//
-//
-
-#ifndef BWO_PHYSICSDEBUG_H
-#define BWO_PHYSICSDEBUG_H
+#ifndef PHYSICSDEBUG_H
+#define PHYSICSDEBUG_H
 
 #include "LinearMath/btIDebugDraw.h"
 class Renderer;
 
-class PhysicsDebug : public btIDebugDraw {
-	int m_debugMode;
+class PhysicsDebug : public btIDebugDraw
+{
 public:
     Renderer* m_renderer;
     
-	PhysicsDebug( );
+	PhysicsDebug();
 	virtual ~PhysicsDebug();
     
 	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& fromColor, const btVector3& toColor);
@@ -37,7 +29,8 @@ public:
 	virtual void	setDebugMode(int debugMode);
     
 	virtual int		getDebugMode() const { return m_debugMode;}
-    
+private:
+	int m_debugMode;
 };
 
 

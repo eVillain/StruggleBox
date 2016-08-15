@@ -378,6 +378,7 @@
 		D98BC57A1C8D4FBE00FAC522 /* TorsoLeather.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367311C8BF75C00E6AD07 /* TorsoLeather.bwo */; };
 		D98BC57B1C8D4FBE00FAC522 /* Turtle.bwo in CopyFiles */ = {isa = PBXBuildFile; fileRef = D90367321C8BF75C00E6AD07 /* Turtle.bwo */; };
 		D9B069451C89CEDE00D10277 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9B069441C89CEDE00D10277 /* main.cpp */; };
+		D9B0F9741CA872E2009DB689 /* ScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9B0F9721CA872E2009DB689 /* ScrollBar.cpp */; settings = {ASSET_TAGS = (); }; };
 		D9D237CB1C9B6A380005CCD0 /* ValueDisplay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9D237C91C9B6A380005CCD0 /* ValueDisplay.cpp */; settings = {ASSET_TAGS = (); }; };
 		D9D237CC1C9B6A380005CCD0 /* ValueDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = D9D237CA1C9B6A380005CCD0 /* ValueDisplay.h */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
@@ -1069,6 +1070,8 @@
 		D9B0693D1C89CEDE00D10277 /* StruggleBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StruggleBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9B069441C89CEDE00D10277 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		D9B0694B1C89CEDE00D10277 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D9B0F9721CA872E2009DB689 /* ScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollBar.cpp; sourceTree = "<group>"; };
+		D9B0F9731CA872E2009DB689 /* ScrollBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollBar.h; sourceTree = "<group>"; };
 		D9D237C91C9B6A380005CCD0 /* ValueDisplay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueDisplay.cpp; sourceTree = "<group>"; };
 		D9D237CA1C9B6A380005CCD0 /* ValueDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueDisplay.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1761,6 +1764,8 @@
 				D917C0EE1C9B06470083FB69 /* ListBehavior.h */,
 				D94133611C96F9060029205B /* Menu.cpp */,
 				D94133621C96F9060029205B /* Menu.h */,
+				D9B0F9721CA872E2009DB689 /* ScrollBar.cpp */,
+				D9B0F9731CA872E2009DB689 /* ScrollBar.h */,
 				D920312B1C91DF5300217562 /* Slider.cpp */,
 				D920312C1C91DF5300217562 /* Slider.h */,
 				D920312D1C91DF5300217562 /* SliderBehavior.h */,
@@ -1768,10 +1773,10 @@
 				D920312F1C91DF5300217562 /* TextInput.h */,
 				D92031301C91DF5300217562 /* TextInputBehavior.cpp */,
 				D92031311C91DF5300217562 /* TextInputBehavior.h */,
-				D92031321C91DF5300217562 /* Widget.cpp */,
-				D92031331C91DF5300217562 /* Widget.h */,
 				D9D237C91C9B6A380005CCD0 /* ValueDisplay.cpp */,
 				D9D237CA1C9B6A380005CCD0 /* ValueDisplay.h */,
+				D92031321C91DF5300217562 /* Widget.cpp */,
+				D92031331C91DF5300217562 /* Widget.h */,
 			);
 			path = GUI;
 			sourceTree = "<group>";
@@ -2115,6 +2120,7 @@
 			files = (
 				D90366A51C8BD20100E6AD07 /* World3D.cpp in Sources */,
 				D90366A31C8BD20100E6AD07 /* Cubeject.cpp in Sources */,
+				D9B0F9741CA872E2009DB689 /* ScrollBar.cpp in Sources */,
 				D903669F1C8BD20100E6AD07 /* UIItem3D.cpp in Sources */,
 				D903668D1C8BD20100E6AD07 /* EntityManager.cpp in Sources */,
 				D90366951C8BD20100E6AD07 /* PhysicsComponent.cpp in Sources */,

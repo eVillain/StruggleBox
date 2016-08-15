@@ -4,9 +4,9 @@
 #include "GFXDefines.h"
 #include "Physics.h"
 #include "Color.h"
+#include <memory>
 
 class Renderer;
-class World3D;
 
 class DynaCube
 {
@@ -14,7 +14,11 @@ public:
     Color color;
     float cubeSize;
     double timer;   // Lifetime
-    DynaCube( const btVector3 & pos, const btVector3 & halfSize, World3D* world, const Color& col );
+    DynaCube(
+		const btVector3 & pos,
+		const btVector3 & halfSize,
+		std::shared_ptr<Physics> physics,
+		const Color& col );
     ~DynaCube();
     
     void Draw( Renderer* renderer );
@@ -25,7 +29,7 @@ public:
 private:
     btCollisionShape* cubeShape;
     btRigidBody* cubeRigidBody;
-    World3D* m_world;
+	std::shared_ptr<Physics> _physics;
 };
 
 #endif

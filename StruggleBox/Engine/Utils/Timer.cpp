@@ -85,6 +85,7 @@ std::string Timer::TimeStamp()
     output << nowtm->tm_hour << ":" << nowtm->tm_min << ":" << nowtm->tm_sec;
     return output.str();
 }
+#endif
 
 double Timer::RunTimeSeconds()
 {
@@ -96,4 +97,3 @@ void Timer::StartRunTime()
     _startTime = Seconds();
 }
 
-#endif

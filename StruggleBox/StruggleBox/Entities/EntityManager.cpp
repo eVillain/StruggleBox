@@ -1,21 +1,7 @@
-//
-//  EntityManager.cpp
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 8/30/13.
-//
-//
-
 #include "EntityManager.h"
+#include "Injector.h"
 #include "Entity.h"
-#include "Locator.h"
-
-#include "SysCore.h"
-// Stat tracking needs below
-//#include "HyperVisor.h"
-//#include "StatTracker.h"
-//#include "World3D.h"
-
+#include "Renderer.h"
 
 #include "Dictionary.h"
 #include "ActorComponent.h"
@@ -29,60 +15,63 @@
 #include "ParticleComponent.h"
 #include "PhysicsComponent.h"
 
+#include "Log.h"
 
-EntityManager::EntityManager(Locator& locator,
-                             World3D* _world) :
-_locator(locator)
+EntityManager::EntityManager(std::shared_ptr<Injector> injector) :
+	_injector(injector)
 {
-    world = _world;
+	Log::Debug("[EntityManager] Constructor, instance at %p", this);
 }
 
-EntityManager::~EntityManager( void ) {
+EntityManager::~EntityManager()
+{
+	Log::Debug("[EntityManager] Destructor, instance at %p", this);
+
     std::map<int, Entity*>::iterator it;
     for (it=entityMap.begin(); it != entityMap.end(); it++) {
         delete it->second;
     }
     entityMap.clear();
-    world = NULL;
 }
 
-void EntityManager::Update(const double delta)
+void EntityManager::update(const double delta)
 {
 //    double timeStart = SysCore::GetMilliseconds();
-    for (std::map<int, PhysicsComponent*>::iterator it=_PhysicsComponents.begin(); it!=_PhysicsComponents.end(); it++) {
-        it->second->Update( delta );
+    for (auto physicsComponent : _physicsComponents) {
+		physicsComponent.second->update( delta );
     }
-    for (std::map<int, ActorComponent*>::iterator it=_ActorComponents.begin(); it!=_ActorComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, ActorComponent*>::iterator it=_actorComponents.begin(); it!=_actorComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, HealthComponent*>::iterator it=_HealthComponents.begin(); it!=_HealthComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, HealthComponent*>::iterator it=_healthComponents.begin(); it!=_healthComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, HumanoidComponent*>::iterator it=_HumanoidComponents.begin(); it!=_HumanoidComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, HumanoidComponent*>::iterator it=_humanoidComponents.begin(); it!=_humanoidComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, InventoryComponent*>::iterator it=_InventoryComponents.begin(); it!=_InventoryComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, InventoryComponent*>::iterator it=_inventoryComponents.begin(); it!=_inventoryComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, ItemComponent*>::iterator it=_ItemComponents.begin(); it!=_ItemComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, ItemComponent*>::iterator it=_itemComponents.begin(); it!=_itemComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, Light3DComponent*>::iterator it=_Light3DComponents.begin(); it!=_Light3DComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, Light3DComponent*>::iterator it=_light3DComponents.begin(); it!=_light3DComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, ParticleComponent*>::iterator it=_ParticleComponents.begin(); it!=_ParticleComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, ParticleComponent*>::iterator it=_particleComponents.begin(); it!=_particleComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, ExplosiveComponent*>::iterator it=_ExplosiveComponents.begin(); it!=_ExplosiveComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, ExplosiveComponent*>::iterator it=_explosiveComponents.begin(); it!=_explosiveComponents.end(); it++) {
+        it->second->update( delta );
     }
-    for (std::map<int, CubeComponent*>::iterator it=_CubeComponents.begin(); it!=_CubeComponents.end(); it++) {
-        it->second->Update( delta );
+    for (std::map<int, CubeComponent*>::iterator it=_cubeComponents.begin(); it!=_cubeComponents.end(); it++) {
+        it->second->update( delta );
     }
+
     while ( !eraseQueue.empty() ) {
         int eraseID = eraseQueue.front();
         if ( entityMap.find(eraseID) != entityMap.end() ) {
-            RemoveEntity(eraseID);
+            removeEntity(eraseID);
         }
         eraseQueue.pop();
     }
@@ -91,13 +80,30 @@ void EntityManager::Update(const double delta)
 //    world->_hyperVisor.GetStatTracker()->SetENum((int)entityMap.size());
 }
 
-int EntityManager::AddEntity( const std::string name ) {
+void EntityManager::draw()
+{
+	std::shared_ptr<Renderer> renderer = _injector->getInstance<Renderer>();
+	for (auto pair : _light3DComponents)
+	{
+		 renderer->queueLights(&pair.second->getLight(), 1);
+	}
+}
+
+int EntityManager::addEntity(const std::string name)
+{
     Entity* newEntity = new Entity(name);
     int newID = newEntity->GetID();
     entityMap[newID] = newEntity;
+	Log::Debug("[EntityManager] Added entity %i, name %s", newID, name);
     return newID;
 }
-int EntityManager::AddEntity( const std::string filePath, const std::string fileName ) {
+
+int EntityManager::addEntity(
+	const std::string filePath,
+	const std::string fileName)
+{
+	Log::Debug("[EntityManager] Loading entity file %s from %s", fileName, filePath);
+
     //  Load dictionary from data
     std::string dictPath = std::string(filePath).append(fileName);
     
@@ -111,7 +117,8 @@ int EntityManager::AddEntity( const std::string filePath, const std::string file
     Entity* newEntity = new Entity(name);
     int newID = newEntity->GetID();
     entityMap[newID] = newEntity;
-    
+	Log::Debug("[EntityManager] Loaded entity %i, name %s", newID, name);
+
     for (unsigned int i=0; i<dict.getNumKeys(); i++) {
         std::string name = dict.getKey(i);
         if ( name.compare(0, 1,"b") == 0 ) {
@@ -171,35 +178,67 @@ int EntityManager::AddEntity( const std::string filePath, const std::string file
     for (unsigned int i=0; i<dict.getNumKeys(); i++) {
         std::string name = dict.getKey(i);
         if ( name == "Actor" ) {
-            ActorComponent* actorComponent = new ActorComponent(newID, this);
-            _ActorComponents[newID] = actorComponent;
+            ActorComponent* actorComponent = new ActorComponent(
+				newID,
+				_injector->getInstance<EntityManager>());
+            _actorComponents[newID] = actorComponent;
         } else if ( name == "Cube" ) {
-            CubeComponent* cubeComponent = new CubeComponent(newID, this, "");
-            _CubeComponents[newID] = cubeComponent;
+            CubeComponent* cubeComponent = new CubeComponent(
+				newID,
+				"",
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<VoxelFactory>());
+            _cubeComponents[newID] = cubeComponent;
         } else if ( name == "Explosive" ) {
-            ExplosiveComponent* explosiveComponent = new ExplosiveComponent(newID, _locator);
-            _ExplosiveComponents[newID] = explosiveComponent;
+            ExplosiveComponent* explosiveComponent = new ExplosiveComponent(
+				newID,
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<World3D>(),
+				_injector->getInstance<Particles>());
+            _explosiveComponents[newID] = explosiveComponent;
         } else if ( name == "Health" ) {
-            HealthComponent* healthComponent = new HealthComponent(newID, this);
-            _HealthComponents[newID] = healthComponent;
+            HealthComponent* healthComponent = new HealthComponent(
+				newID,
+				_injector->getInstance<EntityManager>());
+            _healthComponents[newID] = healthComponent;
         } else if ( name == "Humanoid" ) {
-            HumanoidComponent* humanoidComponent = new HumanoidComponent(newID, this);
-            _HumanoidComponents[newID] = humanoidComponent;
+            HumanoidComponent* humanoidComponent = new HumanoidComponent(
+				newID,
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<Physics>(),
+				_injector->getInstance<VoxelFactory>());
+            _humanoidComponents[newID] = humanoidComponent;
         } else if ( name == "Inventory" ) {
-            InventoryComponent* inventoryComponent = new InventoryComponent(newID, this);
-            _InventoryComponents[newID] = inventoryComponent;
+            InventoryComponent* inventoryComponent = new InventoryComponent(
+				newID,
+				_injector->getInstance<EntityManager>());
+            _inventoryComponents[newID] = inventoryComponent;
         } else if ( name == "Item" ) {
-            ItemComponent* itemComponent = new ItemComponent(newID, this, _locator);
-            _ItemComponents[newID] = itemComponent;
+            ItemComponent* itemComponent = new ItemComponent(
+				newID,
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<Particles>(),
+				_injector->getInstance<Text>());
+            _itemComponents[newID] = itemComponent;
         } else if ( name == "Light3D" ) {
-            Light3DComponent* light3DComponent = new Light3DComponent(newID, this, _locator);
-            _Light3DComponents[newID] = light3DComponent;
+            Light3DComponent* light3DComponent = new Light3DComponent(
+				newID,
+				_injector->getInstance<EntityManager>());
+            _light3DComponents[newID] = light3DComponent;
         } else if ( name == "Particle" ) {// TODO: GET PARTICLE SYSTEM NAME
-            ParticleComponent* particleComponent = new ParticleComponent(newID, "", _locator);
-            _ParticleComponents[newID] = particleComponent;
+            ParticleComponent* particleComponent = new ParticleComponent(
+				newID,
+				"",
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<Particles>());
+            _particleComponents[newID] = particleComponent;
         } else if ( name == "Physics" ) {
-            PhysicsComponent* physicsComponent = new PhysicsComponent(newID, this);
-            _PhysicsComponents[newID] = physicsComponent;
+            PhysicsComponent* physicsComponent = new PhysicsComponent(
+				newID,
+				_injector->getInstance<EntityManager>(),
+				_injector->getInstance<Physics>(),
+				_injector->getInstance<VoxelFactory>());
+			_physicsComponents[newID] = physicsComponent;
         } else {
             printf("[EntityManager] Error loading unknown component %s\n", name.c_str());
         }
@@ -207,7 +246,7 @@ int EntityManager::AddEntity( const std::string filePath, const std::string file
     return newID;
 }
 
-void EntityManager::SaveEntity( Entity* entity, const std::string filePath, const std::string fileName ) {
+void EntityManager::saveEntity( Entity* entity, const std::string filePath, const std::string fileName ) {
     if ( entity == NULL ) return;
     int entityID = entity->GetAttributeDataPtr<int>("ID");
     //  Create new dictionary for data
@@ -215,34 +254,34 @@ void EntityManager::SaveEntity( Entity* entity, const std::string filePath, cons
     //  Save Component types
     dict.setSubDictForKey("Components");
     dict.stepIntoSubDictWithKey("Components");
-    if ( _ActorComponents.find(entityID) != _ActorComponents.end() ) {
+    if ( _actorComponents.find(entityID) != _actorComponents.end() ) {
         dict.setStringForKey("Actor", "Actor");
     }
-    if ( _CubeComponents.find(entityID) != _CubeComponents.end() ) {
+    if ( _cubeComponents.find(entityID) != _cubeComponents.end() ) {
         dict.setStringForKey("Cube", "Cube");
     }
-    if ( _ExplosiveComponents.find(entityID) != _ExplosiveComponents.end() ) {
+    if ( _explosiveComponents.find(entityID) != _explosiveComponents.end() ) {
         dict.setStringForKey("Explosive", "Explosive");
     }
-    if ( _HealthComponents.find(entityID) != _HealthComponents.end() ) {
+    if ( _healthComponents.find(entityID) != _healthComponents.end() ) {
         dict.setStringForKey("Health", "Health");
     }
-    if ( _HumanoidComponents.find(entityID) != _HumanoidComponents.end() ) {
+    if ( _humanoidComponents.find(entityID) != _humanoidComponents.end() ) {
         dict.setStringForKey("Humanoid", "Humanoid");
     }
-    if ( _InventoryComponents.find(entityID) != _InventoryComponents.end() ) {
+    if ( _inventoryComponents.find(entityID) != _inventoryComponents.end() ) {
         dict.setStringForKey("Inventory", "Inventory");
     }
-    if ( _ItemComponents.find(entityID) != _ItemComponents.end() ) {
+    if ( _itemComponents.find(entityID) != _itemComponents.end() ) {
         dict.setStringForKey("Item", "Item");
     }
-    if ( _Light3DComponents.find(entityID) != _Light3DComponents.end() ) {
+    if ( _light3DComponents.find(entityID) != _light3DComponents.end() ) {
         dict.setStringForKey("Light3D", "Light3D");
     }
-    if ( _ParticleComponents.find(entityID) != _ParticleComponents.end() ) {
+    if ( _particleComponents.find(entityID) != _particleComponents.end() ) {
         dict.setStringForKey("Particle", "Particle");
     }
-    if ( _PhysicsComponents.find(entityID) != _PhysicsComponents.end() ) {
+    if ( _physicsComponents.find(entityID) != _physicsComponents.end() ) {
         dict.setStringForKey("Physics", "Physics");
     }
     dict.stepOutOfSubDict();
@@ -302,147 +341,147 @@ void EntityManager::SaveEntity( Entity* entity, const std::string filePath, cons
     std::string dictPath = std::string(filePath).append(fileName);
     dict.saveRootSubDictToFile(dictPath.c_str());
 }
-void EntityManager::SetComponent( const int entityID, EntityComponent *component ) {
-    const std::string family = component->GetFamily();
+void EntityManager::setComponent( const int entityID, EntityComponent *component ) {
+    const std::string family = component->getFamily();
     if ( family == "Actor" ) {
-        _ActorComponents[entityID] = (ActorComponent*)component;
+        _actorComponents[entityID] = (ActorComponent*)component;
     } else if ( family == "Cube" ) {
-        _CubeComponents[entityID] = (CubeComponent*)component;
+        _cubeComponents[entityID] = (CubeComponent*)component;
     } else if ( family == "Explosive" ) {
-        _ExplosiveComponents[entityID] = (ExplosiveComponent*)component;
+        _explosiveComponents[entityID] = (ExplosiveComponent*)component;
     } else if ( family == "Health" ) {
-        _HealthComponents[entityID] = (HealthComponent*)component;
+        _healthComponents[entityID] = (HealthComponent*)component;
     } else if ( family == "Humanoid" ) {
-        _HumanoidComponents[entityID] = (HumanoidComponent*)component;
+        _humanoidComponents[entityID] = (HumanoidComponent*)component;
     } else if ( family == "Inventory" ) {
-        _InventoryComponents[entityID] = (InventoryComponent*)component;
+        _inventoryComponents[entityID] = (InventoryComponent*)component;
     } else if ( family == "Item" ) {
-        _ItemComponents[entityID] = (ItemComponent*)component;
+        _itemComponents[entityID] = (ItemComponent*)component;
     } else if ( family == "Light3D" ) {
-        _Light3DComponents[entityID] = (Light3DComponent*)component;
+        _light3DComponents[entityID] = (Light3DComponent*)component;
     } else if ( family == "Particle" ) {
-        if ( _ParticleComponents.find(entityID) != _ParticleComponents.end() ) printf("ADDING MULTIPLE PARTICLE SYSTEMS\n");
-        _ParticleComponents[entityID] = (ParticleComponent*)component;
+        if ( _particleComponents.find(entityID) != _particleComponents.end() ) printf("ADDING MULTIPLE PARTICLE SYSTEMS\n");
+        _particleComponents[entityID] = (ParticleComponent*)component;
     } else if ( family == "Physics" ) {
-        _PhysicsComponents[entityID] = (PhysicsComponent*)component;
+        _physicsComponents[entityID] = (PhysicsComponent*)component;
     } else {
         printf("[EntityManager] ERROR: Setting unknown component type %s\n", family.c_str());
     }
 }
-EntityComponent* EntityManager::GetComponent(const int entityID,
+EntityComponent* EntityManager::getComponent(const int entityID,
                                              const std::string componentFamily)
 {
-    if ( componentFamily == "Actor" && _ActorComponents.find(entityID) != _ActorComponents.end() ) {
-        return _ActorComponents[entityID];
-    } else if ( componentFamily == "Cube" && _CubeComponents.find(entityID) != _CubeComponents.end() ) {
-        return _CubeComponents[entityID];
-    } else if ( componentFamily == "Explosive" && _ExplosiveComponents.find(entityID) != _ExplosiveComponents.end() ) {
-        return _ExplosiveComponents[entityID];
-    } else if ( componentFamily == "Health" && _HealthComponents.find(entityID) != _HealthComponents.end() ) {
-        return _HealthComponents[entityID];
-    } else if ( componentFamily == "Humanoid" && _HumanoidComponents.find(entityID) != _HumanoidComponents.end() ) {
-        return _HumanoidComponents[entityID];
-    } else if ( componentFamily == "Inventory" && _InventoryComponents.find(entityID) != _InventoryComponents.end() ) {
-        return _InventoryComponents[entityID];
-    } else if ( componentFamily == "Item" && _ItemComponents.find(entityID) != _ItemComponents.end() ) {
-        return _ItemComponents[entityID];
-    } else if ( componentFamily == "Light3D" && _Light3DComponents.find(entityID) != _Light3DComponents.end() ) {
-        return _Light3DComponents[entityID];
-    } else if ( componentFamily == "Particle" && _ParticleComponents.find(entityID) != _ParticleComponents.end() ) {
-        return _ParticleComponents[entityID];
-    } else if ( componentFamily == "Physics" && _PhysicsComponents.find(entityID) != _PhysicsComponents.end() ) {
-        return _PhysicsComponents[entityID];
+    if ( componentFamily == "Actor" && _actorComponents.find(entityID) != _actorComponents.end() ) {
+        return _actorComponents[entityID];
+    } else if ( componentFamily == "Cube" && _cubeComponents.find(entityID) != _cubeComponents.end() ) {
+        return _cubeComponents[entityID];
+    } else if ( componentFamily == "Explosive" && _explosiveComponents.find(entityID) != _explosiveComponents.end() ) {
+        return _explosiveComponents[entityID];
+    } else if ( componentFamily == "Health" && _healthComponents.find(entityID) != _healthComponents.end() ) {
+        return _healthComponents[entityID];
+    } else if ( componentFamily == "Humanoid" && _humanoidComponents.find(entityID) != _humanoidComponents.end() ) {
+        return _humanoidComponents[entityID];
+    } else if ( componentFamily == "Inventory" && _inventoryComponents.find(entityID) != _inventoryComponents.end() ) {
+        return _inventoryComponents[entityID];
+    } else if ( componentFamily == "Item" && _itemComponents.find(entityID) != _itemComponents.end() ) {
+        return _itemComponents[entityID];
+    } else if ( componentFamily == "Light3D" && _light3DComponents.find(entityID) != _light3DComponents.end() ) {
+        return _light3DComponents[entityID];
+    } else if ( componentFamily == "Particle" && _particleComponents.find(entityID) != _particleComponents.end() ) {
+        return _particleComponents[entityID];
+    } else if ( componentFamily == "Physics" && _physicsComponents.find(entityID) != _physicsComponents.end() ) {
+        return _physicsComponents[entityID];
     } else {
 //        printf("[EntityManager] ERROR: Getting unknown component type %s for %i\n", componentFamily.c_str(), entityID);
     }
     return NULL;
 }
 
-void EntityManager::RemoveComponent(const int entityID,
+void EntityManager::removeComponent(const int entityID,
                                     EntityComponent* component)
 {
-    const std::string componentFamily = component->GetFamily();
-    if ( componentFamily == "Actor" && _ActorComponents.find(entityID) != _ActorComponents.end() ) {
-        _ActorComponents.erase(entityID);
-    } else if ( componentFamily == "Cube" && _CubeComponents.find(entityID) != _CubeComponents.end() ) {
-        _CubeComponents.erase(entityID);
-    } else if ( componentFamily == "Explosive" && _ExplosiveComponents.find(entityID) != _ExplosiveComponents.end() ) {
-        _ExplosiveComponents.erase(entityID);
-    } else if ( componentFamily == "Health" && _HealthComponents.find(entityID) != _HealthComponents.end() ) {
-        _HealthComponents.erase(entityID);
-    } else if ( componentFamily == "Humanoid" && _HumanoidComponents.find(entityID) != _HumanoidComponents.end() ) {
-        _HumanoidComponents.erase(entityID);
-    } else if ( componentFamily == "Inventory" && _InventoryComponents.find(entityID) != _InventoryComponents.end() ) {
-        _InventoryComponents.erase(entityID);
-    } else if ( componentFamily == "Item" && _ItemComponents.find(entityID) != _ItemComponents.end() ) {
-        _ItemComponents.erase(entityID);
-    } else if ( componentFamily == "Light3D" && _Light3DComponents.find(entityID) != _Light3DComponents.end() ) {
-        _Light3DComponents.erase(entityID);
-    } else if ( componentFamily == "Particle" && _ParticleComponents.find(entityID) != _ParticleComponents.end() ) {
-        _ParticleComponents.erase(entityID);
-    } else if ( componentFamily == "Physics" && _PhysicsComponents.find(entityID) != _PhysicsComponents.end() ) {
-        _PhysicsComponents.erase(entityID);
+    const std::string componentFamily = component->getFamily();
+    if ( componentFamily == "Actor" && _actorComponents.find(entityID) != _actorComponents.end() ) {
+        _actorComponents.erase(entityID);
+    } else if ( componentFamily == "Cube" && _cubeComponents.find(entityID) != _cubeComponents.end() ) {
+        _cubeComponents.erase(entityID);
+    } else if ( componentFamily == "Explosive" && _explosiveComponents.find(entityID) != _explosiveComponents.end() ) {
+        _explosiveComponents.erase(entityID);
+    } else if ( componentFamily == "Health" && _healthComponents.find(entityID) != _healthComponents.end() ) {
+        _healthComponents.erase(entityID);
+    } else if ( componentFamily == "Humanoid" && _humanoidComponents.find(entityID) != _humanoidComponents.end() ) {
+        _humanoidComponents.erase(entityID);
+    } else if ( componentFamily == "Inventory" && _inventoryComponents.find(entityID) != _inventoryComponents.end() ) {
+        _inventoryComponents.erase(entityID);
+    } else if ( componentFamily == "Item" && _itemComponents.find(entityID) != _itemComponents.end() ) {
+        _itemComponents.erase(entityID);
+    } else if ( componentFamily == "Light3D" && _light3DComponents.find(entityID) != _light3DComponents.end() ) {
+        _light3DComponents.erase(entityID);
+    } else if ( componentFamily == "Particle" && _particleComponents.find(entityID) != _particleComponents.end() ) {
+        _particleComponents.erase(entityID);
+    } else if ( componentFamily == "Physics" && _physicsComponents.find(entityID) != _physicsComponents.end() ) {
+        _physicsComponents.erase(entityID);
     } else {
         //        printf("[EntityManager] ERROR: Erasing unknown component type %s for %i\n", componentFamily.c_str(), entityID);
     }
 }
 
-void EntityManager::RemoveEntity(const int entityID)
+void EntityManager::removeEntity(const int entityID)
 {
     std::map<int, Entity*>::iterator it = entityMap.find(entityID);
     if ( it != entityMap.end() ) {
         // Clear out components first
-        if ( _ActorComponents.find(entityID)     != _ActorComponents.end() ) {
-            delete _ActorComponents[entityID];
-            _ActorComponents.erase(entityID);
+        if ( _actorComponents.find(entityID)     != _actorComponents.end() ) {
+            delete _actorComponents[entityID];
+            _actorComponents.erase(entityID);
         }
-        if ( _CubeComponents.find(entityID)      != _CubeComponents.end() )  {
-            delete _CubeComponents[entityID];
-            _CubeComponents.erase(entityID);
+        if ( _cubeComponents.find(entityID)      != _cubeComponents.end() )  {
+            delete _cubeComponents[entityID];
+            _cubeComponents.erase(entityID);
         }
-        if ( _ExplosiveComponents.find(entityID)      != _ExplosiveComponents.end() )  {
-            delete _ExplosiveComponents[entityID];
-            _ExplosiveComponents.erase(entityID);
+        if ( _explosiveComponents.find(entityID)      != _explosiveComponents.end() )  {
+            delete _explosiveComponents[entityID];
+            _explosiveComponents.erase(entityID);
         }
-        if ( _HealthComponents.find(entityID)    != _HealthComponents.end() )  {
-            delete _HealthComponents[entityID];
-            _HealthComponents.erase(entityID);
+        if ( _healthComponents.find(entityID)    != _healthComponents.end() )  {
+            delete _healthComponents[entityID];
+            _healthComponents.erase(entityID);
         }
-        if ( _HumanoidComponents.find(entityID)  != _HumanoidComponents.end() )  {
-            delete _HumanoidComponents[entityID];
-            _HumanoidComponents.erase(entityID);
+        if ( _humanoidComponents.find(entityID)  != _humanoidComponents.end() )  {
+            delete _humanoidComponents[entityID];
+            _humanoidComponents.erase(entityID);
         }
-        if ( _InventoryComponents.find(entityID) != _InventoryComponents.end() )  {
-            delete _InventoryComponents[entityID];
-            _InventoryComponents.erase(entityID);
+        if ( _inventoryComponents.find(entityID) != _inventoryComponents.end() )  {
+            delete _inventoryComponents[entityID];
+            _inventoryComponents.erase(entityID);
         }
-        if ( _ItemComponents.find(entityID)      != _ItemComponents.end() )  {
-            delete _ItemComponents[entityID];
-            _ItemComponents.erase(entityID);
+        if ( _itemComponents.find(entityID)      != _itemComponents.end() )  {
+            delete _itemComponents[entityID];
+            _itemComponents.erase(entityID);
         }
-        if ( _Light3DComponents.find(entityID)   != _Light3DComponents.end() )  {
-            delete _Light3DComponents[entityID];
-            _Light3DComponents.erase(entityID);
+        if ( _light3DComponents.find(entityID)   != _light3DComponents.end() )  {
+            delete _light3DComponents[entityID];
+            _light3DComponents.erase(entityID);
         }
-        if ( _ParticleComponents.find(entityID)  != _ParticleComponents.end() )  {
-            delete _ParticleComponents[entityID];
-            _ParticleComponents.erase(entityID);
+        if ( _particleComponents.find(entityID)  != _particleComponents.end() )  {
+            delete _particleComponents[entityID];
+            _particleComponents.erase(entityID);
         }
-        if ( _PhysicsComponents.find(entityID)   != _PhysicsComponents.end() )  {
-            delete _PhysicsComponents[entityID];
-            _PhysicsComponents.erase(entityID);
+        if ( _physicsComponents.find(entityID)   != _physicsComponents.end() )  {
+            delete _physicsComponents[entityID];
+            _physicsComponents.erase(entityID);
         }
         delete it->second;
         entityMap.erase(it);
     }
 }
 
-void EntityManager::KillEntity(const int entityID)
+void EntityManager::killEntity(const int entityID)
 {
     eraseQueue.push(entityID);
 }
 
-Entity* EntityManager::GetEntity(const int entityID)
+Entity* EntityManager::getEntity(const int entityID)
 {
     std::map<int, Entity*>::iterator it;
     it = entityMap.find(entityID);
@@ -452,7 +491,7 @@ Entity* EntityManager::GetEntity(const int entityID)
     return NULL;
 }
 
-Entity* EntityManager::GetNearestEntity(const glm::vec3 position,
+Entity* EntityManager::getNearestEntity(const glm::vec3 position,
                                         const int ignoreID,
                                         const EntityType filterType,
                                         const float radius)
@@ -479,7 +518,7 @@ Entity* EntityManager::GetNearestEntity(const glm::vec3 position,
     return nearestEnt;
 }
 
-std::map<int, Entity*> EntityManager::GetNearbyEntities(const glm::vec3 position,
+std::map<int, Entity*> EntityManager::getNearbyEntities(const glm::vec3 position,
                                                         const int ignoreID,
                                                         const EntityType filterType,
                                                         const float radius)

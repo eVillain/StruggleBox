@@ -40,8 +40,9 @@ const std::string MOUSE_BUTTON_1 = "MouseButton1";
 const std::string MOUSE_BUTTON_2 = "MouseButton2";
 const std::string MOUSE_BUTTON_3 = "MouseButton3";
 const std::string MOUSE_WHEEL_Y = "MouseWheelY";
+const std::string MOUSE_WHEEL_X = "MouseWheelX";
 
-
+// --------------------- //
 
 const std::string INPUT_START = "start";
 const std::string INPUT_BACK = "back";

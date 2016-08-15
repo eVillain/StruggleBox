@@ -1,0 +1,46 @@
+WindowInfo
+	title Mesh
+	position 200 200
+	size 200 360
+TBLayout: axis: y, distribution-position: "left top", distribution: "available"
+	TBSection: value: 1, text: "Current Instance"
+		TBLayout: position: left top, axis: y, spacing: 0
+			TBTextField: text: "Position:"
+			TBLayout: axis: x
+				TBEditField: id: "instance-position-x", placeholder: "x"
+				TBEditField: id: "instance-position-y", placeholder: "y"
+				TBEditField: id: "instance-position-z", placeholder: "z"
+			TBTextField: text: "Rotation:"
+			TBContainer: gravity: all
+				TBLayout
+					TBTextField: text: "X:"
+					TBInlineSelect: id: "instance-rotation-x", connection: "rot-x", min: 0, max: 360
+					TBSlider: connection: "rot-x", min: 0, max: 360
+			TBContainer: gravity: all
+				TBLayout
+					TBTextField: text: "Y:"
+					TBInlineSelect: id: "instance-rotation-y", connection: "rot-y", min: 0, max: 360
+					TBSlider: connection: "rot-y", min: 0, max: 360
+			TBContainer: gravity: all
+				TBLayout
+					TBTextField: text: "Z:"
+					TBInlineSelect: id: "instance-rotation-z", connection: "rot-z", min: 0, max: 360
+					TBSlider: connection: "rot-z", min: 0, max: 360
+			TBTextField: text: "Scale:"
+			TBLayout: axis: x
+				TBEditField: id: "instance-scale-x", placeholder: "x"
+				TBEditField: id: "instance-scale-y", placeholder: "y"
+				TBEditField: id: "instance-scale-z", placeholder: "z"
+	TBSection: value: 0, text: "Instances"
+		TBLayout: axis: y
+			TBLayout: axis: x
+				TBTextField: text: "Current:"
+				TBTextField: id: "instance-current", text: "unknown"
+			TBScrollContainer
+				TBLayout: id: "instances-list", axis: y
+			TBLayout: axis: x
+				TBButton: text: "Create", id: "button-instance-create"
+				TBButton: text: "Remove", id: "button-instance-remove"
+	TBSection: value: 0, text: "Tools"
+		TBLayout: position: left top, axis: y
+			TBButton: id: "button-mesh-clear", text: "Clear Vertices

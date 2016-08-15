@@ -1,14 +1,5 @@
-#ifndef BWO_COORD_H
-#define BWO_COORD_H
-
-//
-//  Coord.h
-//  Bloxelizer
-//
-//  Created by Ville-Veikko Urrila on 4/30/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
+#ifndef COORD_H
+#define COORD_H
 
 struct Coord2D {
     int x,y;

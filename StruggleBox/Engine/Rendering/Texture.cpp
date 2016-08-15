@@ -1,20 +1,8 @@
-//
-//  Texture.cpp
-//  SpriteTests
-//
-//  Created by Ville-Veikko Urrila on 1/12/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-//#include <tiffio.h>
-//#include <tiffio.hxx>
-//#include <sstream>
-
 #include <iostream>
 #include "Texture.h"
 #include "PNG/png.h"
 #include "PNG/pngstruct.h"
 #include "Console.h"
-#include "SysCore.h"
 
 Texture::Texture( std::string fileName,
                  GLint wrap,

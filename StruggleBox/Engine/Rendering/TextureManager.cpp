@@ -5,7 +5,6 @@
 
 #include "TextureManager.h"
 #include "Texture.h"
-#include "SysCore.h"
 #include "Log.h"
 
 TextureManager* TextureManager::m_inst(0);
@@ -27,10 +26,13 @@ void TextureManager::Destroy() {
 }
 
 TextureManager::TextureManager()
-{ }
+{
+	Log::Info("[TextureManager] constructor, instance at %p", this);
+}
 
 TextureManager::~TextureManager()
 {
+	Log::Info("[TextureManager] destructor, instance at %p", this);
     //UnloadAllTextures();
     //delete m_inst;
     //m_inst = NULL;

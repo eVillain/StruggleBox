@@ -1,22 +1,18 @@
-//**********************************************
-// Singleton Texture Manager class
-// Uses LibPNG to load .png files
-// Also handles .tga files using GLFW
-// Part of the Ingenium engine
-// For use with OpenGL and the LibPNG library
-//**********************************************
-
-#ifndef NE_TEXTUREMANAGER_H
-#define NE_TEXTUREMANAGER_H
+#ifndef TEXTUREMANAGER_H
+#define TEXTUREMANAGER_H
 
 
 #include "GFXDefines.h"
-#include "CoreTypes.h"
-
 #include <map>
 #include <string>
 
-class TextureManager {
+class Texture;
+
+// Texture Manager class
+// Uses LibPNG to load .png files
+// For use with OpenGL and the LibPNG library
+class TextureManager
+{
 public:
     static TextureManager* Inst();
     static void Destroy();

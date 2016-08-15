@@ -1,16 +1,27 @@
 #include "AppContext.h"
-#include "Window.h"
+#include "Log.h"
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
 bool AppContext::_sdlInitialized = false;
 bool AppContext::_glewInitialized = false;
 
+AppContext::AppContext()
+{
+	Log::Info("[AppContext] constructor, instance at %p", this);
+}
+
+AppContext::~AppContext()
+{
+	Log::Info("[AppContext] destructor, instance at %p", this);
+}
+
 bool AppContext::InitApp(const std::string title,
                          const int windowWidth,
                          const int windowHeight,
                          const bool fullScreen)
 {
+
     if (!InitSDL()) return false;
     if (fullScreen) {
         if (!_window.OpenFullScreen(title, windowWidth, windowHeight)) return false;

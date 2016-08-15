@@ -4,23 +4,26 @@
 #include "StringUtil.h"
 #include "RangeReverseAdapter.h"
 #include "Log.h"
-#include "Locator.h"
 #include "AppContext.h"
-#include "Window.h"
+#include "OSWindow.h"
 #include <SDL2/SDL.h>
 
-Input::Input(Locator& locator) :
-_locator(locator),
-_inputText(""),
-_textInputListener(nullptr)
-{ Log::Debug("[Input] Constructor..."); }
+Input::Input(std::shared_ptr<OSWindow> window) :
+	_window(window),
+	_inputText(""),
+	_textInputListener(nullptr)
+{
+	Log::Info("[Input] constructor, instance at %p", this);
+}
 
 bool Input::Initialize()
 {
     Log::Debug("[Input] Initializing...");
     // Add our binding mechanic to our console commands
     CommandProcessor::AddCommand("bind",
-                                 Command<const std::string&,const std::string&>([=](const std::string& input,const std::string& event)
+                                 Command<const std::string&, const std::string&>([=](
+									 const std::string& input,
+									 const std::string& event)
     {
         this->Bind(input, event);
     } ));
@@ -37,11 +40,6 @@ bool Input::Terminate()
     _inputEventListeners.clear();
     _textInputListener = nullptr;
     return true;
-}
-
-void Input::Update(const double deltaTime)
-{
-    ProcessInput();
 }
 
 void Input::RegisterEventObserver(InputEventListener* observer)
@@ -137,105 +135,91 @@ void PrintKeyInfo( SDL_KeyboardEvent *key )
     PrintModifiers( key->keysym.mod );
 }
 
-void Input::ProcessInput()
+bool Input::ProcessInput(const SDL_Event& event)
 {
-    //Event handler
-    SDL_Event event;
-    
-    /* Poll for events. SDL_PollEvent() returns 0 when there are no  */
-    /* more events on the event queue, our while loop will exit when */
-    /* that occurs.                                                  */
-    while( SDL_PollEvent( &event ) )
-    {
-        //User requests quit, terminate gracefully
-        if( event.type == SDL_QUIT )
-        {
-            CommandProcessor::ExecuteCommand("quit");
-            return;
-        }
-        
-        // Amount variable depends on press/release or axis status
-        // Range -1.0 ~ 1.0
-        float amount = 0.0f;
-        std::string input;
-        
-        // Check for text input, that takes precedence over regular events
-        if (event.type == SDL_KEYDOWN)
-        {
-            if ( event.key.repeat == 0 )
-            {
-                amount = 1.0f;
-                input = SDL_GetKeyName( event.key.keysym.sym );
-            }
-        }
-        else if (event.type == SDL_KEYUP)
-        {
-            if ( event.key.repeat == 0 )
-            {
-                amount = -1.0f;
-                input = SDL_GetKeyName( event.key.keysym.sym );
-            }
-        }
-        else if (event.type == SDL_MOUSEMOTION)
-        {
-            glm::ivec2 adjustedCoords = glm::ivec2(event.motion.x, event.motion.y);
-            for ( MouseEventListener* listener : _mouseEventListeners )
-            {
-                bool swallowed = (*listener).OnMouse( adjustedCoords );
-                if ( swallowed ) // Event was swallowed, don't propagate
-                {
-                    break;
-                }
-            }
-        }
-        else if (event.type == SDL_MOUSEBUTTONDOWN)
-        {
-            amount = 1.0f;
-            input = "MouseButton" + StringUtil::IntToString(event.button.button);
-        }
-        else if (event.type == SDL_MOUSEBUTTONUP)
-        {
-            amount = -1.0f;
-            input = "MouseButton" + StringUtil::IntToString(event.button.button);
-        }
-        else if (event.type == SDL_MOUSEWHEEL)
-        {
-            if (event.wheel.y != 0) {
-                amount = event.wheel.y;
-                input = "MouseWheelY";
-            } else if (event.wheel.x != 0) {
-                amount = event.wheel.x;
-                input = "MouseWheelX";
-            }
-        }
-        
-        // We have to check for input events first, blocking the regular events
-        if ( _textInputListener && ProcessTextInput(event))
-        {
-            // Call the registered observer
-            (*_textInputListener).OnTextInput(_inputText);
-        }
-        else if ( input.length() )   // Regular events
-        {
-//          printf("Input: %s\n", input.c_str());
-            if ( _inputBindings.find(input) != _inputBindings.end() )
-            {
-                if (_textInputListener && input != "Escape" && input != "Return")
-                {
-                    return;
-                }
-//           printf("Bound to: %s\n", _inputBindings[input].c_str());
-                
-                // Reversed because latest added listener should get the event first
-                for (InputEventListener* listener : reverse_adapt_container(_inputEventListeners))
-                {
-                    bool swallowed = (*listener).OnEvent(_inputBindings[input], amount);
-                    if ( swallowed )
-                    { break; }  // Event was swallowed, don't propagate
-                }
-            }
-        }
-    }
+	// Amount variable depends on press/release or axis status
+	// Range -1.0 ~ 1.0
+	float amount = 0.0f;
+	std::string input;
+
+	// Check for text input, that takes precedence over regular events
+	if (event.type == SDL_KEYDOWN)
+	{
+		if (event.key.repeat == 0)
+		{
+			amount = 1.0f;
+			input = SDL_GetKeyName(event.key.keysym.sym);
+		}
+	}
+	else if (event.type == SDL_KEYUP)
+	{
+		if (event.key.repeat == 0)
+		{
+			amount = -1.0f;
+			input = SDL_GetKeyName(event.key.keysym.sym);
+		}
+	}
+	else if (event.type == SDL_MOUSEMOTION)
+	{
+		glm::ivec2 adjustedCoords = glm::ivec2(event.motion.x, event.motion.y);
+		for (MouseEventListener* listener : _mouseEventListeners)
+		{
+			bool swallowed = (*listener).OnMouse(adjustedCoords);
+			if (swallowed) // Event was swallowed, don't propagate
+			{
+				return true;
+			}
+		}
+	}
+	else if (event.type == SDL_MOUSEBUTTONDOWN)
+	{
+		amount = 1.0f;
+		input = "MouseButton" + StringUtil::IntToString(event.button.button);
+	}
+	else if (event.type == SDL_MOUSEBUTTONUP)
+	{
+		amount = -1.0f;
+		input = "MouseButton" + StringUtil::IntToString(event.button.button);
+	}
+	else if (event.type == SDL_MOUSEWHEEL)
+	{
+		if (event.wheel.y != 0) {
+			amount = event.wheel.y;
+			input = MOUSE_WHEEL_Y;
+		}
+		else if (event.wheel.x != 0) {
+			amount = event.wheel.x;
+			input = MOUSE_WHEEL_X;
+		}
+	}
+
+	// We have to check for text input events first, blocking the regular events
+	if (_textInputListener && ProcessTextInput(event))
+	{
+		// Call the registered observer
+		(*_textInputListener).OnTextInput(_inputText);
+	}
+	else if (input.length())   // Regular events
+	{
+		if (_inputBindings.find(input) != _inputBindings.end())
+		{
+			if (_textInputListener && input != "Escape" && input != "Return")
+			{
+				return false;
+			}
+
+			// Reversed because latest added listener should get the event first
+			for (InputEventListener* listener : reverse_adapt_container(_inputEventListeners))
+			{
+				bool swallowed = (*listener).OnEvent(_inputBindings[input], amount);
+				if (swallowed)
+				{
+					return true;	// Event was swallowed, don't propagate
+				}
+			}
+		}
+	}
+	return false;
 }
 
 bool Input::ProcessTextInput(const SDL_Event &event)
@@ -330,7 +314,7 @@ void Input::StopTextInput(TextInputEventListener* observer)
 
 void Input::MoveCursor(const glm::ivec2 coord)
 {
-    SDL_WarpMouseInWindow(_locator.Get<AppContext>()->GetWindow()->GetSDLWindow(),
+    SDL_WarpMouseInWindow(_window->GetSDLWindow(),
                           coord.x,
                           coord.y);
 }

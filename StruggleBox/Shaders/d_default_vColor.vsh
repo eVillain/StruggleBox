@@ -19,5 +19,5 @@ void main() {
 	// The color of each vertex will be interpolated
 	// to produce the color of each fragment
 	fragment.color = vColor;
-    fragment.depth = gl_Position.z;
+  fragment.depth = gl_Position.z;
 }

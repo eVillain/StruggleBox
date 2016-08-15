@@ -775,12 +775,7 @@ void btSequentialImpulseConstraintSolver::setupContactConstraint(btSolverConstra
 			//rel_pos1 = pos1 - bodyA->getWorldTransform().getOrigin();
 			//rel_pos2 = pos2 - bodyB->getWorldTransform().getOrigin();
 
-			relaxation = infoGlobal.m_sor;
-			btScalar invTimeStep = btScalar(1)/infoGlobal.m_timeStep;
-			btScalar cfm = (cp.m_contactPointFlags&BT_CONTACT_FLAG_HAS_CONTACT_CFM)?cp.m_contactCFM:infoGlobal.m_globalCfm;
-			cfm *= invTimeStep;
-
-			btScalar erp = (cp.m_contactPointFlags&BT_CONTACT_FLAG_HAS_CONTACT_ERP)?cp.m_contactERP:infoGlobal.m_erp2;
+			relaxation = 1.f;
 
 			btVector3 torqueAxis0 = rel_pos1.cross(cp.m_normalWorldOnB);
 			solverConstraint.m_angularComponentA = rb0 ? rb0->getInvInertiaTensorWorld()*torqueAxis0*rb0->getAngularFactor() : btVector3(0,0,0);
@@ -807,7 +802,7 @@ void btSequentialImpulseConstraintSolver::setupContactConstraint(btSolverConstra
 					}
 #endif //COMPUTE_IMPULSE_DENOM
 
-					btScalar denom = relaxation/(denom0+denom1+cfm);
+					btScalar denom = relaxation/(denom0+denom1);
 					solverConstraint.m_jacDiagABInv = denom;
 				}
 
@@ -889,16 +884,20 @@ void btSequentialImpulseConstraintSolver::setupContactConstraint(btSolverConstra
 					btScalar	velocityError = restitution - rel_vel;// * damping;
 
 
-				
+					btScalar erp = infoGlobal.m_erp2;
+					if (!infoGlobal.m_splitImpulse || (penetration > infoGlobal.m_splitImpulsePenetrationThreshold))
+					{
+						erp = infoGlobal.m_erp;
+					}
+
 					if (penetration>0)
 					{
 						positionalError = 0;
 
-						velocityError -= penetration *invTimeStep;
+						velocityError -= penetration / infoGlobal.m_timeStep;
 					} else
 					{
-						positionalError = -penetration * erp*invTimeStep;
-
+						positionalError = -penetration * erp/infoGlobal.m_timeStep;
 					}
 
 					btScalar  penetrationImpulse = positionalError*solverConstraint.m_jacDiagABInv;
@@ -916,7 +915,7 @@ void btSequentialImpulseConstraintSolver::setupContactConstraint(btSolverConstra
 						solverConstraint.m_rhs = velocityImpulse;
 						solverConstraint.m_rhsPenetration = penetrationImpulse;
 					}
-					solverConstraint.m_cfm = cfm*solverConstraint.m_jacDiagABInv;
+					solverConstraint.m_cfm = 0.f;
 					solverConstraint.m_lowerLimit = 0;
 					solverConstraint.m_upperLimit = 1e10f;
 				}
@@ -1095,7 +1094,7 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 			///In that case, you can set the target relative motion in each friction direction (cp.m_contactMotion1 and cp.m_contactMotion2)
 			///this will give a conveyor belt effect
 			///
-			if (!(infoGlobal.m_solverMode & SOLVER_ENABLE_FRICTION_DIRECTION_CACHING) || !(cp.m_contactPointFlags&BT_CONTACT_FLAG_LATERAL_FRICTION_INITIALIZED))
+			if (!(infoGlobal.m_solverMode & SOLVER_ENABLE_FRICTION_DIRECTION_CACHING) || !cp.m_lateralFrictionInitialized)
 			{
 				cp.m_lateralFrictionDir1 = vel - cp.m_normalWorldOnB * rel_vel;
 				btScalar lat_rel_vel = cp.m_lateralFrictionDir1.length2();
@@ -1133,16 +1132,16 @@ void	btSequentialImpulseConstraintSolver::convertContact(btPersistentManifold* m
 
 					if ((infoGlobal.m_solverMode & SOLVER_USE_2_FRICTION_DIRECTIONS) && (infoGlobal.m_solverMode & SOLVER_DISABLE_VELOCITY_DEPENDENT_FRICTION_DIRECTION))
 					{
-						cp.m_contactPointFlags|=BT_CONTACT_FLAG_LATERAL_FRICTION_INITIALIZED;
+						cp.m_lateralFrictionInitialized = true;
 					}
 				}
 
 			} else
 			{
-				addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation,cp.m_contactMotion1, cp.m_frictionCFM);
+				addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation,cp.m_contactMotion1, cp.m_contactCFM1);
 
 				if ((infoGlobal.m_solverMode & SOLVER_USE_2_FRICTION_DIRECTIONS))
-					addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation, cp.m_contactMotion2, cp.m_frictionCFM);
+					addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation, cp.m_contactMotion2, cp.m_contactCFM2);
 
 			}
 			setFrictionConstraintImpulse( solverConstraint, solverBodyIdA, solverBodyIdB, cp, infoGlobal);

@@ -47,7 +47,7 @@ public:
     void AddDynamicVoxel(const btVector3& pos);
 
     void Explosion( const btVector3& pos, const float radius, const float force );
-    void AddImplosion( const btVector3& pos, const float radius, const float force );
+    //void AddImplosion( const btVector3& pos, const float radius, const float force );
     
     void SetRenderer( Renderer* renderer );
     

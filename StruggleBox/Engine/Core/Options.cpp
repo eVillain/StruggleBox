@@ -2,14 +2,18 @@
 #include "Dictionary.h"
 
 #include "FileUtil.h"
+#include "Log.h"
 
 #include "Console.h"
 #include "CommandProcessor.h"
 
-static bool s_debugOutput = false;
+
+static bool s_debugOutput = true;
 
 Options::Options()
 {
+	Log::Info("[Options] constructor, instance at %p", this);
+
     load();
 }
 
@@ -21,12 +25,12 @@ void Options::load()
         path.append("Options.plist");
         if ( load(path.c_str()) ) {
             loaded = true;
-            if ( s_debugOutput ) Console::Print("Loaded options file");
+            if ( s_debugOutput ) Log::Info("Loaded options file");
         } else {
-            if ( s_debugOutput ) Console::Print("Failed to load options file");
+            if ( s_debugOutput ) Log::Warn("Failed to load options file");
         }
     } else {
-        if ( s_debugOutput ) Console::Print("No options file to load");
+        if ( s_debugOutput ) Log::Warn("No options file to load");
     }
     if (!loaded) {
         setDefaults();
@@ -42,9 +46,9 @@ void Options::save()
     std::string path = FileUtil::GetPath();
     path.append("Options.plist");
     if ( save(path.c_str()) ) {
-        if ( s_debugOutput ) Console::Print("Saved options file");
+        if ( s_debugOutput ) Log::Debug("Saved options file");
     } else {
-        if ( s_debugOutput ) Console::Print("Failed to save options file");
+        if ( s_debugOutput ) Log::Warn("Failed to save options file");
     }
 }
 
@@ -53,7 +57,7 @@ void Options::printDebugInfo()
 {
     std::map<const std::string, Attribute*>::iterator it;
     for (it = m_Attributes.begin(); it != m_Attributes.end(); it++) {
-        printf("Options Key: %s, Data: %s\n",
+		Log::Debug("Options Key: %s, Data: %s\n",
                it->first.c_str(),
                it->second->GetValueString().c_str());
     }
@@ -112,7 +116,7 @@ bool Options::load(const char *fileName)
             } else if ( keyType == DD_String ) {
                 addOption( keys[i], dict.getStringForKey(keys[i].c_str()) );
             } else {
-                printf("[Options] bad type in dictionary for %s (%i)\n", keys[i].c_str(), keyType);
+				Log::Warn("[Options] bad type in dictionary for %s (%i)\n", keys[i].c_str(), keyType);
             }
         }
         return true;
@@ -125,7 +129,7 @@ void Options::setDefaults()
     // Clear out old options
     m_Attributes.empty();
     
-    addOption("version", "0");
+    addOption<std::string>("version", "0");
     addOption("h_multiThreading", true);
     
     addOption("r_resolutionX", 1280);
@@ -144,7 +148,6 @@ void Options::setDefaults()
     addOption("r_lighting3D", true);
     addOption("r_debugLights", false);
     addOption("r_debugShadows", false);
-    addOption("r_lightRays", false);
     addOption("r_shadows", false);
     addOption("r_shadowMultitap", false);
     addOption("r_shadowNoise", false);
@@ -156,10 +159,11 @@ void Options::setDefaults()
     
     addOption("r_renderMap", false);
     
-    addOption("r_sun", true);
-    addOption("r_sunBlur", false);
-    addOption("r_sunFlare", false);
-    
+    addOption("r_lightDots", true);
+    addOption("r_lightBlur", false);
+    addOption("r_lightRays", false);
+	addOption("r_lightFlare", false);
+
     addOption("r_renderDOF", false);
     addOption("r_renderFisheye", false);
     addOption("r_renderVignette", false);
@@ -177,7 +181,7 @@ void Options::setDefaults()
     addOption("r_flareGain", 1.0f);
     
     addOption("r_renderSSAO", false);
-    addOption("r_SSAOblur", 0);
+    addOption("r_SSAOblur", 1);
     
     addOption("r_SSAOtotal_strength", 1.0f);
     addOption("r_SSAObase", 0.0f);
@@ -191,7 +195,7 @@ void Options::setDefaults()
     addOption("r_edgeThreshold", 0.05f);
     
     addOption("r_motionBlur", false);
-    addOption("r_renderWireFrame", false);
+    addOption("r_wireFrame", false);
     addOption("r_renderPoint", false);
     addOption("r_renderParticles", true);
     

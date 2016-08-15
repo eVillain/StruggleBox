@@ -35,12 +35,7 @@ typedef sce::PhysicsEffects::PfxConstraintRow btConstraintRow;
 	typedef btConstraintRow PfxConstraintRow;
 #endif //PFX_USE_FREE_VECTORMATH
 
-enum btContactPointFlags
-{
-	BT_CONTACT_FLAG_LATERAL_FRICTION_INITIALIZED=1,
-	BT_CONTACT_FLAG_HAS_CONTACT_CFM=2,
-	BT_CONTACT_FLAG_HAS_CONTACT_ERP=4,
-};
+
 
 /// ManifoldContactPoint collects and maintains persistent contactpoints.
 /// used to improve stability and performance of rigidbody dynamics response.
@@ -49,15 +44,14 @@ class btManifoldPoint
 		public:
 			btManifoldPoint()
 				:m_userPersistentData(0),
-				m_contactPointFlags(0),
-				m_appliedImpulse(0.f),
+				m_lateralFrictionInitialized(false),
+                m_appliedImpulse(0.f),
                 m_appliedImpulseLateral1(0.f),
 				m_appliedImpulseLateral2(0.f),
 				m_contactMotion1(0.f),
 				m_contactMotion2(0.f),
-				m_contactCFM(0.f),
-				m_contactERP(0.f),
-				m_frictionCFM(0.f),
+				m_contactCFM1(0.f),
+				m_contactCFM2(0.f),
 				m_lifeTime(0)
 			{
 			}
@@ -73,15 +67,14 @@ class btManifoldPoint
 					m_combinedRollingFriction(btScalar(0.)),
 					m_combinedRestitution(btScalar(0.)),
 					m_userPersistentData(0),
-					m_contactPointFlags(0),
-					m_appliedImpulse(0.f),
+					m_lateralFrictionInitialized(false),
+                    m_appliedImpulse(0.f),
                     m_appliedImpulseLateral1(0.f),
 					m_appliedImpulseLateral2(0.f),
 					m_contactMotion1(0.f),
 					m_contactMotion2(0.f),
-					m_contactCFM(0.f),
-					m_contactERP(0.f),
-					m_frictionCFM(0.f),
+					m_contactCFM1(0.f),
+					m_contactCFM2(0.f),
 					m_lifeTime(0)
 			{
 				
@@ -108,18 +101,15 @@ class btManifoldPoint
 			int			m_index1;
 				
 			mutable void*	m_userPersistentData;
-			//bool			m_lateralFrictionInitialized;
-			int				m_contactPointFlags;
-			
+			bool			m_lateralFrictionInitialized;
+
 			btScalar		m_appliedImpulse;
 			btScalar		m_appliedImpulseLateral1;
 			btScalar		m_appliedImpulseLateral2;
 			btScalar		m_contactMotion1;
 			btScalar		m_contactMotion2;
-			btScalar		m_contactCFM;
-			btScalar		m_contactERP;
-
-			btScalar		m_frictionCFM;
+			btScalar		m_contactCFM1;
+			btScalar		m_contactCFM2;
 
 			int				m_lifeTime;//lifetime of the contactpoint in frames
 			

@@ -8,30 +8,24 @@
 #  define SET_BINARY_MODE(file)
 #endif
 
-#include <fstream>              // file streams
-#include <glm/gtc/matrix_transform.hpp>     // glm::translate, glm::rotate, glm::scale
-#include <glm/gtc/noise.hpp>    // glm::simplex
-
 #include "World3D.h"
-#include "Locator.h"
+#include "Injector.h"
 #include "CommandProcessor.h"
 #include "Options.h"
 #include "Frustum.h"            // Frustum culling of chunks
 #include "Renderer.h"
 #include "Camera.h"
-#include "LightSystem3D.h"
 #include "StatTracker.h"
-#include "TextManager.h"
+#include "Text.h"
 #include "FileUtil.h"
 #include "Timer.h"
 #include "Random.h"
 
-#include "Console.h"
 #include "ShaderManager.h"
 #include "Particles.h"
+#include "VoxelFactory.h"
 
 #include "Physics.h"
-#include "SkyDome.h"
 #include "Serialise.h"
 #include "EntityManager.h"
 #include "Entity.h"
@@ -45,223 +39,208 @@
 #include "InventoryComponent.h"
 #include "ParticleComponent.h"
 #include "Light3DComponent.h"
-#include "Cubeject.h"
 
+#include <fstream>              // file streams
+#include <glm/gtc/matrix_transform.hpp>     // glm::translate, glm::rotate, glm::scale
+#include <glm/gtc/noise.hpp>    // glm::simplex
 
 // World globals
 float World3D::worldTimeScale = 1.0f;
 bool World3D::physicsEnabled = true;
 bool World3D::paused = true;
 
-World3D::World3D(const std::string newName,
-                 const int newSeed,
-                 Locator& locator) :
-worldName(newName), seed(newSeed),
-_locator(locator)
+World3D::World3D(
+	std::shared_ptr<Injector> injector,
+	std::shared_ptr<Renderer> renderer,
+	std::shared_ptr<Camera> camera,
+	std::shared_ptr<EntityManager> entityMan,
+	std::shared_ptr<Text> text,
+	std::shared_ptr<Options> options,
+	std::shared_ptr<Particles> particles,
+	std::shared_ptr<Physics> physics) :
+	_injector(injector),
+	_renderer(renderer),
+	_camera(camera),
+	_entityMan(entityMan),
+	_text(text),
+	_options(options),
+	_particles(particles),
+	_physics(physics)
 {
+	Log::Info("[World3D] Constructor, instance at %p", this);
+
     waterLevel = 0;
     waterWaveHeight = 0.1f;
     numContacts = 0;
 
     // Start up physics engine
-    worldPhysics = new Physics();
     refreshPhysics = false;
+}
 
-    // Build room floor
-    for (int x = -16; x < 16; x++) {
-        for (int z = -16; z < 16; z++) {
-            double tileRandomness = Random::RandomDouble();
-            double posX = (x * 2.0) + 1.0;
-            double posZ = (z * 2.0) + 1.0;
-            double posY = -2.0 + (tileRandomness * 0.05);
-            double floorGrey = 0.05 + (tileRandomness * 0.05);
-            Color floorColor = RGBAColor(floorGrey, floorGrey, floorGrey, 1.0);
-            StaticCube* floorCube = new StaticCube(btVector3(posX, posY, posZ),
-                                                   btVector3(1.0, 1.0, 1.0),
-                                                   this,
-                                                   floorColor);
-            staticCubes.push_back(floorCube);
-        }
-    }
-    
-    // Build room ceiling
-    for (int x = -4; x < 4; x++) {
-        for (int z = -4; z < 4; z++) {
-            double tileRandomness = Random::RandomDouble();
-            double posX = (x * 8.0) + 4.0;
-            double posZ = (z * 8.0) + 4.0;
-            double posY = 12.0 - (tileRandomness * 0.5);
-            double ceilingGrey = (tileRandomness * 0.15);
-            Color ceilingColor = RGBAColor(ceilingGrey, ceilingGrey, ceilingGrey, 1.0);
-            StaticCube* ceilingCube = new StaticCube(btVector3(posX, posY, posZ),
-                                                   btVector3(4.0, 4.0, 4.0),
-                                                   this,
-                                                   ceilingColor);
-            staticCubes.push_back(ceilingCube);
-        }
-    }
-    
-    StaticCube* leftWall = new StaticCube(btVector3(-64.0, 0.0, 0.0),
-                                          btVector3(32.0, 32.0, 32.0),
-                                          this,
-                                          COLOR_GREY_DARK);
-    StaticCube* rightWall = new StaticCube(btVector3(64.0, 0.0, 0.0),
-                                          btVector3(32.0, 32.0, 32.0),
-                                          this,
-                                          COLOR_GREY_DARK);
-    StaticCube* backWall = new StaticCube(btVector3(0.0, 0.0, -64.0),
-                                          btVector3(32.0, 32.0, 32.0),
-                                          this,
-                                          COLOR_GREY_DARK);
-    StaticCube* frontWall = new StaticCube(btVector3(0.0, 0.0, 64.0),
-                                          btVector3(32.0, 32.0, 32.0),
-                                          this,
-                                          COLOR_GREY_DARK);
-    staticCubes.push_back(leftWall);
-    staticCubes.push_back(rightWall);
-    staticCubes.push_back(frontWall);
-    staticCubes.push_back(backWall);
-    
-    _locator.Get<Camera>()->SetPhysicsCallback(worldPhysics->CameraCollisions);
+void World3D::Initialize()
+{
+	const float roomWidth = 64.0f;
+
+	const int floorTiles = 32;
+	const int min = -floorTiles / 2;
+	const int max = floorTiles / 2;
+	const float floorTileWidth = (roomWidth / floorTiles);
+	const float randomFactor = floorTileWidth*0.5;
+	_renderer->setRoomSize(roomWidth*0.5);
+
+	Random::RandomSeed(Timer::Seconds());
+	// Build room 
+	_numCubes = 0;
+	for (int y = min; y < max; y++) {
+		for (int x = min; x < max; x++) {
+			for (int z = min; z < max; z++) {
+				if (x > min && x < max - 1 &&
+					y > min && y < max - 1 &&
+					z > min && z < max - 1)
+					continue;
+				double tileRandomness = 0.0;// Random::RandomDouble();
+				float randomDirection = -1.0f;
+				if (x == min || y == min || z == min)
+					randomDirection = 1.0f;
+				double posX = (x * floorTileWidth) + (floorTileWidth*0.5);
+				posX += (x == min || x == max - 1) ? (tileRandomness * randomFactor * randomDirection) : 0;
+				double posZ = (z * floorTileWidth) + (floorTileWidth*0.5);
+				posZ += (z == min || z == max - 1) ? (tileRandomness * randomFactor * randomDirection) : 0;
+				double posY = (y * floorTileWidth) + (floorTileWidth*0.5);
+				posY += (y == min || y == max - 1) ? (tileRandomness * floorTileWidth*0.1f) : 0;
+				double floorGrey = 0.05 + (tileRandomness * 0.05);
+				CubeInstance floorCube = {
+					posX, posY, posZ, floorTileWidth*0.5,
+					0.0f, 0.0f, 0.0f, 1.0f,
+					MaterialData::texOffset(5)
+				};
+				_floorCubes[_numCubes] = floorCube;
+				_numCubes++;
+				_physics->AddStaticBox(btVector3(posX, posY, posZ), btVector3(floorTileWidth*0.5f, floorTileWidth*0.5f, floorTileWidth*0.5f));
+			}
+		}
+	}
+
+    _camera->SetPhysicsCallback(_physics->CameraCollisions);
     
     playerCoord = Coord3D(0,3,0);
-
-	std::string dirName = FileUtil::GetPath().append("Worlds3D/");
+    
+    std::string dirName = FileUtil::GetPath().append("Worlds3D/");
     if ( !FileUtil::DoesFolderExist(dirName) ) {
         FileUtil::CreateFolder(dirName);
     }
-	if (!FileUtil::DoesFolderExist(dirName + worldName + "/")) {
-		FileUtil::CreateFolder(dirName + worldName + "/");
-    }
-    
-    sunLight = nullptr;
-    playerLight = NULL;
-    if (_locator.Satisfies<LightSystem3D>())
-    {
-        sunLight = new Light3D();
-        sunLight->lightType = Light3D_Sun;
-        sunLight->shadowCaster = true;
-        sunLight->rayCaster = true;
-        _locator.Get<LightSystem3D>()->Add(sunLight);
-        
-        Color amb = SkyDome::GetLightAmbient();
-        Color diff = SkyDome::GetLightColor();
-        Color spec = SkyDome::GetSunColor();
-        glm::vec3 sunWorldPos = _locator.Get<Camera>()->position+SkyDome::GetSunPos()*512.0f;
-        sunLight->position = glm::vec4(sunWorldPos.x,sunWorldPos.y,sunWorldPos.z,0.0f);
-        sunLight->ambient = amb;
-        sunLight->diffuse = diff;
-        sunLight->specular = spec;
-        
-        playerLight = new Light3D();
-        playerLight->lightType = Light3D_Point;
-        _locator.Get<LightSystem3D>()->Add(playerLight);
-        playerLight->position.w = 10.0f;
-        playerLight->ambient = COLOR_NONE;
-        playerLight->diffuse = LAColor(1.0f, 3.0f);
-        playerLight->specular = LAColor(1.0f, 10.0f);;
-        playerLight->attenuation = glm::vec3(0.5f,0.35f,0.2f);
-//        playerLight->rayCaster = true;
-        playerLight->shadowCaster = true;
+    if (!FileUtil::DoesFolderExist(dirName + worldName + "/")) {
+        FileUtil::CreateFolder(dirName + worldName + "/");
     }
 
-    // Start up entity systems
-    entityMan = new EntityManager(_locator, this);
-    _locator.MapInstance<EntityManager>(entityMan);
-//    player = NULL;
+	const float lightAmb = 0.1;
+	const float lightRadius = roomWidth*0.75;
+	_lights[0].type = Light_Type_Point;
+	_lights[0].shadowCaster = true;
+	_lights[0].rayCaster = true;
+	_lights[0].position = glm::vec4(0.0, 0.0, roomWidth*0.25, lightRadius);
+	_lights[0].color = RGBAColor(1.0, 1.0, 1.0, 0.2);
+	_lights[0].attenuation = glm::vec3(0.0f, 0.0f, 1.0f);
+	_lights[1].type = Light_Type_Point;
+	_lights[1].shadowCaster = true;
+	_lights[1].rayCaster = true;
+	_lights[1].position = glm::vec4(-roomWidth*0.25, 0.0, 0.0f, lightRadius);
+	_lights[1].color = RGBAColor(1.0, 0.0, 0.0, lightAmb);
+	_lights[1].attenuation = glm::vec3(0.0f, 0.0f, 1.0f);
+	_lights[2].type = Light_Type_Point;
+	_lights[2].shadowCaster = true;
+	_lights[2].rayCaster = true;
+	_lights[2].position = glm::vec4(0.0, 0.0, -roomWidth*0.25, lightRadius);
+	_lights[2].color = RGBAColor(0.0, 1.0, 0.0, lightAmb);
+	_lights[2].attenuation = glm::vec3(0.0f, 0.0f, 1.0f);
+	_lights[3].type = Light_Type_Point;
+	_lights[3].shadowCaster = true;
+	_lights[3].rayCaster = true;
+	_lights[3].position = glm::vec4(roomWidth*0.25, 0.0, 0.0f, lightRadius);
+	_lights[3].color = RGBAColor(0.0, 0.0, 1.0, lightAmb);
+	_lights[3].attenuation = glm::vec3(0.0f, 0.0f, 1.0f);
+
+	playerLight.type = Light_Type_Point;
+	playerLight.position.w = roomWidth*0.5;
+	playerLight.color = RGBAColor(1.0, 1.0, 1.0, 0.0);
+	playerLight.attenuation = glm::vec3(0.0f, 0.0f, 1.0f);
+
     playerID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Player.plist");
-//    playerID = AddPlayer(glm::vec3(0,2,0));
-    Entity* player = entityMan->GetEntity(playerID);    // Temporary stuff, we shouldn't hold pointers to entities just int ID
+    //    playerID = AddPlayer(glm::vec3(0,2,0));
+    Entity* player = _entityMan->getEntity(playerID);    // Temporary stuff, we shouldn't hold pointers to entities just int ID
     
     glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
     
-//	glm::vec3 playerPos = glm::vec3();
-    glm::vec3 objPos = playerPos+glm::vec3(2.0f,0.0f,2.0f);
-    
-    int backpackID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Backpack.plist");
-    Entity* backpack = entityMan->GetEntity(backpackID);
-    backpack->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-    
-    int swordID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "SwordIron.plist");
-    Entity* sword = entityMan->GetEntity(swordID);
-    sword->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-
-    int excalibatorID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Excalibator.plist");
-    Entity* excalibator = entityMan->GetEntity(excalibatorID);
-    excalibator->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-    
-    int pickaxeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Pickaxe.plist");
-    Entity* pickaxe = entityMan->GetEntity(pickaxeID);
-    pickaxe->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-
-    int bowID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "BowWood.plist");
-    Entity* bow = entityMan->GetEntity(bowID);
-    bow->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-
-    int axeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "AxeSteel.plist");
-    Entity* axe = entityMan->GetEntity(axeID);
-    axe->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-
+    //	glm::vec3 playerPos = glm::vec3();
+    glm::vec3 objPos = playerPos+glm::vec3(0.0f,2.0f,-2.0f);
+	const float objectDistance = 2.0f;
+ //   int backpackID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Backpack.plist");
+ //   Entity* backpack = _entityMan->getEntity(backpackID);
+ //   backpack->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int swordID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "SwordIron.plist");
+ //   Entity* sword = _entityMan->getEntity(swordID);
+ //   sword->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int excalibatorID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Excalibator.plist");
+ //   Entity* excalibator = _entityMan->getEntity(excalibatorID);
+ //   excalibator->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int pickaxeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Pickaxe.plist");
+ //   Entity* pickaxe = _entityMan->getEntity(pickaxeID);
+ //   pickaxe->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int bowID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "BowWood.plist");
+ //   Entity* bow = _entityMan->getEntity(bowID);
+ //   bow->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int axeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "AxeSteel.plist");
+ //   Entity* axe = _entityMan->getEntity(axeID);
+ //   axe->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
     int torchID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Torch.plist");
-    Entity* torch = entityMan->GetEntity(torchID);
+    Entity* torch = _entityMan->getEntity(torchID);
     torch->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
+    objPos.z -= objectDistance;
+ //   
+ //   int potionID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "PotionHealth.plist");
+ //   Entity* potion = _entityMan->getEntity(potionID);
+ //   potion->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int grenadeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Grenade.plist");
+ //   Entity* grenade = _entityMan->getEntity(grenadeID);
+ //   grenade->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   int grenadeHolyID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "GrenadeHoly.plist");
+ //   Entity* grenadeHoly = _entityMan->getEntity(grenadeHolyID);
+ //   grenadeHoly->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
+ //   
+ //   
+ //   //    for (int i = 0; i < 10; i++) {
+ //   int suckernadeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Suckernade.plist");
+ //   Entity* suckernade = _entityMan->getEntity(suckernadeID);
+ //   suckernade->GetAttributeDataPtr<glm::vec3>("position") = objPos;
+ //   objPos.z -= objectDistance;
 
-    int potionID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "PotionHealth.plist");
-    Entity* potion = entityMan->GetEntity(potionID);
-    potion->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-    
-    int grenadeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Grenade.plist");
-    Entity* grenade = entityMan->GetEntity(grenadeID);
-    grenade->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-    
-    int grenadeHolyID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "GrenadeHoly.plist");
-    Entity* grenadeHoly = entityMan->GetEntity(grenadeHolyID);
-    grenadeHoly->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-    objPos.z -= 1.0f;
-    
-    
-//    for (int i = 0; i < 10; i++) {
-        int suckernadeID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Suckernade.plist");
-        Entity* suckernade = entityMan->GetEntity(suckernadeID);
-        suckernade->GetAttributeDataPtr<glm::vec3>("position") = objPos;
-        objPos.z -= 1.0f;
-//    }
+ //   //    }
 }
 
 World3D::~World3D()
 {
-    if ( sunLight ) {
-        _locator.Get<LightSystem3D>()->Remove(sunLight);
-        delete sunLight;
-        sunLight = NULL;
-    }
-	if (playerLight) {
-		_locator.Get<LightSystem3D>()->Remove(playerLight);
-		delete playerLight;
-		playerLight = NULL;
-	}
     if ( playerID ) {
 //        int playerID = player->GetAttributeDataPtr<int>("ID");
-//        entityMan->RemoveEntity(playerID);
+//        entityMan->removeEntity(playerID);
         playerID = 0;
     }
-    delete entityMan;
-    entityMan = NULL;
-    
-    std::map<std::string, Cubeject*>::iterator it;
-    for (it = cubejects.begin(); it != cubejects.end(); it++) {
-        delete it->second;
-    }
-    cubejects.clear();
     
     for (int i=0; i<dynamicCubes.size(); i++) {
         delete dynamicCubes[i];
@@ -272,164 +251,164 @@ World3D::~World3D()
         delete staticCubes[i];
     }
     staticCubes.clear();
-    
-    delete worldPhysics;
-    worldPhysics = NULL;
 }
 
-const int World3D::Spawn(const std::string filePath, const std::string fileName) {
+const int World3D::Spawn(std::string filePath, std::string fileName) {
     std::string newName = "Entity";
-    int newEntID = entityMan->AddEntity(filePath, fileName);
+    int newEntID = _entityMan->addEntity(filePath, fileName);
     return newEntID;
 }
 
 const int World3D::SpawnItem(const ItemType type,
-                             const std::string object,
+                             std::string object,
                              const glm::vec3 pos,
                              const glm::quat rot)
 {
     std::string newName = NameForItem(type);
     newName.append(intToString(Entity::GetNextEntityID()));
-    int newEntID = entityMan->AddEntity(newName);
-    Entity* newEnt = entityMan->GetEntity(newEntID);
-    ItemComponent* itemComponent = new ItemComponent(newEntID,
-                                                     entityMan,
-                                                     _locator);
-    entityMan->SetComponent(newEntID, itemComponent);
+    int newEntID = _entityMan->addEntity(newName);
+    Entity* newEnt = _entityMan->getEntity(newEntID);
+    ItemComponent* itemComponent = new ItemComponent(newEntID, _entityMan, _particles, _text);
+    _entityMan->setComponent(newEntID, itemComponent);
     newEnt->GetAttributeDataPtr<int>("itemType") = type;
     newEnt->GetAttributeDataPtr<glm::vec3>("position") = pos;
     newEnt->GetAttributeDataPtr<glm::quat>("rotation") = rot;
     newEnt->GetAttributeDataPtr<std::string>("objectFile") = object;
-    PhysicsComponent* physComponent = new PhysicsComponent( newEntID, entityMan );
-    entityMan->SetComponent(newEntID, physComponent);
-    physComponent->SetPhysicsMode( Physics_Dynamic_AABBs );
-    CubeComponent* cubeComponent = new CubeComponent(newEntID, entityMan, object);
-    entityMan->SetComponent(newEntID, cubeComponent);
+    PhysicsComponent* physComponent = new PhysicsComponent(
+		newEntID,
+		_entityMan,
+		_physics,
+		_injector->getInstance<VoxelFactory>());
+    _entityMan->setComponent(newEntID, physComponent);
+    physComponent->setPhysicsMode( Physics_Dynamic_AABBs );
+
+    CubeComponent* cubeComponent = new CubeComponent(
+		newEntID,
+		object,
+		_entityMan,
+		_injector->getInstance<VoxelFactory>());
+    _entityMan->setComponent(newEntID, cubeComponent);
     return newEntID;
 }
 
-const int World3D::AddPlayer( const glm::vec3 pos ) {
+const int World3D::AddPlayer(const glm::vec3 pos)
+{
     std::string newName = "Player_";
     newName.append(intToString(Entity::GetNextEntityID()));
-    int newEntID = entityMan->AddEntity(newName);
-    Entity* newEnt = entityMan->GetEntity(newEntID);
+    int newEntID = _entityMan->addEntity(newName);
+    Entity* newEnt = _entityMan->getEntity(newEntID);
     glm::vec3& position = newEnt->GetAttributeDataPtr<glm::vec3>("position");
     position = pos+glm::vec3(0,5.0f,0);
     newEnt->GetAttributeDataPtr<int>("type") = ENTITY_HUMANOID;
     newEnt->GetAttributeDataPtr<int>("alignment") = ALIGNMENT_NEUTRAL;
-    EntityComponent* humanoidComponent = new HumanoidComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, humanoidComponent);
-    HealthComponent* healthComponent = new HealthComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, healthComponent);
-    InventoryComponent* inventoryComponent = new InventoryComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, inventoryComponent);
+    EntityComponent* humanoidComponent = new HumanoidComponent(newEntID, _entityMan, _physics, _injector->getInstance<VoxelFactory>());
+    _entityMan->setComponent(newEntID, humanoidComponent);
+    HealthComponent* healthComponent = new HealthComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, healthComponent);
+    InventoryComponent* inventoryComponent = new InventoryComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, inventoryComponent);
     return newEntID;
 }
-const int World3D::AddSkeleton( const glm::vec3 pos ) {
+
+const int World3D::AddSkeleton(const glm::vec3 pos)
+{
     std::string newName = "Skeleton_";
     newName.append(intToString(Entity::GetNextEntityID()));
-    int newEntID = entityMan->AddEntity(newName);
-    Entity* newEnt = entityMan->GetEntity(newEntID);
+    int newEntID = _entityMan->addEntity(newName);
+    Entity* newEnt = _entityMan->getEntity(newEntID);
     glm::vec3& position = newEnt->GetAttributeDataPtr<glm::vec3>("position");
     position = pos+glm::vec3(0,5.0f,0);
     newEnt->GetAttributeDataPtr<int>("type") = ENTITY_SKELETON;
     newEnt->GetAttributeDataPtr<int>("alignment") = ALIGNMENT_CHAOTIC;
-    ActorComponent* actorComponent = new ActorComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, actorComponent);
-    HumanoidComponent* humanoidComponent = new HumanoidComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, humanoidComponent);
-    HealthComponent* healthComponent = new HealthComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, healthComponent);
+    ActorComponent* actorComponent = new ActorComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, actorComponent);
+    HumanoidComponent* humanoidComponent = new HumanoidComponent(newEntID, _entityMan, _physics, _injector->getInstance<VoxelFactory>());
+    _entityMan->setComponent(newEntID, humanoidComponent);
+    HealthComponent* healthComponent = new HealthComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, healthComponent);
     return newEntID;
 }
-const int World3D::AddHuman( const glm::vec3 pos ) {
+
+const int World3D::AddHuman(const glm::vec3 pos)
+{
     std::string newName = "Humanoid_";
     newName.append(intToString(Entity::GetNextEntityID()));
-    int newEntID = entityMan->AddEntity(newName);
-    Entity* newEnt = entityMan->GetEntity(newEntID);
+    int newEntID = _entityMan->addEntity(newName);
+    Entity* newEnt = _entityMan->getEntity(newEntID);
     glm::vec3& position = newEnt->GetAttributeDataPtr<glm::vec3>("position");
     position = pos+glm::vec3(0,5.0f,0);
     newEnt->GetAttributeDataPtr<int>("type") = ENTITY_HUMANOID;
     newEnt->GetAttributeDataPtr<int>("alignment") = ALIGNMENT_LAWFUL;
-    ActorComponent* actorComponent = new ActorComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, actorComponent);
-    EntityComponent* humanoidComponent = new HumanoidComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, humanoidComponent);
-    HealthComponent* healthComponent = new HealthComponent(newEntID, entityMan);
-    entityMan->SetComponent(newEntID, healthComponent);
+    ActorComponent* actorComponent = new ActorComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, actorComponent);
+    EntityComponent* humanoidComponent = new HumanoidComponent(newEntID, _entityMan, _physics, _injector->getInstance<VoxelFactory>());
+    _entityMan->setComponent(newEntID, humanoidComponent);
+    HealthComponent* healthComponent = new HealthComponent(newEntID, _entityMan);
+    _entityMan->setComponent(newEntID, healthComponent);
     return newEntID;
 }
-void World3D::AddDecor( const std::string object, const glm::vec3 pos, const glm::quat rot ) {
-    std::string newName = "Decor_";
-    newName.append(intToString(Entity::GetNextEntityID()));
-    int newEntID = entityMan->AddEntity(newName);
-    Entity* newEnt = entityMan->GetEntity(newEntID);
-    newEnt->GetAttributeDataPtr<int>("ownerID") = -1;
 
-    newEnt->GetAttributeDataPtr<int>("type") = ENTITY_DECOR;
-    newEnt->GetAttributeDataPtr<glm::vec3>("position") = pos;
-    newEnt->GetAttributeDataPtr<std::string>("objectFile") = object;
-    PhysicsComponent* physComponent4 = new PhysicsComponent( newEntID, entityMan );
-    entityMan->SetComponent(newEntID, physComponent4);
-    physComponent4->SetPhysicsMode( Physics_Dynamic_AABBs );
-    CubeComponent* cubeComponent4 = new CubeComponent(newEntID, entityMan, object);
-    entityMan->SetComponent(newEntID, cubeComponent4);
+void World3D::AddDecor(
+	std::string& object,
+	const glm::vec3 pos,
+	const glm::quat rot)
+{
+  //  std::string newName = "Decor_";
+  //  newName.append(intToString(Entity::GetNextEntityID()));
+  //  int newEntID = _entityMan->addEntity(newName);
+  //  Entity* newEnt = _entityMan->getEntity(newEntID);
+  //  newEnt->GetAttributeDataPtr<int>("ownerID") = -1;
+  //  newEnt->GetAttributeDataPtr<int>("type") = ENTITY_DECOR;
+  //  newEnt->GetAttributeDataPtr<glm::vec3>("position") = pos;
+  //  newEnt->GetAttributeDataPtr<std::string>("objectFile") = object;
+  //  PhysicsComponent* physComponent4 = new PhysicsComponent(
+		//newEntID,
+		//_entityMan,
+		//_physics,
+		//_injector->getInstance<World3D>());
+  //  _entityMan->setComponent(newEntID, physComponent4);
+  //  physComponent4->setPhysicsMode( Physics_Dynamic_AABBs );
+  //  CubeComponent* cubeComponent4 = new CubeComponent(newEntID, object, _entityMan, std::shared_ptr<World3D>(this));
+  //  _entityMan->setComponent(newEntID, cubeComponent4);
 }
 
-void World3D::Update(double delta)
+void World3D::Update(const double delta)
 {
     if ( !paused ) {
         float updateDelta = delta*worldTimeScale;
         
-        if ( sunLight ) {
-            Color amb = SkyDome::GetLightAmbient();
-            Color diff = SkyDome::GetLightColor();
-            Color spec = diff;
-            glm::vec3 sunWorldPos = SkyDome::GetSunPos();
-            sunLight->position.x = sunWorldPos.x;
-            sunLight->position.y = sunWorldPos.y;
-            sunLight->position.z = sunWorldPos.z;
-            sunLight->ambient = amb;
-            sunLight->diffuse = diff;
-            sunLight->specular = spec;
-        }
-        if ( playerID && playerLight ) {
-            Entity* player = entityMan->GetEntity(playerID);
-            playerLight->position.x = player->GetAttributeDataPtr<glm::vec3>("position").x;
-            playerLight->position.y = player->GetAttributeDataPtr<glm::vec3>("position").y+2.0f;
-            playerLight->position.z = player->GetAttributeDataPtr<glm::vec3>("position").z;
+        if ( playerID ) {
+            Entity* player = _entityMan->getEntity(playerID);
+            playerLight.position.x = player->GetAttributeDataPtr<glm::vec3>("position").x;
+            playerLight.position.y = player->GetAttributeDataPtr<glm::vec3>("position").y+2.0f;
+            playerLight.position.z = player->GetAttributeDataPtr<glm::vec3>("position").z;
         }
 
         double timeEStart = Timer::Milliseconds();
-        entityMan->Update(updateDelta);
+        _entityMan->update(updateDelta);
         double timeEntities = Timer::Milliseconds();
-        _locator.Get<StatTracker>()->SetETime(timeEntities-timeEStart);
+        //_locator.Get<StatTracker>()->SetETime(timeEntities-timeEStart);
 
-		if ( physicsEnabled && worldPhysics ) { // Update physics
+		if ( physicsEnabled && _physics ) { // Update physics
             // Update dynamic cubes
             for (int i=0; i<dynamicCubes.size(); i++) {
                 dynamicCubes[i]->Update( updateDelta );
             }
             // Update physics simulation
             double timePStart = Timer::Milliseconds();
-            worldPhysics->Update( updateDelta );
+            _physics->Update( updateDelta );
             
-            int numManifolds = worldPhysics->dynamicsWorld->getDispatcher()->getNumManifolds();
+            int numManifolds = _physics->dynamicsWorld->getDispatcher()->getNumManifolds();
 
-            double timePhysics = Timer::Milliseconds();
-            _locator.Get<StatTracker>()->SetPTime(timePhysics-timePStart);
-            _locator.Get<StatTracker>()->SetPCollisions(numContacts);
+            //double timePhysics = Timer::Milliseconds();
+            //_locator.Get<StatTracker>()->SetPTime(timePhysics-timePStart);
+            //_locator.Get<StatTracker>()->SetPCollisions(numContacts);
             numContacts = 0;
-            _locator.Get<StatTracker>()->SetPManifodlds(numManifolds);
+            //_locator.Get<StatTracker>()->SetPManifodlds(numManifolds);
         }
         
     } else {
-        entityMan->Update(0.0);
-    }
-    // Update graphics cube objects
-    std::map<std::string, Cubeject*>::iterator it;
-    for (it = cubejects.begin(); it != cubejects.end(); it++) {
-        it->second->Update(delta);
+        _entityMan->update(0.0);
     }
     // Funky floor colors
 //    double timeNow = Timer::RunTimeSeconds();
@@ -444,19 +423,18 @@ void World3D::Update(double delta)
 //    }
 }
 
-void World3D::UpdateLabels(Renderer* renderer)
+void World3D::UpdateLabels()
 {
     // Write labels for nearby objects
     if (playerID)
     {
         int numLabel = 0;
-        TextManager * textMan = _locator.Get<TextManager>();
-        Entity* player = entityMan->GetEntity(playerID);
+        Entity* player = _entityMan->getEntity(playerID);
         glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
-        Entity* nearestEntity = entityMan->GetNearestEntity(playerPos,
+        Entity* nearestEntity = _entityMan->getNearestEntity(playerPos,
                                                             playerID,
                                                             ENTITY_ITEM);
-        std::map<int, Entity*> nearbyEnts = entityMan->GetNearbyEntities(playerPos,
+        std::map<int, Entity*> nearbyEnts = _entityMan->getNearbyEntities(playerPos,
                                                                          playerID,
                                                                          ENTITY_ITEM);
         std::map<int, Entity*>::iterator it = nearbyEnts.begin();
@@ -474,20 +452,20 @@ void World3D::UpdateLabels(Renderer* renderer)
                 glm::vec3 entityPos = it->second->GetAttributeDataPtr<glm::vec3>("position");
                 
                 if ( numLabel < objectLabels.size() ) {
-                    textMan->UpdateText(objectLabels[numLabel], entityName);
-                    textMan->UpdateTextPos(objectLabels[numLabel], entityPos);
-                    textMan->UpdateTextRot(objectLabels[numLabel], _locator.Get<Camera>()->rotation);
-                    textMan->UpdateTextColor(objectLabels[numLabel], textColor);
+                    //_text->UpdateText(objectLabels[numLabel], entityName);
+                    //_text->UpdateTextPos(objectLabels[numLabel], entityPos);
+                    //_text->UpdateTextRot(objectLabels[numLabel], _camera->rotation);
+                    //_text->UpdateTextColor(objectLabels[numLabel], textColor);
                 } else {
-                    int labelID = textMan->AddText(entityName,
-                                                   entityPos,
-                                                   false,
-                                                   32.0f,
-                                                   FONT_DEFAULT,
-                                                   0.0,
-                                                   textColor,
-                                                   _locator.Get<Camera>()->rotation);
-                    objectLabels.push_back(labelID);
+                    //int labelID = _text->AddText(entityName,
+                    //                               entityPos,
+                    //                               false,
+                    //                               32.0f,
+                    //                               FONT_DEFAULT,
+                    //                               0.0,
+                    //                               textColor,
+                    //                               _camera->rotation);
+                    //objectLabels.push_back(labelID);
                 }
                 numLabel++;
             } else {
@@ -498,11 +476,11 @@ void World3D::UpdateLabels(Renderer* renderer)
         }
         // Erase unnecessary labels
         if ( nearbyEnts.size() < objectLabels.size() ) {
-            for (size_t i=nearbyEnts.size(); i<objectLabels.size(); i++) {
-                textMan->RemoveText( objectLabels[i] );
-            }
-            objectLabels.erase(objectLabels.begin()+nearbyEnts.size(),
-                               objectLabels.end());
+            //for (size_t i=nearbyEnts.size(); i<objectLabels.size(); i++) {
+            //    _text->RemoveText( objectLabels[i] );
+            //}
+            //objectLabels.erase(objectLabels.begin()+nearbyEnts.size(),
+            //                   objectLabels.end());
         }
     }
 }
@@ -510,82 +488,54 @@ void World3D::UpdateLabels(Renderer* renderer)
 void World3D::ClearLabels()
 {
     // Erase unnecessary labels
-    if ( objectLabels.size() ) {
-        TextManager * textMan = _locator.Get<TextManager>();
-        for (size_t i=0; i<objectLabels.size(); i++) {
-            textMan->RemoveText( objectLabels[i] );
-        }
-        objectLabels.clear();
-    }
+    //if ( objectLabels.size() ) {
+    //    for (size_t i=0; i<objectLabels.size(); i++) {
+    //        _text->RemoveText( objectLabels[i] );
+    //    }
+    //    objectLabels.clear();
+    //}
 }
 
-void World3D::Draw(Renderer* renderer)
+void World3D::Draw()
 {
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glEnable( GL_CULL_FACE );
-    glCullFace( GL_BACK );
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, Stencil_Solid, 0xFF);
-    
-    glDisable(GL_BLEND);
+    DrawObjects();
 
-    DrawObjects(renderer);
-
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, Stencil_Transparent, 0xFF);
-    glEnable(GL_BLEND);
-//    glDepthMask(GL_FALSE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    // Draw transparent chunk vertices, closest last
-
-    
-    glDepthMask(GL_TRUE);
-    glDisable(GL_STENCIL_TEST);
-    
     // Draw debug physics
     if (physicsEnabled &&
-        _locator.Get<Options>()->getOption<bool>("d_physics"))
+        _options->getOption<bool>("d_physics"))
     {
-        worldPhysics->SetRenderer( renderer );
-        glEnable(GL_DEPTH_TEST);
-        worldPhysics->dynamicsWorld->debugDrawWorld();
-        renderer->Render3DLines();
+        _physics->SetRenderer( _renderer.get() );
+        _physics->dynamicsWorld->debugDrawWorld();
     }
-    UpdateLabels( renderer );
+    UpdateLabels();
+
+	_renderer->queueLights(_lights, 4);
 }
 
-void World3D::DrawObjects( Renderer* renderer ) {
-    std::map<std::string, Cubeject*>::iterator it;
-    glDisable(GL_BLEND);
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, Stencil_Solid, 0xFF);
-    // Render opaque vertices
-    for (it = cubejects.begin(); it != cubejects.end(); it++) { it->second->Draw( renderer ); }
-    for (int i=0; i<staticCubes.size(); i++) { staticCubes[i]->Draw(renderer); }
-    renderer->Render3DCubes();
-    glEnable(GL_BLEND);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, Stencil_Transparent, 0xFF);
-    // Render transparent vertices
-    for (it = cubejects.begin(); it != cubejects.end(); it++) { it->second->DrawTransparent( renderer ); }
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, Stencil_Solid, 0xFF);
-    // Render dynamic cubes
-    for (int i=0; i<dynamicCubes.size(); i++) { dynamicCubes[i]->Draw(renderer); }
-    renderer->Render3DCubes();
-    glDisable(GL_STENCIL_TEST);
+void World3D::DrawObjects()
+{
+    //std::map<std::string, Cubeject*>::iterator it;
+    //// Render opaque vertices
+    //for (int i=0; i<staticCubes.size(); i++) { staticCubes[i]->Draw(renderer); }
+    //// Render dynamic cubes
+    //for (int i=0; i<dynamicCubes.size(); i++) { dynamicCubes[i]->Draw(renderer); }
+
+	// Render the room
+	_renderer->bufferCubes(_floorCubes, _numCubes);
 }
 
-DynaCube* World3D::AddDynaCube( const btVector3 &pos, const btVector3 &halfSize, const Color& col ) {
-    DynaCube* cube = new DynaCube(pos, halfSize, this, col);
+DynaCube* World3D::AddDynaCube(
+	const btVector3 &pos,
+	const btVector3 &halfSize,
+	const Color& col)
+{
+    DynaCube* cube = new DynaCube(pos, halfSize, _physics, col);
     dynamicCubes.push_back(cube);
     return cube;
 }
-void World3D::RemoveDynaCube(DynaCube* cube)  {
+
+void World3D::RemoveDynaCube(DynaCube* cube)
+{
     for (int i=0; i < dynamicCubes.size(); i++) {
         if ( dynamicCubes[i] == cube ) {
             delete dynamicCubes[i];
@@ -594,90 +544,23 @@ void World3D::RemoveDynaCube(DynaCube* cube)  {
         }
     }
 }
-//  -------------   OBJECT MANAGEMENT   ----------- //
-Cubeject* World3D::LoadObject( const std::string fileName ) {
-    std::map<std::string, Cubeject*>::iterator it;
-    it = cubejects.find(fileName);
-    if ( it != cubejects.end() ) {
-        return it->second;
-    } else {
-        Cubeject* newObject = new Cubeject(fileName,
-                                           _locator.Get<Renderer>());
-        cubejects[fileName] = newObject;
-        return newObject;
-    }
-}
-
-unsigned int World3D::AddObject(const std::string objectName,
-                                const glm::vec3 position,
-                                const glm::vec3 scale)
-{
-    std::map<std::string, Cubeject*>::iterator it;
-    it = cubejects.find(objectName);
-    if ( it != cubejects.end() ) {
-        return it->second->AddInstance(position, glm::vec3(0), scale);
-    } else {
-        Cubeject*  object = LoadObject( objectName );
-        return object->AddInstance(position, glm::vec3(0), scale);
-    }
-}
-
-void World3D::RemoveObject(InstanceData* object)
-{
-    std::map<std::string, Cubeject*>::iterator it;
-    for (it= cubejects.begin(); it != cubejects.end(); it++) {
-        if ( it->second->RemoveInstance(object))  {
-            if ( it->second->GetNumInstances() == 0 ) {
-                delete it->second;
-                cubejects.erase(it);    // No more instances of object in world, unload
-            }
-            return;
-        }
-    }
-}
-
-void World3D::RemoveObject(unsigned int objectID)
-{
-    std::map<std::string, Cubeject*>::iterator it;
-    for (it= cubejects.begin(); it != cubejects.end(); it++) {
-        if ( it->second->RemoveInstance(objectID))  {
-            if ( it->second->GetNumInstances() == 0 ) {
-                delete it->second;
-                cubejects.erase(it);    // No more instances of object in world, unload
-            }
-            return;
-        }
-    }
-}
-
-Cubeject* World3D::GetObject(const std::string objectName)
-{
-    std::map<std::string, Cubeject*>::iterator it;
-    it = cubejects.find(objectName);
-    if ( it != cubejects.end() ) {
-        return it->second;
-    } else {
-        Cubeject*  object = LoadObject( objectName );
-        return object;
-    }
-}
 
 void World3D::Explosion(const glm::vec3 position,
                         const float radius,
                         const float force)
 {
-    std::shared_ptr<ParticleSys> pSys = _locator.Get<Particles>()->create(FileUtil::GetPath().append("Data/Particles/"),
-                                                                          "Flame3D.plist");
+	std::shared_ptr<ParticleSys> pSys = _particles->create(
+		FileUtil::GetPath().append("Data/Particles/"),
+		"Flame3D.plist");
     pSys->position = position-(pSys->sourcePosVar*0.5f);
     pSys->duration = fminf(1.0f, force/20.0f);
     pSys->speed = force/20.0f;
-    if ( worldPhysics ) {   // Physics explosion
-        worldPhysics->Explosion(btVector3(position.x,position.y,position.z), radius, force);
+    if ( _physics ) {   // Physics explosion
+        _physics->Explosion(btVector3(position.x,position.y,position.z), radius, force);
     }
-    Camera& camera = *_locator.Get<Camera>();
-    float camDist = glm::distance(camera.position, position);
+    float camDist = glm::distance(_camera->position, position);
     if ( camDist < radius ) {
-        camera.shakeAmount = force/(camDist/radius)*10.0f;
+        _camera->shakeAmount = force/(camDist/radius)*10.0f;
     }
 }
 

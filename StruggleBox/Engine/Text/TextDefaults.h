@@ -1,10 +1,12 @@
 #ifndef TEXT_DEFAULTS_H
 #define TEXT_DEFAULTS_H
 
+#include <string>
+
 /**********************************************************************
  * Default text rendering shader programs
  *********************************************************************/
-static const GLchar *text_vertex_shader_forward[] = {
+static const std::string text_vertex_shader_forward = {
     "#version 400\n"
     "layout(location = 0) in vec4 vCoord;"
     "layout(location = 1) in vec2 tCoord;"
@@ -16,7 +18,7 @@ static const GLchar *text_vertex_shader_forward[] = {
     "}"
 };
 
-static const GLchar *text_frag_shader_forward[] = {
+static const std::string text_frag_shader_forward = {
     "#version 400\n"
     "in vec2 texCoord;"
     "out vec4 fragColor;"
@@ -29,7 +31,7 @@ static const GLchar *text_frag_shader_forward[] = {
     "}"
 };
 
-static const GLchar *text_vertex_shader_deferred[] = {
+static const std::string text_vertex_shader_deferred = {
     "#version 400\n"
     "layout(location = 0) in vec4 vCoord;"
     "layout(location = 1) in vec2 tCoord;"
@@ -45,7 +47,7 @@ static const GLchar *text_vertex_shader_deferred[] = {
     "}"
 };
 
-static const GLchar *text_frag_shader_deferred[] = {
+static const std::string text_frag_shader_deferred = {
     "#version 400\n"
     "in vec2 texCoord;"
     "in vec3 normal;"

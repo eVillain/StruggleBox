@@ -1,13 +1,5 @@
-//
-//  ItemComponent.h
-//  Bloxelizer
-//
-//  Created by The Drudgerist on 9/22/13.
-//
-//
-
-#ifndef BWO_ITEMCOMPONENT_H
-#define BWO_ITEMCOMPONENT_H
+#ifndef ITEM_COMPONENT_H
+#define ITEM_COMPONENT_H
 
 #include "EntityComponent.h"
 #include "GFXIncludes.h"
@@ -32,7 +24,8 @@ typedef enum {
     Item_Suckernade,
 } ItemType;
 
-inline static std::string NameForItem(const ItemType type) {
+inline static std::string NameForItem(const ItemType type)
+{
     std::string name;
     switch (type) {
         case Item_None:
@@ -92,23 +85,29 @@ inline static std::string NameForItem(const ItemType type) {
     return name;
 }
 
-class Locator;
 class EntityManager;
+class Particles;
+class Text;
 
-class ItemComponent : public EntityComponent {
-    Locator& _locator;
-    EntityManager* m_manager;
-    // No need for other vars here
-    // Just save everything we need in the entity attributes
+class ItemComponent : public EntityComponent
+{
 public:
-    ItemComponent(const int ownerID,
-                  EntityManager* manager,
-                  Locator& locator);
-    ~ItemComponent();
-    void Update(double delta);
-    void HitEntity(Entity* entityB,
+    ItemComponent(
+		const int ownerID,
+		std::shared_ptr<EntityManager> entityManager,
+		std::shared_ptr<Particles> particles,
+		std::shared_ptr<Text> text);
+
+    void update(const double delta);
+
+    void hitEntity(Entity* entityB,
                    glm::vec3 velocity,
                    glm::vec3 position);
+
+private:
+	std::shared_ptr<EntityManager> _entityManager;
+	std::shared_ptr<Particles> _particles;
+	std::shared_ptr<Text> _text;
 };
 
 #endif

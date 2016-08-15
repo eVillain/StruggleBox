@@ -1,17 +1,19 @@
 #include "StringUtil.h"
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include <sstream>
 #include <cctype>
 #include <vector>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-std::string StringUtil::Format(const char *fmt, va_list ap)
+std::string StringUtil::Format(
+	const char *fmt,
+	va_list ap)
 {
     // Allocate a buffer on the stack that's big enough for us almost
     // all the time.  Be prepared to allocate dynamically if it doesn't fit.
     size_t size = 1024;
-    char stackbuf[size];
+    char* stackbuf = new char[size];
     std::vector<char> dynamicbuf;
     char *buf = &stackbuf[0];
     
@@ -38,7 +40,9 @@ std::string StringUtil::Format(const char *fmt, va_list ap)
 }
 
 // Split up an input string into separate lines
-void StringUtil::SplitIntoLines( const std::string& input, std::deque <const std::string>& result )
+void StringUtil::SplitIntoLines(
+	const std::string& input,
+	std::deque <std::string>& result )
 {
     std::istringstream ss( input );
     std::string line;
@@ -48,7 +52,9 @@ void StringUtil::SplitIntoLines( const std::string& input, std::deque <const std
 }
 
 // Split up an input string into separate tokens
-void StringUtil::Tokenize( const std::string& input, std::deque<std::string>& tokens )
+void StringUtil::Tokenize(
+	const std::string& input,
+	std::deque<std::string>& tokens )
 {
     std::string::size_type last_pos = 0;
     std::string::size_type pos = 0;

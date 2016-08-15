@@ -41,7 +41,9 @@ void main(void) {
     vec2 uvScaled = uv*texScale;
     float depth = texture(depthMap, uvScaled).r;
     vec3 position = vec3(uvScaled, depth);
-    vec3 normal = (texture(normalMap, uvScaled).rgb*2.0)-1.0;
+    vec3 normal = texture(normalMap, uvScaled).rgb;
+    normal = normalize((normal*2.0)-1.0);
+
     vec2 randPos = ( vec2(rand(vec2(depth,uv.x)),rand(vec2(uv.y,depth))) );
     vec3 random = normalize(texture(rnm, randPos).rgb);
     float radius_depth = radius/depth;
@@ -53,10 +55,8 @@ void main(void) {
         float difference = depth - occ_depth;
         occlusion += step(falloff, difference) * (1.0-smoothstep(falloff, area, difference));
     }
-    
+
     float ao = 1.0 - total_strength * occlusion * (1.0 / samples);
-    float c = clamp(ao + base, 0.0,1.0);  
+    float c = clamp(ao + base, 0.0,1.0);
     color = c;
 }
-
-

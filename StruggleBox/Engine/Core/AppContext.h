@@ -1,22 +1,25 @@
 #ifndef APPCONTEXT_H
 #define APPCONTEXT_H
 
-#include "Window.h"
+#include "OSWindow.h"
 #include <string>
 
 /// Simple Context for setting up an SDL / OpenGL application
 class AppContext
 {
 public:
+	AppContext();
+	~AppContext();
+
     bool InitApp(const std::string title,
                  const int windowWidth,
                  const int windowHeight,
                  const bool fullScreen);
     bool TerminateApp();
     
-    Window* GetWindow() { return &_window; }
+	OSWindow* GetWindow() { return &_window; }
 private:
-    Window _window;
+	OSWindow _window;
 
     bool InitSDL();
     bool InitGLEW();

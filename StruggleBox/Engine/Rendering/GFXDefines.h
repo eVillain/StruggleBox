@@ -9,27 +9,45 @@
 
 #define DEFAULT_SCREEN_WIDTH  1280
 #define DEFAULT_SCREEN_HEIGHT 720
-#define ORTHO_NEARDEPTH -100.0
-#define ORTHO_FARDEPTH 100.0
+const GLfloat ORTHO_NEARDEPTH = -100.0f;
+const GLfloat ORTHO_FARDEPTH = 100.0f;
 
-#define MAX_BUFFERED_LINES 1000000
-#define MAX_BUFFERED_VERTS 1000000
-#define MAX_CUBE_INSTANCES 1000000
+#define MAX_BUFFERED_LINES 100000
+#define MAX_BUFFERED_VERTS 100000
+#define MAX_CUBE_INSTANCES 100000
 #define MAX_CHUNK_VERTS 100000
 #define MAX_RENDER_VERTS 250000
 
 // Structure for colored vertex data/impostor sphere
-typedef struct  {
-    GLfloat x,y,z,w;
-    GLfloat r,g,b,a;
+typedef struct
+{
+    GLfloat x,y,z,w;		// World pos
+    GLfloat r,g,b,a;		// Diffuse color
 } ColorVertexData;
-// Structure for normaled vertex data
-typedef struct  {
-    GLfloat x,y,z,w;        // World pos
-    GLfloat dr,dg,db,da;    // Diffuse material
-    GLfloat si;             // Specular intensity
-    GLfloat nx,ny,nz;       // Normal
-} NormalVertexData;
+
+// Structure for mesh vertex data
+typedef struct
+{
+	GLfloat x, y, z, w;		// World pos x,y,z + ao (w)
+	GLfloat nx, ny, nz, nw; // Normal x,y,z (w unused)
+	GLfloat m;				// Material index
+} MeshVertexData;
+
+// Structure for impostor sphere data
+typedef struct
+{
+	GLfloat x, y, z;		// World pos
+	GLfloat r;				// Radius
+	GLfloat m;				// Material index
+} SphereVertexData;
+
+// Structure for textured vertex data
+typedef struct
+{
+	GLfloat x, y, z, w;		// World pos
+	GLfloat u, v;			// Texture coordinates
+} TexturedVertexData;
+
 // Structure for object instance data
 typedef struct {
     glm::vec3 position;     // Position in world coordinates
@@ -42,8 +60,7 @@ typedef struct {
     GLfloat x, y, z;        // Cube coordinates
     GLfloat s;              // Cube size 
     GLfloat rx,ry,rz,rw;    // Cube rotation quaternion
-    GLfloat dr,dg,db,da;    // Cube diffuse color
-    GLfloat sr,sg,sb,sa;    // Cube specular color
+	GLfloat m;				// Material index
 } CubeInstance;
 
 // Structure for textured cube instance data
@@ -53,7 +70,6 @@ typedef struct {
     GLfloat rx,ry,rz,rw;    // Cube rotation
     GLfloat t;              // Cube texture/type
 } CubeTexInstance;
-
 
 enum StencilLayer {
     Stencil_None = 0,
@@ -222,6 +238,54 @@ static const GLfloat cube_texcoords[] = {
     1.0f, 0.0f,
     1.0f, 1.0f,
     0.0f, 1.0f,
+};
+
+typedef struct {
+	GLfloat x, y, z;
+} CubeTexVert;
+
+typedef struct {
+	CubeTexVert v1, v2, v3, v4;
+} CubeTexVerts;
+
+const CubeTexVerts CubeMapTexCoords[6] =
+{
+	{   // +X
+		1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f
+	},
+	{   // -X
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f
+	},
+	{   // +Y
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f
+	},
+	{   // -Y
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f
+	},
+	{   // +Z
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f
+	},
+	{   // -Z
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f
+	}
 };
 
 // These are nice static vertices for rendering circles

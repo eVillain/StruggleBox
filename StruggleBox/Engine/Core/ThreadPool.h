@@ -59,7 +59,7 @@ inline ThreadPool::ThreadPool(size_t threads) : isRunning(true)
             }
         } );
     }
-    printf("[ThreadPool] Started with %lu threads, hardware threads: %i\n", threads, std::thread::hardware_concurrency());
+    printf("[ThreadPool] Started with %i threads, hardware threads: %i\n", threads, std::thread::hardware_concurrency());
 };
 
 // The destructor just notifies all threads and waits for them to join before shutting down

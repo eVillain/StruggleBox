@@ -4,23 +4,19 @@
 #include "GFXDefines.h"
 #include "Physics.h"
 #include "Color.h"
+#include <memory>
 
 class Renderer;
-class World3D;
 
 class StaticCube
 {
-    btCollisionShape* cubeShape;
-    btRigidBody* cubeRigidBody;
-    World3D* m_world;
-    
 public:
     Color color;
     float cubeSize;
 
     StaticCube(const btVector3 & position,
                const btVector3 & halfSize,
-               World3D* world,
+               std::shared_ptr<Physics> physics,
                const Color& color);
     ~StaticCube();
     
@@ -30,6 +26,10 @@ public:
     void SetRotation(btQuaternion& rot);
     
     btVector3 GetPos() { return cubeRigidBody->getWorldTransform().getOrigin(); }
+private:
+	btCollisionShape* cubeShape;
+	btRigidBody* cubeRigidBody;
+	std::shared_ptr<Physics> _physics;
 };
 
 #endif

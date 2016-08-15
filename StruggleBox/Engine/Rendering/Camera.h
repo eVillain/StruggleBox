@@ -11,7 +11,6 @@ class Camera
 {
 public:
     Camera();
-    ~Camera();
     
     void Update(const double deltaTime);
     // Function to deal with mouse position changes, called whenever the mouse cursor moves

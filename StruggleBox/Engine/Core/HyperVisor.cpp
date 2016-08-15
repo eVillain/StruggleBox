@@ -1,90 +1,165 @@
 #include "HyperVisor.h"
+#include "Injector.h"
+#include "AppContext.h"
+#include "Options.h"
+#include "Input.h"
+
+#include "Camera.h"
+#include "LightSystem3D.h"
+#include "SceneManager.h"
+#include "Particles.h"
+#include "Physics.h"
+#include "EntityManager.h"
+#include "ShaderManager.h"
+#include "RendererGLProg.h"
+#include "TBGUI.h"
+#include "Text.h"
+#include "StatTracker.h"
+#include "DebugDraw.h"
+
 #include "FileUtil.h"
 #include "Timer.h"
 #include "ThreadPool.h"
+#include "Log.h"
+#include "LogOutputSTD.h"
 
-#include "SysCore.h"
 #include "CommandProcessor.h"
 #include "Console.h"
-#include "SceneManager.h"
+#include "ConsoleDisplay.h"
+
 #include "Scene.h"
 #include "Input.h"
-#include "UIManager.h"
-#include "GUI.h"
-#include "Options.h"
-#include "RendererGLProg.h"
-#include "LightSystem2D.h"
-#include "LightSystem3D.h"
-#include "Camera.h"
-#include "StatTracker.h"
-#include "TextManager.h"
-#include "Text.h"
 #include "TextureManager.h"
-#include "Particles.h"
+#include "Color.h"
+
 #include <iostream>
 #include <math.h>
+#include <memory>
+
+#define KILO 1024
+#define MEGA KILO*KILO
+#define HEAPSIZE 256*MEGA
 
 HyperVisor::HyperVisor() :
-_quit(false),
-_initialized(false),
-_context(nullptr),
-startTime(0.0),
-lastFrameTime(0.0),
-lastUpdateTime(0.0),
-frames(0)
+	_injector(std::make_shared<Injector>()),
+	_quit(false),
+	_initialized(false),
+	_context(nullptr),
+	startTime(0.0),
+	lastFrameTime(0.0),
+	lastUpdateTime(0.0),
+	frames(0)
 {
     Timer::StartRunTime();
-
-    _options = nullptr;
-    m_inputMan = NULL;
-    m_camera = NULL;
 }
 
 void HyperVisor::Initialize(const std::string title,
                             const int argc,
                             const char * arg[])
 {
+	// Logging
+	Log::AttachOutput(std::make_shared<LogOutputSTD>());
     Log::Debug("HyperVisor initializing engine...");
-    
-    _locator.MapInstance<HyperVisor>(this);
-    
-    FileUtil::UpdateRelativePath();
-    SysCore::SetRelativePath(); // TODO: Get rid of SysCore entirely
 
-    initCommandProcessor();
-    initOptions();
-	if ( _options->getOption<bool>("h_multiThreading") ) {
-        initThreadPool();
-    }
-    initAppContext(title);
+	// Command processor
+	CommandProcessor::Initialize();
+	CommandProcessor::AddCommand("quit", Command<>([=]() { Stop(); }));
+	CommandProcessor::AddCommand("exit", Command<>([=]() { Stop(); }));
+	CommandProcessor::AddCommand("stats", Command<>([&]() { _injector->getInstance<StatTracker>()->ToggleStats(); }));
+	//CommandProcessor::AddCommand("console", Command<>([&]() { Console::ToggleVisibility(); }));
+
+	// Add mappings to dependency injector - ordering is magic, do not touch
+	_injector->mapInstance(_injector);
+	_injector->mapInstance(std::shared_ptr<HyperVisor>(this));
+	_injector->mapSingleton<AppContext>();
+	_injector->mapSingleton<Options>();
+
+	// Allocate a heap to work in
+	//_heap = new unsigned char[HEAPSIZE];
     
-    StatTracker* m_statTracker = new StatTracker(_locator);
-    _locator.MapInstance<StatTracker>(m_statTracker);
+	// Options
+	_options = _injector->getInstance<Options>();
+	_options->getOption<std::string>("version") = "alpha 0.0.0";
+
+	// Thread pool
+	const int hwThreads = std::thread::hardware_concurrency();
+	if (hwThreads > 1) {
+		_options->getOption<bool>("h_multiThreading") = true;
+		_injector->mapInstance(std::make_shared<ThreadPool>(hwThreads - 1));
+	}
+
+	int renderWidth = _options->getOption<int>("r_resolutionX");
+	int renderHeight = _options->getOption<int>("r_resolutionY");
+	bool renderFullScreen = _options->getOption<bool>("r_fullScreen");
+
+	// Application context
+	_context = _injector->getInstance<AppContext>();
+	_context->InitApp(title + " - " + _options->getOption<std::string>("version"),
+		renderWidth,
+		renderHeight,
+		renderFullScreen);
+
+	_injector->mapInstance<OSWindow>(std::shared_ptr<OSWindow>(_context->GetWindow()));
+	_injector->mapSingleton<Input,
+		OSWindow>();
+	_injector->mapSingleton<Camera>();
+
+	_injector->mapSingleton<SceneManager>();
+	_injector->mapSingleton<Physics>();
+	_injector->mapSingleton<EntityManager,
+	Injector>();
+	_injector->mapSingleton<ShaderManager>();
+	_injector->mapSingleton<LightSystem3D,
+		ShaderManager>();
+	_injector->mapSingletonOf<Renderer, RendererGLProg,
+		Options, Camera, LightSystem3D, ShaderManager>();
+
+	_injector->mapSingleton<TBGUI>();
+
+	_injector->mapSingleton<Text,
+		Renderer>();
+	_injector->mapSingleton<Text,
+		Renderer>();
+	_injector->mapSingleton<Particles,
+		Renderer>();
+	_injector->mapSingleton<StatTracker,
+		Options, Text>();
+	_injector->mapSingleton<DebugDraw,
+		Renderer, ShaderManager>();
+	//_injector->mapSingleton<ConsoleDisplay,
+	//GUIDraw, Text, GUI, Options>();
+
+	// Stats tracker
+    //std::shared_ptr<StatTracker> _stats = _injector->getInstance<StatTracker>();
     
     // Try to load renderer, exit on fail
-    initRenderer();
-    initConsole();
-    
-    // Init managers and hook pointers
-    SceneManager* m_sceneMan = new SceneManager(_locator);
-    _locator.MapInstance<SceneManager>(m_sceneMan);
-    
-    m_inputMan = new Input(_locator);
-    _locator.MapInstance<Input>(m_inputMan);
-    m_inputMan->Initialize();
-    m_inputMan->RegisterEventObserver(this);
+	std::shared_ptr<Renderer> renderer = _injector->getInstance<Renderer>();
+	std::shared_ptr<Text> text = _injector->getInstance<Text>();
+	std::shared_ptr<LightSystem3D> lightSys3D = _injector->getInstance<LightSystem3D>();
 
-    UIManager* m_uiMan = new UIManager();
-    m_uiMan->Initialize(_locator);
-    _locator.MapInstance<UIManager>(m_uiMan);
+	text->Initialize();
+
+	// Camera
+	std::shared_ptr<Camera> _camera = _injector->getInstance<Camera>();
+
+	// Console
+	Console::Initialize();
+	Console::AddVar(_camera->focalDepth, "focalDepth");
+	Console::AddVar(_camera->focalLength, "focalLength");
+	Console::AddVar(_camera->fStop, "fStop");
+	Console::AddVar(_camera->exposure, "exposure");
+
+    // Input
+    _input = _injector->getInstance<Input>();
+	_input->Initialize();
+	_input->RegisterEventObserver(this);
     
-    GUI* gui = new GUI();
-    gui->Initialize(_locator);
-    _locator.MapInstance<GUI>(gui);
-    
-    Particles* particles = new Particles(_locator);
-    _locator.MapInstance<Particles>(particles);
-    
+	std::shared_ptr<OSWindow> window = _injector->getInstance<OSWindow>();
+
+	std::shared_ptr<TBGUI> tbgui = _injector->getInstance<TBGUI>();
+	tbgui->initialize();
+	tbgui->onResized(window->GetWidth(), window->GetHeight());
+
     // Engine is finally ready so we'll pass our command-line arguments to
     // the CommandProcessor where they will be parsed and processed.
     CommandProcessor::Buffer(argc, arg);
@@ -96,65 +171,92 @@ void HyperVisor::Initialize(const std::string title,
 }
 
 
-void HyperVisor::Run()
+void HyperVisor::Run(std::shared_ptr<Scene> scene)
 {
     // Main loop
-    startTime = SysCore::GetSeconds();
+    startTime = Timer::Seconds();
     lastFrameTime = startTime;
     frames = 0;
-    Renderer* renderer = _locator.Get<Renderer>();
-    SceneManager* sceneManager = _locator.Get<SceneManager>();
-    ThreadPool* threadPool = _locator.Get<ThreadPool>();
-    UIManager* uiMan = _locator.Get<UIManager>();
-    GUI* gui = _locator.Get<GUI>();
-    StatTracker* statTracker = _locator.Get<StatTracker>();
-    TextManager* textManager = _locator.Get<TextManager>();
-    Text* text = _locator.Get<Text>();
+
+	std::shared_ptr<Camera> camera = _injector->getInstance<Camera>();
+	std::shared_ptr<Renderer> renderer = _injector->getInstance<Renderer>();
+	std::shared_ptr<DebugDraw> debugDraw = _injector->getInstance<DebugDraw>();
+	std::shared_ptr<SceneManager> sceneManager = _injector->getInstance<SceneManager>();
+	std::shared_ptr<Text> text = _injector->getInstance<Text>();
+	std::shared_ptr<LightSystem3D> lightSys3D = _injector->getInstance<LightSystem3D>();
+	std::shared_ptr<StatTracker> stats = _injector->getInstance<StatTracker>();
+	std::shared_ptr<ThreadPool> threadPool = _injector->getInstance<ThreadPool>();
+//	std::shared_ptr<ConsoleDisplay> consoleDisplay = _injector->getInstance<ConsoleDisplay>();
+	std::shared_ptr<Particles> particles = _injector->getInstance<Particles>();
+	std::shared_ptr<TBGUI> tbgui = _injector->getInstance<TBGUI>();
+
+	sceneManager->AddActiveScene(scene);
 
     while( !_quit )
     {
         // Get frame time
-        double timeNow = SysCore::GetSeconds();
+        double timeNow = Timer::Seconds();
         double deltaTime = timeNow - lastFrameTime;
         lastFrameTime = timeNow;
 
-        // Poll input
-        m_inputMan->ProcessInput();
+		//Event handler
+		SDL_Event eventData;
+
+		/* Poll for events. SDL_PollEvent() returns 0 when there are no  */
+		/* more events on the event queue, our while loop will exit when */
+		/* that occurs.                                                  */
+		while (SDL_PollEvent(&eventData))
+		{
+			if (eventData.type == SDL_QUIT)
+			{
+				Stop(); 
+				break;
+			}
+
+			if (!_input->ProcessInput(eventData))
+			{
+				tbgui->HandleSDLEvent(eventData);
+			}
+		}
+
                 
         // Update camera before beginning rendering
-        m_camera->Update( deltaTime );
+        camera->Update( deltaTime );
         
-        gui->Update(deltaTime);
-
+		tbgui->update();
+		
         // Setup rendering for new frame
         renderer->BeginDraw();
 
         if (!sceneManager->IsEmpty())
         {
-            Scene& currentScene = sceneManager->GetActiveScene();
-            currentScene.Update(deltaTime);
+            std::shared_ptr<Scene> currentScene = sceneManager->GetActiveScene();
+            currentScene->Update(deltaTime);
             
-            currentScene.Draw();
-            renderer->PostProcess();
+            currentScene->Draw();
         }
+		particles->Draw();
+		renderer->flush();
 
-        // Render UI widgets
-        uiMan->RenderWidgets();
-        gui->Draw(renderer);
-        
-        if (statTracker->IsVisible() ) {
-            statTracker->SetRFrameDelta(deltaTime);
-            statTracker->SetRFPS(1.0/deltaTime);
-            statTracker->SetTNumJobs((int)threadPool->NumJobs());
-            statTracker->UpdateStats(renderer);
+		// Debug draw
+		debugDraw->flush();
+
+        // Stats
+        if (stats->IsVisible() ) {
+            stats->SetRFrameDelta(deltaTime);
+            stats->SetRFPS(1.0/deltaTime);
+            stats->SetTNumJobs((int)threadPool->NumJobs());
+            stats->UpdateStats(renderer.get());
         }
         
         // Render console on top of everything
-        Console::Draw(deltaTime);
+		//consoleDisplay->Draw();
         
         // Render any text in UI
-        textManager->RenderLabels();
         text->Draw();
+
+		// Render UI widgets
+		tbgui->draw();
         
         renderer->EndDraw();
         
@@ -162,9 +264,6 @@ void HyperVisor::Run()
         
         // Process commands
         CommandProcessor::Update(deltaTime);
-        
-        // Check if window was closed
-        _quit = _quit || renderer->shouldClose;
 
         // Increase frame count
         frames ++;
@@ -180,175 +279,34 @@ void HyperVisor::Stop()
 void HyperVisor::Restart()
 {
     // TODO: This should reset every system and restart the engine
-    printf("[HyperVisor] Restart called, not implemented yet!\n");
+	Log::Debug("[HyperVisor] Restart called, not implemented yet!");
 }
 
 void HyperVisor::Terminate()
 {
-    printf("[HyperVisor] shutting down...\n");
+    Log::Debug("[HyperVisor] shutting down...");
     
+	_injector->getInstance<TBGUI>()->terminate();
+	_injector->getInstance<SceneManager>()->RemoveActiveScene();
+
     // Measure running time
-    double timeNow = SysCore::GetSeconds();
-    lastFrameTime = SysCore::GetSeconds() - startTime;
+    double timeNow = Timer::Seconds();
+    lastFrameTime = Timer::Seconds() - startTime;
     double totalTime = timeNow - startTime;
-    
-    // Wait for threads to die?
-    if (_locator.Satisfies<ThreadPool>()) {
-        delete _locator.Get<ThreadPool>();
-        _locator.UnMap<ThreadPool>();
-    }
-    
-    // Clean up any scenes left in stack
-    if (_locator.Satisfies<SceneManager>()) {
-        delete _locator.Get<SceneManager>();
-        _locator.UnMap<SceneManager>();
-    }
-    
-    if (Console::isVisible()) Console::ToggleVisibility();
-    
-    // Clean up any UI elements left behind
-    if (_locator.Satisfies<UIManager>()) {
-        delete _locator.Get<UIManager>();
-        _locator.UnMap<UIManager>();
-    }
-    if (_locator.Satisfies<GUI>()) {
-        delete _locator.Get<GUI>();
-        _locator.UnMap<GUI>();
-    }
-    
-    if (_locator.Satisfies<TextManager>()) {
-        delete _locator.Get<TextManager>();
-        _locator.UnMap<TextManager>();
-    }
-    if (_locator.Satisfies<Text>()) {
-        delete _locator.Get<Text>();
-        _locator.UnMap<Text>();
-    }
-
-    delete m_camera;
-    m_camera = NULL;
-
-    delete m_inputMan;
-    m_inputMan = NULL;
-    
-    if (_locator.Satisfies<Renderer>()) {
-        Renderer* renderer = _locator.Get<Renderer>();
-        delete renderer;
-        _locator.UnMap<Renderer>();
-    }
-    
-    if (_locator.Satisfies<StatTracker>()) {
-        delete _locator.Get<StatTracker>();
-        _locator.UnMap<StatTracker>();
-    }
-    
-    if (_locator.Satisfies<Particles>()) {
-        _locator.UnMap<Particles>();
-    }
     
     // Output console to log file
     Console::SaveLog();
     
     // Display profiling information
-    float avgFPS = frames / totalTime;
+    float avgFPS = (float)(frames / totalTime);
     std::string funLevel;
     if ( avgFPS > 60 ) { funLevel = "Furiously crunched"; }
     else if ( avgFPS > 58 ) { funLevel = "Easily delivered"; }
     else if ( avgFPS > 30 ) { funLevel = "Struggled through"; }
     else if ( avgFPS > 15 ) { funLevel = "Barely managed"; }
     else { funLevel = "Somehow scraped up"; }
-    printf( "[HyperVisor] %s %d frames in %.2f seconds = %.1f FPS (average)\n", funLevel.c_str(), frames, totalTime,
+	Log::Debug( "[HyperVisor] %s %d frames in %.2f seconds = %.1f FPS (average)", funLevel.c_str(), frames, totalTime,
            avgFPS );
-}
-
-
-
-void HyperVisor::initThreadPool()
-{
-    const int hwThreads = std::thread::hardware_concurrency();
-    if (hwThreads < 2) {
-        _options->getOption<bool>("h_multiThreading") = false;
-    }
-    const int numThreads = (hwThreads)-1;
-    ThreadPool* threadPool = new ThreadPool(numThreads); // Start new thread pool
-    _locator.MapInstance<ThreadPool>(threadPool);
-}
-
-void HyperVisor::initCommandProcessor()
-{
-    CommandProcessor::Initialize();
-    
-    CommandProcessor::AddCommand("quit", Command<>([=](){ Stop(); }));
-    CommandProcessor::AddCommand("exit", Command<>([=](){ Stop(); }));
-    
-    CommandProcessor::AddCommand("stats", Command<>([&]() {
-        _locator.Get<StatTracker>()->ToggleStats();
-    }));
-    CommandProcessor::AddCommand("console", Command<>([&]() {
-        Console::ToggleVisibility();
-    }));
-}
-
-void HyperVisor::initOptions()
-{
-    _options = std::make_unique<Options>();
-    _locator.MapInstance<Options>(_options.get());
-    _options->getOption<std::string>("version") = "alpha 0.0.0";
-}
-
-void HyperVisor::initAppContext(const std::string& title)
-{
-    int renderWidth = _options->getOption<int>("r_resolutionX");
-    int renderHeight = _options->getOption<int>("r_resolutionY");
-    bool renderFullScreen = _options->getOption<bool>("r_fullScreen");
-    
-    _context = std::make_unique<AppContext>();
-    _context->InitApp(title + " - " + _options->getOption<std::string>("version"),
-                      renderWidth,
-                      renderHeight,
-                      renderFullScreen);
-    
-    _locator.MapInstance<AppContext>(_context.get());
-}
-
-void HyperVisor::initRenderer()
-{
-    m_camera = new Camera();
-    _locator.MapInstance<Camera>(m_camera);
-    
-    LightSystem3D* m_lightSys3D = new LightSystem3D();
-    _locator.MapInstance<LightSystem3D>(m_lightSys3D);
-    
-    RendererGLProg* renderer = new RendererGLProg();
-    _locator.MapInstanceToInterface<RendererGLProg, Renderer>(renderer);
-    
-    TextManager* m_textMan = new TextManager();
-    _locator.MapInstance<TextManager>(m_textMan);
-    
-    Text* text = new Text();
-    _locator.MapInstance<Text>(text);
-    
-    renderer->Initialize(_locator);
-    m_textMan->Initialize(_locator);
-    text->Initialize(_locator);
-    m_lightSys3D->HookRenderer(renderer);   // TODO: Make this an init function
-    
-    if (!renderer->initialized)
-    {
-        printf("[HyperVisor] Critical fail: Renderer not initialized\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void HyperVisor::initConsole()
-{
-    Console::Initialize(_locator);
-    
-    // Add some console variables
-    Console::AddVar(m_camera->focalDepth, "focalDepth");
-    Console::AddVar(m_camera->focalLength, "focalLength");
-    Console::AddVar(m_camera->fStop, "fStop");
-    Console::AddVar(m_camera->exposure, "exposure");
 }
 
 // Low level events - we will try to make sure that we can always access the
@@ -360,15 +318,39 @@ bool HyperVisor::OnEvent(const std::string& event,
     
     if (event == INPUT_CONSOLE)
     {
-        Console::ToggleVisibility();
+		if (!_injector->hasMapping<ConsoleDisplay>())
+			return false;
+		std::shared_ptr<ConsoleDisplay> consoleDisplay = _injector->getInstance<ConsoleDisplay>();
+		if (!consoleDisplay->isVisible())
+		{
+			consoleDisplay->ToggleVisibility();
+		}
         return true;
     }
     else if (event == INPUT_BACK)
     {
-        if ( Console::isVisible() )
-        { Console::ToggleVisibility(); }
-        else
-        { Stop(); } // For now we stop TODO: change this to pop the previous scene
+		//std::shared_ptr<ConsoleDisplay> consoleDisplay = _injector->getInstance<ConsoleDisplay>();
+
+  //      if ( consoleDisplay->isVisible() )
+  //      {
+		//	consoleDisplay->ToggleVisibility();
+		//}
+  //      else
+  //      {
+			_options->getOption<bool>("r_grabCursor") = false; // Bring the cursor back in case it was hidden
+			SDL_ShowCursor(true);
+			// Show main menu
+			std::shared_ptr<SceneManager> sceneManager = _injector->getInstance<SceneManager>();
+			std::string prevState = sceneManager->GetPreviousSceneName();
+			if (!prevState.empty())
+			{
+				sceneManager->SetActiveScene(prevState);
+			}
+			else
+			{
+				Stop();
+			}
+		//}
         return true;
     }
     return false;

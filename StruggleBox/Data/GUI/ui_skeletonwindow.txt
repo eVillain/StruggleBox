@@ -1,0 +1,76 @@
+WindowInfo
+	title Skeleton
+	position 0 0
+	size 400 700
+TBLayout: axis: y, distribution-position: "left top", distribution: "available"
+	TBTabContainer
+		gravity all
+		id tabcontainer
+		tabs
+			TBButton: text: "Skeleton"
+			TBButton: text: "Frame"
+			TBButton: text: "Animation"
+		TBLayout: axis: y
+			TBSection: value: 1, text: "Current Bone"
+				TBLayout: position: left top, axis: y, spacing: 0
+					TBLayout: axis: x
+						TBTextField: text: "Name:"
+						TBEditField: id: "bone-name", placeholder: "<enter name>"
+					TBTextField: text: "Position:"
+					TBLayout: axis: x
+						TBEditField: id: "bone-position-x", placeholder: "x"
+						TBEditField: id: "bone-position-y", placeholder: "y"
+						TBEditField: id: "bone-position-z", placeholder: "z"
+					TBTextField: text: "Rotation:"
+					TBContainer: gravity: all
+						TBLayout
+							TBTextField: text: "X:"
+							TBInlineSelect: id: "bone-rotation-x", connection: "rot-x", min: 0, max: 360
+							TBSlider: connection: "rot-x", min: 0, max: 360
+					TBContainer: gravity: all
+						TBLayout
+							TBTextField: text: "Y:"
+							TBInlineSelect: id: "bone-rotation-y", connection: "rot-y", min: 0, max: 360
+							TBSlider: connection: "rot-y", min: 0, max: 360
+					TBContainer: gravity: all
+						TBLayout
+							TBTextField: text: "Z:"
+							TBInlineSelect: id: "bone-rotation-z", connection: "rot-z", min: 0, max: 360
+							TBSlider: connection: "rot-z", min: 0, max: 360
+					TBTextField: text: "Scale:"
+					TBLayout: axis: x
+						TBEditField: id: "bone-scale-x", placeholder: "x"
+						TBEditField: id: "bone-scale-y", placeholder: "y"
+						TBEditField: id: "bone-scale-z", placeholder: "z"
+			TBSection: value: 1, text: "Children"
+				TBLayout: axis: y
+					TBScrollContainer
+						TBLayout: id: "joints-list", axis: y
+					TBLayout: axis: x
+						TBButton: text: "Add Bone", id: "button-bone-create"
+						TBButton: text: "Remove", id: "button-bone-remove"
+					TBButton: text: "Select parent", id: "button-bone-parent"
+		TBLayout: axis: y
+			TBLayout: axis: x
+				TBTextField: text: "Length (s):"
+				TBEditField: id: "frame-length"
+			TBLayout: axis: x
+				TBButton: id: "button-next-frame", text: "Next KeyFrame"
+				TBButton: id: "button-prev-frame", text: "Previous KeyFrame"
+			TBLayout: axis: y
+				TBScrollContainer
+					TBLayout: id: "frames-list", axis: y
+				TBLayout: axis: x
+				TBButton: id: "button-add-frame", text: "Add KeyFrame"
+		TBLayout: axis: y
+			TBLayout: axis: x
+				TBTextField: text: "Name:"
+				TBEditField: id: "animation-name"
+			TBLayout: axis: x
+				TBTextField: text: "Timeline:"
+				TBSlider: id: "slider-timeline"
+			TBLayout: axis: y
+				TBScrollContainer
+					TBLayout: id: "animations-list", axis: y
+				TBLayout: axis: x
+				TBButton: id: "button-add-animation", text: "Add Animation"

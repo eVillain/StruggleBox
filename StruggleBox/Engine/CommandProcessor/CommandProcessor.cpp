@@ -1,6 +1,5 @@
 #include "CommandProcessor.h"
 #include "StringUtil.h"
-#include "Console.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -12,20 +11,20 @@
 // The command map (string holds the name of the command)
 CommandProcessor::CommandMap CommandProcessor::commandMap;
 // The command buffer, contains next command to execute at front
-std::deque<const std::string> CommandProcessor::commandBuffer;
+std::deque<std::string> CommandProcessor::commandBuffer;
 
 void CommandProcessor::Initialize()
 {
     Log::Debug("[CommandProcessor] initializing...");
     AddCommand("commands", Command<>([&]() {
         CommandMap::const_iterator it;
-        Console::PrintString("Commands:", COLOR_WHITE);
-        for ( it = commandMap.begin(); it != commandMap.end(); it++ ) {
-            Console::PrintString( it->first, COLOR_WHITE );
-        }
+        //Console::PrintString("Commands:", COLOR_WHITE);
+        //for ( it = commandMap.begin(); it != commandMap.end(); it++ ) {
+        //    Console::PrintString( it->first, COLOR_WHITE );
+        //}
     }));
     AddCommand("print", Command<const std::string>([&](const std::string& text) {
-        Console::PrintString( text, COLOR_GREEN );
+        //Console::PrintString( text, COLOR_GREEN );
     }));
 }
 

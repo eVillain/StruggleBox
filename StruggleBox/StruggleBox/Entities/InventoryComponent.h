@@ -1,33 +1,33 @@
-//
-//  InventoryComponent.h
-//  Ingenium
-//
-//  Created by The Drudgerist on 29/12/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-//  This component holds entities within it
-
-#ifndef NGN_INVENTORY_COMPONENT_H
-#define NGN_INVENTORY_COMPONENT_H
+#ifndef INVENTORY_COMPONENT_H
+#define INVENTORY_COMPONENT_H
 
 #include "EntityComponent.h"
 class EntityManager;
 
-class InventoryComponent : public EntityComponent {
-    EntityManager* m_manager;
-    std::vector<Entity*> inventory;
-    int maxItems;
+class InventoryComponent : public EntityComponent
+{
 public:
-    InventoryComponent( const int owner, EntityManager* manager );
+    InventoryComponent(
+		const int owner,
+		std::shared_ptr<EntityManager> manager);
     virtual ~InventoryComponent();
-    virtual void Update( double delta );
-    bool AddItem( Entity* newItem );
-    bool RemoveItem( Entity* oldItem );
-    void SetMaxItems( const int newMaxItems );
 
-    std::vector<Entity*> GetInventory( void ) { return inventory; };
-    bool updated;
+    virtual void update(const double delta);
+
+    bool addItem(Entity* newItem);
+
+    bool removeItem(Entity* oldItem);
+
+    void setMaxItems(const int newMaxItems);
+
+    std::vector<Entity*> getInventory() { return inventory; };
+
+private:
+	std::shared_ptr<EntityManager> _manager;
+	std::vector<Entity*> inventory;
+	int maxItems;
+	bool updated;
 };
 
 
-#endif /* defined(NGN_INVENTORY_COMPONENT_H) */
+#endif /* INVENTORY_COMPONENT_H */

@@ -3,19 +3,21 @@
 
 #include <vector>
 #include <string>
+#include <functional>
+#include <memory>
 
-class Locator;
 class Scene;
 
 class SceneManager
 {
 public:
-    SceneManager(Locator& locator);
+	SceneManager();
     virtual ~SceneManager();
 
-    void AddActiveScene(Scene* theScene);
-    void AddInactiveScene(Scene* theScene);
-    Scene& GetActiveScene();
+    void AddActiveScene(std::shared_ptr<Scene> scene);
+    void AddInactiveScene(std::shared_ptr<Scene> scene);
+	std::shared_ptr<Scene> GetActiveScene();
+
     void InactivateActiveScene();
     void DropActiveScene();
     void ResetActiveScene();
@@ -26,13 +28,18 @@ public:
     std::string GetPreviousSceneName();
     void KillPreviousScene();
     size_t NumScenes();
+
+	void SetHaltFunction(std::function<void(const std::string)> haltFunc);
 private:
-    Locator& _locator;
     // Stack to store the current and previously active scenes
-    std::vector<Scene*>   _stack;
+    std::vector<std::shared_ptr<Scene>>   _stack;
     // Stack to store the dead scenes until they properly cleaned up
-    std::vector<Scene*>   _dead;
-    
+    std::vector<std::shared_ptr<Scene>>   _dead;
+    // Halt function to execute when out of scenes and engine must terminate
+	std::function<void(const std::string)> _haltFunc;
+
+	void halt(const std::string& error);
+
     SceneManager(const SceneManager&);              // Intentionally undefined
     SceneManager& operator=(const SceneManager&);   // Intentionally undefined
 };

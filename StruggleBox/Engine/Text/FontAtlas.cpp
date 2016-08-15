@@ -28,7 +28,7 @@ FontAtlas::FontAtlas(FT_Face face,
             rowh = 0;
         }
         roww += g->bitmap.width + 1;
-        rowh = std::max(rowh, g->bitmap.rows);
+        rowh = std::max(rowh, (int)g->bitmap.rows);
     }
     
     _width = std::max(_width, roww);

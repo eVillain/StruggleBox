@@ -1,11 +1,14 @@
 #ifndef HYPERVISOR_H
 #define HYPERVISOR_H
 
-#include "CoreTypes.h"
-#include "Options.h"
+class Injector;
+class AppContext;
+class Options;
+class Input;
+
+class Scene;
+
 #include "InputListener.h"
-#include "AppContext.h"
-#include "Locator.h"
 #include <memory>
 #include <string>
 
@@ -20,42 +23,29 @@ public:
     
     void Terminate();
     
-    void Run();
+    void Run(std::shared_ptr<Scene> scene);
     void Stop();
 
     // TODO: Implement engine restart functionality
     void Restart();
-
-    Locator& GetLocator() { return _locator; };
     
+	// Should only be used to initialize a scene
+	std::shared_ptr<Injector> getInjector() {
+		return _injector;
+	};
 private:
-    std::unique_ptr<AppContext> _context;
-    bool _quit;
-    bool _initialized;
+	unsigned char* _heap;					// Heap memory for allocators
+	std::shared_ptr<Injector> _injector;	// Dependency injector
+    std::shared_ptr<AppContext> _context;	// Main application context
+	std::shared_ptr<Options> _options;      // Engine and game options interface, just an autosaving dictionary
+	std::shared_ptr<Input> _input;          // User input manager
 
-    Locator _locator;
-    
+    bool _quit;
+    bool _initialized;    
     double startTime;                       // Timestamp for the engine startup
     double lastFrameTime, lastUpdateTime;   // Temporary timestamps
     int frames;                             // Number of rendered frames (TODO: MOVE TO RENDERER)
-    
-    std::unique_ptr<Options> _options;      // Engine and game options interface, just an autosaving dictionary
-    
-    Input* m_inputMan;                      // User input manager
-        
-    Camera* m_camera;                       // Camera system
-    
-    void initThreadPool();
-    void initCommandProcessor();
-    void initAppContext(const std::string& title);
-    void initOptions();
-    void initRenderer();
-    void initConsole();
-    
-    
-    void LoadEditor();
-    void LoadGame();
-    
+
     bool OnEvent(const std::string& event,
                  const float& amount);
 };
