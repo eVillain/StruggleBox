@@ -13,8 +13,6 @@ public:
     static std::string TimeStamp();
     
     static double RunTimeSeconds();
-protected:
-    friend class HyperVisor;
     static void StartRunTime();
 private:
     static double _startTime;

@@ -10,7 +10,7 @@ class Light3DComponent : public EntityComponent
 {
 public:
     Light3DComponent(const int ownerID,
-		std::shared_ptr<EntityManager> entityManager);
+		EntityManager& entityManager);
     ~Light3DComponent();
 
     void update(const double delta);
@@ -21,10 +21,10 @@ public:
     // Relative offset from main object
     glm::vec3 offset;
     
-	const LightInstance& getLight() { return _light; }
+	LightInstance& getLight() { return _light; }
 
 private:
-	std::shared_ptr<EntityManager> _entityManager;
+	EntityManager& _entityManager;
 	
 	LightInstance _light;
 };

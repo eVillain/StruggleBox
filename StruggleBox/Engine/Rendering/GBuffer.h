@@ -1,7 +1,7 @@
 #ifndef G_BUFFER_H
 #define G_BUFFER_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 
 class GBuffer
 {
@@ -20,18 +20,18 @@ public:
 
 	const GLuint GetFBO() const { return _fbo; };
 
-	const GLuint GetAlbedo() const { return _diffuse; };
-	const GLuint GetMaterial() const { return _specular; };
-	const GLuint GetDepth() const { return _depth; };
-	const GLuint GetNormal() const { return _normal; };
+	const GLuint GetAlbedo() const { return m_albedoTexture; };
+	const GLuint GetMaterial() const { return m_materialTexture; };
+	const GLuint GetDepth() const { return m_depthTexture; };
+	const GLuint GetNormal() const { return m_normalTexture; };
 
 private:
 	GLuint _width;
 	GLuint _height;
 	GLuint _fbo;
-	GLuint _diffuse;
-	GLuint _specular;
-	GLuint _depth;
-	GLuint _normal;
+	GLuint m_albedoTexture;
+	GLuint m_materialTexture;
+	GLuint m_depthTexture;
+	GLuint m_normalTexture;
 };
 #endif

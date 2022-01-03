@@ -1,6 +1,9 @@
 #ifndef INJECTOR_H
 #define INJECTOR_H
 
+#include "ArenaOperators.h"
+#include "Allocator.h"
+
 #include <unordered_map>
 #include <memory>
 #include <functional>
@@ -8,26 +11,19 @@
 #include <mutex>
 #include <typeinfo>
 
-using std::shared_ptr;
-using std::make_shared;
-using std::function;
-using std::pair;
-using std::unordered_map;
-using std::size_t;
-using std::recursive_mutex;
-using std::lock_guard;
-
 //
 // IoC Injector
 //
 // Idea and code based upon:
 // http://www.codeproject.com/Articles/567981/AnplusIOCplusContainerplususingplusVariadicplusTem
-// Naming loosely based on RobotLegs
+// Naming loosely based on good old RobotLegs :)
 //
 
 class Injector
 {
 public:
+	Injector(Allocator& allocator) : m_allocator(allocator) {}
+
 	/// Does this injector have a mapping for the given type?
 	template <typename T>
 	bool hasMapping()
@@ -41,14 +37,15 @@ public:
 	template <typename T, typename... Dependencies>
 	Injector& map()
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
 		auto creator = [this]() -> T*
 		{
-			return new T(getInstance<Dependencies>()...);
+			Log::Info("Injector factory constructing %s", typeid(T).name());
+			return CUSTOM_NEW(T, m_allocator)(getInstance<Dependencies>()...);
 		};
 
-		_typesToFactories.insert(pair<size_t, function<void*()>>{typeid(T).hash_code(), creator});
+		_typesToFactories.insert(std::pair<size_t, std::function<void*()>>{typeid(T).hash_code(), creator});
 
 		return *this;
 	}
@@ -59,13 +56,14 @@ public:
 	/// Note: Since you have manually created the instance it will not 
 	/// get any dependencies injected into it.
 	template <typename T>
-	Injector& mapInstance(shared_ptr<T> instance)
+	Injector& mapInstance(T& instance)
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
-		shared_ptr<IHolder> holder = shared_ptr<Holder<T>>{ new Holder<T>{ instance } };
+		Log::Info("Injector creating holder for instance of %s", typeid(T).name());
+		IHolder* holder = CUSTOM_NEW(Holder<T>, m_allocator)(instance);
 
-		_typesToInstances.insert(pair<size_t, shared_ptr<IHolder>>{typeid(T).hash_code(), holder});
+		_typesToInstances.insert(std::pair<size_t, IHolder*>{typeid(T).hash_code(), holder});
 
 		return *this;
 	}
@@ -75,11 +73,12 @@ public:
 	template <typename T, typename... Dependencies>
 	Injector& mapSingleton()
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
-		auto instance = make_shared<T>(getInstance<Dependencies>()...);
+		Log::Info("Injector constructing %s", typeid(T).name());
+		auto instance = CUSTOM_NEW(T, m_allocator)(getInstance<Dependencies>()...);
 
-		return mapInstance<T>(instance);
+		return mapInstance<T>(*instance);
 	}
 
 	/// Maps a class as a singleton of an interface class. When an object
@@ -88,7 +87,7 @@ public:
 	template <typename Interface, typename ConcreteClass, typename... Dependencies>
 	Injector& mapSingletonOf()
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
 		// Ensure we have the concrete class registered as a singleton first
 		if (!hasTypeToInstanceMapping<ConcreteClass>())
@@ -96,15 +95,7 @@ public:
 			mapSingleton<ConcreteClass, Dependencies...>();
 		}
 
-		auto instanceGetter = [this]() -> shared_ptr<IHolder>
-		{
-			auto instance = getInstance<ConcreteClass>();
-			shared_ptr<IHolder> holder = shared_ptr<Holder<Interface>>{ new Holder<Interface>{ instance } };
-
-			return holder;
-		};
-
-		_interfacesToInstanceGetters.insert(pair<size_t, function<shared_ptr<IHolder>()>>{typeid(Interface).hash_code(), instanceGetter});
+		_interfacesToInstanceGetters.insert(std::pair<size_t, size_t>>{typeid(Interface).hash_code(), typeid(ConcreteClass).hash_code()});
 
 		return *this;
 	}
@@ -115,71 +106,99 @@ public:
 	template <typename Interface, typename RegisteredConcreteClass>
 	Injector& mapInterfaceToType()
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
 		// Ensure we have the concrete class registered as a singleton first
 		if (!hasTypeToInstanceMapping<RegisteredConcreteClass>() &&
-			!hasTypeToCreatorMapping<RegisteredConcreteClass>())
+			!hasTypeToFactoryMapping<RegisteredConcreteClass>())
 		{
 			assert(false && "One of your injected dependencies isn't mapped, please check your mappings.");
 		}
 
-		auto instanceGetter = [this]() -> shared_ptr<IHolder>
-		{
-			auto instance = getInstance<RegisteredConcreteClass>();
-			shared_ptr<IHolder> holder = shared_ptr<Holder<Interface>>{ new Holder<Interface>{ instance } };
-
-			return holder;
-		};
-
-		_interfacesToInstanceGetters.insert(pair<size_t, function<shared_ptr<IHolder>()>>{typeid(Interface).hash_code(), instanceGetter});
+		_interfacesToInstanceGetters.insert(std::pair<size_t, size_t>{typeid(Interface).hash_code(), typeid(RegisteredConcreteClass).hash_code()});
 
 		return *this;
 	}
 
 	/// Returns an instance of the given type if a mapping exists.
 	template <typename T>
-	shared_ptr<T> getInstance()
+	T& getInstance()
 	{
-		lock_guard<recursive_mutex> lockGuard{ _mutex };
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
 
 		// Try getting registered singleton or instance.
 		if (hasTypeToInstanceMapping<T>())
 		{
 			// get as reference to avoid refcount increment
-			auto& iholder = _typesToInstances[typeid(T).hash_code()];
+			IHolder* iholder = _typesToInstances.at(typeid(T).hash_code());
 
-			auto holder = dynamic_cast<Holder<T>*>(iholder.get());
+			auto holder = dynamic_cast<Holder<T>*>(iholder);
 			return holder->_instance;
 		} // Otherwise attempt getting the creator and act as factory.
 		else if (hasTypeToFactoryMapping<T>())
 		{
-			auto& creator = _typesToFactories[typeid(T).hash_code()];
+			auto& creator = _typesToFactories.at(typeid(T).hash_code());
 
-			return shared_ptr<T>{(T*)creator()};
+			return {*(T*)creator()};
+		}
+		else if (!hasInterfaceToInstanceMapping<T>())
+		{
+			// If you debug, in some debuggers (e.g Apple's lldb in Xcode) it will breakpoint in this assert
+			// and by looking in the stack trace you'll be able to see which class you forgot to map.
+			assert(false && "One of your injected dependencies isn't mapped, please check your mappings.");
+		}
+
+		const size_t concreteTypeHash = _interfacesToInstanceGetters.at(typeid(T).hash_code());
+		IHolder* iholder = _typesToInstances[concreteTypeHash];
+		Holder<T>* holder = static_cast<Holder<T>*>(iholder);
+
+		return holder->_instance;
+	}
+
+	template <typename T, typename... Dependencies>
+	T& instantiateUnmapped()
+	{
+		Log::Info("Injector creating unmapped instance of %s", typeid(T).name());
+		return *CUSTOM_NEW(T, m_allocator)(getInstance<Dependencies>()...);
+	}
+
+	template <typename T>
+	void unmap()
+	{
+		std::lock_guard<std::recursive_mutex> lockGuard{ _mutex };
+
+		// Try getting registered singleton or instance.
+		if (hasTypeToInstanceMapping<T>())
+		{
+			IHolder* iholder = _typesToInstances.at(typeid(T).hash_code());
+			Holder<T>* holder = dynamic_cast<Holder<T>*>(iholder);
+			T& instance = holder->_instance;
+			CUSTOM_DELETE(&instance, m_allocator);
+			CUSTOM_DELETE(iholder, m_allocator);
+			_typesToInstances.erase(typeid(T).hash_code());
+		} // Otherwise attempt getting the creator and act as factory.
+		else if (hasTypeToFactoryMapping<T>())
+		{
+			_typesToFactories.erase(typeid(T).hash_code());
 		}
 		else if (hasInterfaceToInstanceMapping<T>())
 		{
-			auto& instanceGetter = _interfacesToInstanceGetters[typeid(T).hash_code()];
-
-			auto iholder = instanceGetter();
-
-			auto holder = dynamic_cast<Holder<T>*>(iholder.get());
-			return holder->_instance;
+			_interfacesToInstanceGetters.erase(typeid(T).hash_code());
 		}
-
-		// If you debug, in some debuggers (e.g Apple's lldb in Xcode) it will breakpoint in this assert
-		// and by looking in the stack trace you'll be able to see which class you forgot to map.
-		assert(false && "One of your injected dependencies isn't mapped, please check your mappings.");
-
-		return nullptr;
 	}
 
-	/// TODO: Test this to make sure its working as intended
-	template <typename T, typename... Dependencies>
-	shared_ptr<T> instantiateUnmapped()
+	void clear()
 	{
-		return std::make_shared<T>(getInstance<Dependencies>()...);
+		for (const auto& pair : _typesToInstances)
+		{
+			Log::Info("Injector clearing instance of %zu", pair.first);
+
+			IHolder* holder = pair.second;
+			CUSTOM_DELETE(holder, m_allocator);
+		}
+		_typesToInstances.clear();
+		_typesToFactories.clear();
+		_interfacesToInstanceGetters.clear();
 	}
 
 private:
@@ -192,20 +211,21 @@ private:
 	template <typename T>
 	struct Holder : public IHolder
 	{
-		Holder(shared_ptr<T> instance) : _instance(instance)
+		Holder(T& instance) : _instance(instance)
 		{}
 
-		shared_ptr<T> _instance;
+		T& _instance;
 	};
 
+	Allocator& m_allocator;
 	// Holds instances - keeps singletons and custom registered instances
-	unordered_map<size_t, shared_ptr<IHolder>> _typesToInstances;
+	std::unordered_map<size_t, IHolder*> _typesToInstances;
 	// Holds creators used to instantiate a type
-	unordered_map<size_t, function<void*()>> _typesToFactories;
+	std::unordered_map<size_t, std::function<void*()>> _typesToFactories;
 	// Holds interface mappings used to get concrete instances
-	unordered_map<size_t, function<shared_ptr<IHolder>()>> _interfacesToInstanceGetters;
+	std::unordered_map<size_t, size_t> _interfacesToInstanceGetters;
 	
-	recursive_mutex _mutex;
+	std::recursive_mutex _mutex;
 
 	/// Check if we have a mapped singleton or instance.
 	template <typename T>
@@ -224,4 +244,4 @@ private:
 	}
 };
 
-#endif
+#endif // INJECTOR_H

@@ -1,39 +1,44 @@
 #include "VoxelData.h"
+
+#include "Allocator.h"
+#include "ArenaOperators.h"
 #include "Mesh.h"
 #include "GFXDefines.h"
 #include "MaterialData.h"
 #include "Serialise.h"
+#include "CubeConstants.h"
 #include "Log.h"
 #include "Physics.h"
+#include "VoxelAABB.h"
+
 #include <cstdlib>
 #include <iterator>
 
-VoxelData::VoxelData(
-	uint16_t sizeX,
-	uint16_t sizeY,
-	uint16_t sizeZ) :
-	_sizeX(sizeX),
-	_sizeY(sizeY),
-	_sizeZ(sizeZ)
+VoxelData::VoxelData(uint16_t sizeX, uint16_t sizeY, uint16_t sizeZ, Allocator& allocator)
+	: m_allocator(allocator)
+	, _sizeX(sizeX)
+	, _sizeY(sizeY)
+	, _sizeZ(sizeZ)
+	, _scale(1.f)
+	, _data(nullptr)
 {
-	const int dataSize = _sizeX*_sizeY*_sizeZ;
-	_data = new uint8_t[dataSize];
+	const size_t dataSize = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
+	_data = CUSTOM_NEW_ARRAY(uint8_t, dataSize, allocator);
 	clear();
 }
 
 VoxelData::~VoxelData()
 {
-	delete [] _data;
+	CUSTOM_DELETE_ARRAY(_data, m_allocator);
 }
-void VoxelData::setData(
-	const uint8_t * data,
-	const size_t size)
+
+void VoxelData::setData(const uint8_t * data, const size_t size)
 {
-	const int dataSize = _sizeX*_sizeY*_sizeZ;
+	const size_t dataSize = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
 	if (size > dataSize)
 	{
-		Log::Error("[VoxelData] Can't set data, too large! (size: %i, data: %p)",
-			size, data);
+		Log::Error("[VoxelData] Can't set data, too large! (size: %i, data: %i)",
+			size, dataSize);
 		return;
 	}
 	memcpy(_data, data, size);
@@ -41,8 +46,14 @@ void VoxelData::setData(
 
 void VoxelData::clear()
 {
-	const int dataSize = _sizeX*_sizeY*_sizeZ;
+	const size_t dataSize = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
 	memset(_data, 0, dataSize);
+}
+
+void VoxelData::fill(const uint8_t type)
+{
+	const size_t dataSize = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
+	memset(_data, type, dataSize);
 }
 
 void VoxelData::replaceType(const uint8_t oldType, const uint8_t newType)
@@ -60,8 +71,7 @@ void VoxelData::replaceType(const uint8_t oldType, const uint8_t newType)
 void VoxelData::rotateY(const bool ccw)
 {
 	const int numVoxels = _sizeX*_sizeY*_sizeZ;
-
-	uint8_t* tempBlocks = new uint8_t[numVoxels];
+	uint8_t* tempBlocks = CUSTOM_NEW_ARRAY(uint8_t, numVoxels, m_allocator);
 
 	for (int x = 0; x < _sizeX; x++)
 	{
@@ -77,8 +87,9 @@ void VoxelData::rotateY(const bool ccw)
 			}
 		}
 	}
-	delete[] _data;
-	_data = tempBlocks;
+
+	memcpy(_data, tempBlocks, numVoxels);
+	CUSTOM_DELETE_ARRAY(tempBlocks, m_allocator);
 }
 
 #include "Random.h"
@@ -87,13 +98,65 @@ void VoxelData::generateTree(
 	const glm::vec3 treePos,
 	const int seed)
 {
-	//Random::RandomSeed(Timer::Seconds());
+	Random::RandomSeed(seed);
 
-	//// TODO:: Make tree variables editable
-	//float trunkHeight = 8.0f;
-	//float trunkRadius = 2.0f;
-	//float leafRadius = 1.0f;
-	//float blockWidth = 0.5f;
+	const bool wobblyTrunk = false;
+
+	const uint8_t TRUNK_MATERIAL = 85;
+	const uint8_t FOLIAGE_MATERIAL = 139;
+	// TODO:: Make tree variables editable
+	const float trunkHeight = 2.0f;
+	const float trunkRadius = 2.0f;
+	const float leafRadius = 8.0f;
+	const float blockWidth = 0.5f;
+	const float blockRadius = blockWidth * 0.5f;
+	glm::vec2 trunkCenterXZ = glm::vec2(_sizeX * blockRadius, _sizeZ * blockRadius);
+
+	for (int y = 0; y < _sizeY; y++)
+	{
+		const float heightRatio = (float)y / _sizeY;
+		const float trunkShrink = heightRatio * trunkRadius;
+		const float leafShrinkTree = (heightRatio * leafRadius);
+		const float wut = (8.f * fmod(sinf((1.f-heightRatio) * M_PI_2), 0.125f));
+		const float leafShrinkBranch = (wut * leafRadius) * (1.f-heightRatio);
+		const float leafShrink = leafShrinkBranch;// std::max(leafShrinkTree, leafShrinkBranch);
+
+		const float ringLeafRadius = leafShrinkBranch;
+		if (wobblyTrunk)
+		{
+			const float trunkShiftAngle = Random::RandomDouble() * M_PI;
+			const float trunkShiftAmount = (Random::RandomDouble() * 2.f) - 1.f;
+			trunkCenterXZ += glm::vec2(sin(trunkShiftAngle), cos(trunkShiftAngle)) * trunkShiftAmount;
+		}
+
+		for (int x = 0; x < _sizeX; x++)
+		{
+			for (int z = 0; z < _sizeZ; z++)
+			{
+				const float posX = (x * blockWidth) + blockRadius;
+				const float posZ = (z * blockWidth) + blockRadius;
+				const float posY = (y * blockWidth) + blockRadius;
+				const glm::vec3 cubePos = glm::vec3(posX, posY, posZ);
+				const glm::vec2 cubeXZ = glm::vec2(posX, posZ);
+				const float dist = glm::distance(cubeXZ, trunkCenterXZ);
+				if (dist <= (trunkRadius - trunkShrink))
+				{
+					const int index = linearIndexFromCoordinate(x, y, z, _sizeX, _sizeY);
+					_data[index] = TRUNK_MATERIAL;
+				}
+				else
+					if (posY >= trunkHeight &&
+						dist <= (ringLeafRadius))
+				{
+					const int index = linearIndexFromCoordinate(x, y, z, _sizeX, _sizeY);
+					_data[index] = FOLIAGE_MATERIAL;
+				}
+			}
+		}
+	}
+
+
+
 
 	//struct Branch {
 	//	glm::vec3 pos;
@@ -103,6 +166,8 @@ void VoxelData::generateTree(
 	//std::vector<Branch> branches;
 	//int maxBranches = 4;
 	//Branch trunk = { treePos, treePos + glm::vec3(0.0f, trunkHeight, 0.0f), trunkRadius };
+
+
 
 	//branches.push_back(trunk);
 	//// Generate trunk
@@ -232,30 +297,28 @@ void VoxelData::generateGrass(const int seed)
 	}
 }
 
-void VoxelData::getMeshLinear(
-	Mesh& mesh,
-	float radius)
+void VoxelData::getMeshLinear(Mesh& mesh, float radius)
 {
-	float r2 = radius * 2.0f;
-	glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
-	const int numVoxels = _sizeX*_sizeY*_sizeZ;
+	float voxelWidth = radius * 2.0f;
+	const glm::vec3 size = glm::vec3(_sizeX, _sizeY, _sizeZ);
+	const glm::vec3 voxelOffset = glm::vec3(radius) - (size * radius);
+	const int numVoxels = _sizeX *_sizeY * _sizeZ;
+
 	// Worst case is every voxel filled, no empty voxels
 	// This results in 36 vertices per each voxel
 	const int worst_case = 36 * numVoxels;
-	MeshVertexData* newVerts = new MeshVertexData[worst_case];
+	MeshVertexData* newVerts = CUSTOM_NEW_ARRAY(MeshVertexData, worst_case, m_allocator);
 	int numVerts = 0;
 
 	for (int i = 0; i < numVoxels; i++)
 	{
-		uint8_t& b = _data[i];
-		const float materialOffset = MaterialData::texOffset(b);
-
+		const uint8_t& b = _data[i];
 		if (b == EMPTY_VOXEL)
 		{
 			continue;
 		}
 		const glm::ivec3 coord = coordinateFromLinearIndex(i, _sizeX, _sizeY);
-		glm::vec3 pos = (glm::vec3(coord.x, coord.y, coord.z)*r2) + voxelOffset;
+		glm::vec3 pos = (glm::vec3(coord.x, coord.y, coord.z) * voxelWidth) + voxelOffset;
 
 		// Check visibility of each side
 		bool visibility_x_neg = !blocksVisibility(coord.x - 1, coord.y, coord.z);
@@ -264,6 +327,110 @@ void VoxelData::getMeshLinear(
 		bool visibility_y_pos = !blocksVisibility(coord.x, coord.y + 1, coord.z);
 		bool visibility_z_neg = !blocksVisibility(coord.x, coord.y, coord.z - 1);
 		bool visibility_z_pos = !blocksVisibility(coord.x, coord.y, coord.z + 1);
+		bool visibility[6] = { visibility_x_neg, visibility_x_pos, visibility_y_neg, visibility_y_pos, visibility_z_neg, visibility_z_pos };
+
+		if (!visibility_x_neg && !visibility_x_pos &&
+			!visibility_y_neg && !visibility_y_pos &&
+			!visibility_z_neg && !visibility_z_pos)
+		{
+			continue;
+		}
+
+		const glm::vec4 positions[8] = {
+			glm::vec4(pos.x - radius, pos.y - radius, pos.z - radius, 1.f), // 0 left-bottom-rear
+			glm::vec4(pos.x + radius, pos.y - radius, pos.z - radius, 1.f), // 1 right-bottom-rear
+			glm::vec4(pos.x - radius, pos.y + radius, pos.z - radius, 1.f), // 2 left-top-rear
+			glm::vec4(pos.x + radius, pos.y + radius, pos.z - radius, 1.f), // 3 right-top-rear
+			glm::vec4(pos.x - radius, pos.y - radius, pos.z + radius, 1.f), // 4 left-bottom-front
+			glm::vec4(pos.x + radius, pos.y - radius, pos.z + radius, 1.f), // 5 right-bottom-front
+			glm::vec4(pos.x - radius, pos.y + radius, pos.z + radius, 1.f), // 6 left-top-front
+			glm::vec4(pos.x + radius, pos.y + radius, pos.z + radius, 1.f), // 7 right-top-front
+		};
+
+		const glm::vec2 materialOffset = MaterialData::texOffset(b);
+		const glm::vec3 voxelUV3D = glm::vec3(coord.x / (float)_sizeX, coord.y / (float)_sizeY, coord.z / (float)_sizeZ);
+		for (int index = 0; index < 36; index++)
+		{
+			const int index_side = index / 6;
+			if (!visibility[index_side])
+			{
+				continue;
+			}
+
+			glm::vec2 uvOffset;
+			if (index_side < 2)
+			{
+				uvOffset = glm::vec2(voxelUV3D.z, voxelUV3D.y);
+				if (index_side % 2)
+				{
+					uvOffset.x = 1.f - (uvOffset.x + (1.f / std::max(_sizeX, _sizeZ)));
+				}
+			}
+			else if (index_side < 4)
+			{
+				uvOffset = glm::vec2(voxelUV3D.x, voxelUV3D.z);
+				if (index_side % 2)
+				{
+					uvOffset.x = 1.f - (uvOffset.x + (1.f / std::max(_sizeX, _sizeZ)));
+				}
+			}
+			else
+			{
+				uvOffset = glm::vec2(voxelUV3D.x, voxelUV3D.y);
+				if (index_side % 2 == 0)
+				{
+					uvOffset.x = 1.f - (uvOffset.x + (1.f / std::max(_sizeX, _sizeZ)));
+				}
+			}
+
+			const float uvScale = 1.f /std::min(std::min(_sizeX, _sizeY), _sizeZ);
+			const glm::vec2 uv = (CubeConstants::cube_uvs[index] * uvScale) + uvOffset;
+			const int index_vertex = CubeConstants::cube_indices[index];
+			newVerts[numVerts++] = {
+				positions[index_vertex].x, positions[index_vertex].y, positions[index_vertex].z, positions[index_vertex].w,
+				CubeConstants::cube_normals[index_side].x, CubeConstants::cube_normals[index_side].y, CubeConstants::cube_normals[index_side].z,
+				CubeConstants::cube_tangents[index_side].x, CubeConstants::cube_tangents[index_side].y, CubeConstants::cube_tangents[index_side].z,
+				uv.x * _scale, uv.y* _scale,
+				materialOffset.x, materialOffset.y
+			};
+		}
+	}
+	mesh.resize(numVerts);
+	mesh.buffer(newVerts, numVerts);
+
+	CUSTOM_DELETE_ARRAY(newVerts, m_allocator);
+}
+
+void VoxelData::getMeshLinearWithVertexAO(Mesh& mesh, float radius)
+{
+	float voxelWidth = radius * 2.0f;
+	glm::vec3 voxelOffset = glm::vec3(radius) - (glm::vec3(_sizeX, _sizeY, _sizeZ) * radius);
+	const int numVoxels = _sizeX * _sizeY * _sizeZ;
+
+	// Worst case is every voxel filled, no empty voxels
+	// This results in 36 vertices per each voxel
+	const int worst_case = 36 * numVoxels;
+	MeshVertexData* newVerts = CUSTOM_NEW_ARRAY(MeshVertexData, worst_case, m_allocator);
+	int numVerts = 0;
+
+	for (int i = 0; i < numVoxels; i++)
+	{
+		const uint8_t& b = _data[i];
+		if (b == EMPTY_VOXEL)
+		{
+			continue;
+		}
+		const glm::ivec3 coord = coordinateFromLinearIndex(i, _sizeX, _sizeY);
+		glm::vec3 pos = (glm::vec3(coord.x, coord.y, coord.z) * voxelWidth) + voxelOffset;
+
+		// Check visibility of each side
+		bool visibility_x_neg = !blocksVisibility(coord.x - 1, coord.y, coord.z);
+		bool visibility_x_pos = !blocksVisibility(coord.x + 1, coord.y, coord.z);
+		bool visibility_y_neg = !blocksVisibility(coord.x, coord.y - 1, coord.z);
+		bool visibility_y_pos = !blocksVisibility(coord.x, coord.y + 1, coord.z);
+		bool visibility_z_neg = !blocksVisibility(coord.x, coord.y, coord.z - 1);
+		bool visibility_z_pos = !blocksVisibility(coord.x, coord.y, coord.z + 1);
+		bool visibility[6] = { visibility_x_neg, visibility_x_pos, visibility_y_neg, visibility_y_pos, visibility_z_neg, visibility_z_pos };
 
 		if (!visibility_x_neg && !visibility_x_pos &&
 			!visibility_y_neg && !visibility_y_pos &&
@@ -295,188 +462,42 @@ void VoxelData::getMeshLinear(
 		GLfloat rtrao = (blocksVisibility(coord.x + 1, coord.y + 1, coord.z - 1)) ? occlusion : 0.0f;
 		GLfloat rtfao = (blocksVisibility(coord.x + 1, coord.y + 1, coord.z + 1)) ? occlusion : 0.0f;
 
-		glm::vec4 positions[8] ={
-			glm::vec4(pos.x - radius, pos.y - radius, pos.z - radius, occlusion + lbao + lrao + lbrao),
-			glm::vec4(pos.x + radius, pos.y - radius, pos.z - radius, occlusion + rbao + rrao + rbrao),
-			glm::vec4(pos.x - radius, pos.y + radius, pos.z - radius, occlusion + ltao + lrao + ltrao),
-			glm::vec4(pos.x + radius, pos.y + radius, pos.z - radius, occlusion + rtao + rrao + rtrao),
-			glm::vec4(pos.x - radius, pos.y - radius, pos.z + radius, occlusion + lbao + lfao + lbfao),
-			glm::vec4(pos.x + radius, pos.y - radius, pos.z + radius, occlusion + rbao + rfao + rbfao),
-			glm::vec4(pos.x - radius, pos.y + radius, pos.z + radius, occlusion + ltao + lfao + ltfao),
-			glm::vec4(pos.x + radius, pos.y + radius, pos.z + radius, occlusion + rtao + rfao + rtfao),
+		const glm::vec4 positions[8] = {
+			glm::vec4(pos.x - radius, pos.y - radius, pos.z - radius, occlusion + lbao + lrao + lbrao), // 0 left-bottom-rear
+			glm::vec4(pos.x + radius, pos.y - radius, pos.z - radius, occlusion + rbao + rrao + rbrao), // 1 right-bottom-rear
+			glm::vec4(pos.x - radius, pos.y + radius, pos.z - radius, occlusion + ltao + lrao + ltrao), // 2 left-top-rear
+			glm::vec4(pos.x + radius, pos.y + radius, pos.z - radius, occlusion + rtao + rrao + rtrao), // 3 right-top-rear
+			glm::vec4(pos.x - radius, pos.y - radius, pos.z + radius, occlusion + lbao + lfao + lbfao), // 4 left-bottom-front
+			glm::vec4(pos.x + radius, pos.y - radius, pos.z + radius, occlusion + rbao + rfao + rbfao), // 5 right-bottom-front
+			glm::vec4(pos.x - radius, pos.y + radius, pos.z + radius, occlusion + ltao + lfao + ltfao), // 6 left-top-front
+			glm::vec4(pos.x + radius, pos.y + radius, pos.z + radius, occlusion + rtao + rfao + rtfao), // 7 right-top-front
 		};
-		glm::vec3 normals[6] = {
-			glm::vec3(-1,0,0),
-			glm::vec3(1,0,0),
-			glm::vec3(0,-1,0),
-			glm::vec3(0,1,0),
-			glm::vec3(0,0,-1),
-			glm::vec3(0,0,1),
-		};
-		if (visibility_x_neg) {
-			MeshVertexData lbr = { 
-				positions[0].x, positions[0].y, positions[0].z, positions[0].w,
-				normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
+
+		const glm::vec2 materialOffset = MaterialData::texOffset(b);
+
+		for (int index = 0; index < 36; index++)
+		{
+			const int index_side = index / 6;
+			if (!visibility[index_side])
+			{
+				continue;
+			}
+			const int index_vertex = CubeConstants::cube_indices[index];
+			newVerts[numVerts++] = {
+				positions[index_vertex].x, positions[index_vertex].y, positions[index_vertex].z, positions[index_vertex].w,
+				CubeConstants::cube_normals[index_side].x, CubeConstants::cube_normals[index_side].y, CubeConstants::cube_normals[index_side].z,
+				CubeConstants::cube_tangents[index_side].x, CubeConstants::cube_tangents[index_side].y, CubeConstants::cube_tangents[index_side].z,
+				CubeConstants::cube_uvs[index].x, CubeConstants::cube_uvs[index].y,
+				materialOffset.x, materialOffset.y
 			};
-			MeshVertexData lbf = {
-				positions[4].x, positions[4].y, positions[4].z, positions[4].w,
-				normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
-			};
-			MeshVertexData ltr = {
-				positions[2].x, positions[2].y, positions[2].z, positions[2].w,
-				normals[0].x, normals[0].y, normals[0].z, 1.0, materialOffset
-			};
-			MeshVertexData ltf = {
-				positions[6].x, positions[6].y, positions[6].z, positions[6].w,
-				normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
-			};
-			newVerts[numVerts++] = ltf;
-			newVerts[numVerts++] = ltr;
-			newVerts[numVerts++] = lbr;
-			newVerts[numVerts++] = lbr;
-			newVerts[numVerts++] = lbf;
-			newVerts[numVerts++] = ltf;
-		}
-		if (visibility_x_pos) {
-			MeshVertexData rbr = {
-				positions[1].x, positions[1].y, positions[1].z, positions[1].w,
-				normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
-			};
-			MeshVertexData rbf = {
-				positions[5].x, positions[5].y, positions[5].z, positions[5].w,
-				normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
-			};
-			MeshVertexData rtr = {
-				positions[3].x, positions[3].y, positions[3].z, positions[3].w,
-				normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
-			};
-			MeshVertexData rtf = {
-				positions[7].x, positions[7].y, positions[7].z, positions[1].w,
-				normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
-			};
-			newVerts[numVerts++] = rtr;
-			newVerts[numVerts++] = rtf;
-			newVerts[numVerts++] = rbf;
-			newVerts[numVerts++] = rbf;
-			newVerts[numVerts++] = rbr;
-			newVerts[numVerts++] = rtr;
-		}
-		if (visibility_y_neg) {
-			MeshVertexData lbr = {
-				positions[0].x, positions[0].y, positions[0].z, positions[0].w,
-				normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
-			};
-			MeshVertexData lbf = {
-				positions[4].x, positions[4].y, positions[4].z, positions[4].w,
-				normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
-			};
-			MeshVertexData rbr = {
-				positions[1].x, positions[1].y, positions[1].z, positions[1].w,
-				normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
-			};
-			MeshVertexData rbf = {
-				positions[5].x, positions[5].y, positions[5].z, positions[5].w,
-				normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
-			};
-			newVerts[numVerts++] = rbr;
-			newVerts[numVerts++] = rbf;
-			newVerts[numVerts++] = lbf;
-			newVerts[numVerts++] = lbf;
-			newVerts[numVerts++] = lbr;
-			newVerts[numVerts++] = rbr;
-		}
-		if (visibility_y_pos) {
-			MeshVertexData ltr = {
-				pos.x - radius, pos.y + radius, pos.z - radius, occlusion + ltao + trao + ltrao,
-				0.0f,1.0f,0.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData ltf = {
-				pos.x - radius, pos.y + radius, pos.z + radius, occlusion + ltao + tfao + ltfao,
-				0.0f,1.0f,0.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rtr = {
-				pos.x + radius, pos.y + radius, pos.z - radius, occlusion + rtao + trao + rtrao,
-				0.0f,1.0f,0.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rtf = {
-				pos.x + radius, pos.y + radius, pos.z + radius, occlusion + rtao + tfao + rtfao,
-				0.0f,1.0f,0.0f, 1.0f,
-				materialOffset
-			};
-			newVerts[numVerts++] = ltr;
-			newVerts[numVerts++] = ltf;
-			newVerts[numVerts++] = rtf;
-			newVerts[numVerts++] = rtf;
-			newVerts[numVerts++] = rtr;
-			newVerts[numVerts++] = ltr;
-		}
-		if (visibility_z_neg) {
-			MeshVertexData lbr = {
-				pos.x - radius, pos.y - radius, pos.z - radius, occlusion + brao + lrao + lbrao,
-				0.0f,0.0f,-1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData ltr = {
-				pos.x - radius, pos.y + radius, pos.z - radius, occlusion + trao + lrao + ltrao,
-				0.0f,0.0f,-1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rbr = {
-				pos.x + radius, pos.y - radius, pos.z - radius, occlusion + brao + rrao + rbrao,
-				0.0f,0.0f,-1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rtr = {
-				pos.x + radius, pos.y + radius, pos.z - radius, occlusion + trao + rrao + rtrao,
-				0.0f,0.0f,-1.0f, 1.0f,
-				materialOffset
-			};
-			newVerts[numVerts++] = ltr;
-			newVerts[numVerts++] = rtr;
-			newVerts[numVerts++] = rbr;
-			newVerts[numVerts++] = rbr;
-			newVerts[numVerts++] = lbr;
-			newVerts[numVerts++] = ltr;
-		}
-		if (visibility_z_pos) {
-			MeshVertexData lbf = {
-				pos.x - radius, pos.y - radius, pos.z + radius, occlusion + bfao + lfao + lbfao,
-				0.0f,0.0f,1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData ltf = {
-				pos.x - radius, pos.y + radius, pos.z + radius, occlusion + tfao + lfao + ltfao,
-				0.0f,0.0f,1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rbf = {
-				pos.x + radius, pos.y - radius, pos.z + radius, occlusion + bfao + rfao + rbfao,
-				0.0f,0.0f,1.0f, 1.0f,
-				materialOffset
-			};
-			MeshVertexData rtf = {
-				pos.x + radius, pos.y + radius, pos.z + radius, occlusion + tfao + rfao + rtfao,
-				0.0f,0.0f,1.0f, 1.0f,
-				materialOffset
-			};
-			newVerts[numVerts++] = rtf;
-			newVerts[numVerts++] = ltf;
-			newVerts[numVerts++] = lbf;
-			newVerts[numVerts++] = lbf;
-			newVerts[numVerts++] = rbf;
-			newVerts[numVerts++] = rtf;
 		}
 	}
 	mesh.resize(numVerts);
 	mesh.buffer(newVerts, numVerts);
+	m_allocator.deallocate(newVerts);
 }
 
-void VoxelData::getMeshReduced(
-	Mesh& mesh,
-	float radius)
+void VoxelData::getMeshReduced(Mesh& mesh, float radius)
 {
 	float r2 = radius * 2.0f;
 	glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
@@ -484,7 +505,7 @@ void VoxelData::getMeshReduced(
 	// Worst case is every other voxel filled
 	// This results in 36 vertices per each voxel for 1/2 of all voxels = 18
 	const int worst_case = 18 * numVoxels;
-	MeshVertexData* newVerts = new MeshVertexData[worst_case];
+	MeshVertexData* newVerts = CUSTOM_NEW_ARRAY(MeshVertexData, worst_case, m_allocator);
 	int numVerts = 0;
 
 	int merged = 0;
@@ -513,7 +534,7 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
 
 				// Each vertex has 4 neighbors to be checked for ambient occlusion
 				// These are the amounts for each neighbor node
@@ -527,16 +548,16 @@ void VoxelData::getMeshReduced(
 				GLfloat ltfao = (blocksVisibility(x - 1, y + 1, z + 1)) ? occlusion : 0.0f;
 
 				MeshVertexData lbr = { pos.x - radius, pos.y - radius, pos.z - radius, occlusion + lbao + lrao + lbrao,
-					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
+					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData lbf = { pos.x - radius, pos.y - radius, pos.z + radius, occlusion + lbao + lfao + lbfao,
-					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
+					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData ltr = { pos.x - radius, pos.y + radius, pos.z - radius, occlusion + ltao + lrao + ltrao,
-					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
+					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData ltf = { pos.x - radius, pos.y + radius, pos.z + radius, occlusion + ltao + lfao + ltfao,
-					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset
+					normals[0].x, normals[0].y, normals[0].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && z != 0)
@@ -586,7 +607,7 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
 				GLfloat rbao = (blocksVisibility(x + 1, y - 1, z)) ? occlusion : 0.0f;
 				GLfloat rtao = (blocksVisibility(x + 1, y + 1, z)) ? occlusion : 0.0f;
 				GLfloat rrao = (blocksVisibility(x + 1, y, z - 1)) ? occlusion : 0.0f;
@@ -596,16 +617,16 @@ void VoxelData::getMeshReduced(
 				GLfloat rtrao = (blocksVisibility(x + 1, y + 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat rtfao = (blocksVisibility(x + 1, y + 1, z + 1)) ? occlusion : 0.0f;
 				MeshVertexData rbr = { pos.x + radius, pos.y - radius, pos.z - radius, occlusion + rbao + rrao + rbrao,
-					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
+					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rbf = { pos.x + radius, pos.y - radius, pos.z + radius, occlusion + rbao + rfao + rbfao,
-					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
+					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtr = { pos.x + radius, pos.y + radius, pos.z - radius, occlusion + rtao + rrao + rtrao,
-					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
+					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtf = { pos.x + radius, pos.y + radius, pos.z + radius, occlusion + rtao + rfao + rtfao,
-					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset
+					normals[1].x, normals[1].y, normals[1].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && z != 0)
@@ -652,7 +673,7 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
 				GLfloat brao = (blocksVisibility(x, y - 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat bfao = (blocksVisibility(x, y - 1, z + 1)) ? occlusion : 0.0f;
 				GLfloat lbrao = (blocksVisibility(x - 1, y - 1, z - 1)) ? occlusion : 0.0f;
@@ -660,16 +681,16 @@ void VoxelData::getMeshReduced(
 				GLfloat rbrao = (blocksVisibility(x + 1, y - 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat rbfao = (blocksVisibility(x + 1, y - 1, z + 1)) ? occlusion : 0.0f;
 				MeshVertexData lbr = { pos.x - radius, pos.y - radius, pos.z - radius, occlusion + brao + brao + lbrao,
-					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
+					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData lbf = { pos.x - radius, pos.y - radius, pos.z + radius, occlusion + bfao + bfao + lbfao,
-					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
+					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rbr = { pos.x + radius, pos.y - radius, pos.z - radius, occlusion + brao + brao + rbrao,
-					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
+					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rbf = { pos.x + radius, pos.y - radius, pos.z + radius, occlusion + bfao + bfao + rbfao,
-					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset
+					normals[2].x, normals[2].y, normals[2].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && z != 0)
@@ -717,7 +738,7 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
 				GLfloat ltao = (blocksVisibility(x - 1, y + 1, z)) ? occlusion : 0.0f;
 				GLfloat rtao = (blocksVisibility(x + 1, y + 1, z)) ? occlusion : 0.0f;
 				GLfloat trao = (blocksVisibility(x, y + 1, z - 1)) ? occlusion : 0.0f;
@@ -727,16 +748,16 @@ void VoxelData::getMeshReduced(
 				GLfloat rtrao = (blocksVisibility(x + 1, y + 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat rtfao = (blocksVisibility(x + 1, y + 1, z + 1)) ? occlusion : 0.0f;
 				MeshVertexData ltr = { pos.x - radius, pos.y + radius, pos.z - radius, occlusion + ltao + trao + ltrao,
-					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset
+					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData ltf = { pos.x - radius, pos.y + radius, pos.z + radius, occlusion + ltao + tfao + ltfao,
-					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset
+					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtr = { pos.x + radius, pos.y + radius, pos.z - radius, occlusion + rtao + trao + rtrao,
-					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset
+					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtf = { pos.x + radius, pos.y + radius, pos.z + radius, occlusion + rtao + tfao + rtfao,
-					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset
+					normals[3].x, normals[3].y, normals[3].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && z != 0)
@@ -786,7 +807,7 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
 				GLfloat brao = (blocksVisibility(x, y - 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat trao = (blocksVisibility(x, y + 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat lrao = (blocksVisibility(x - 1, y, z - 1)) ? occlusion : 0.0f;
@@ -796,16 +817,16 @@ void VoxelData::getMeshReduced(
 				GLfloat rbrao = (blocksVisibility(x + 1, y - 1, z - 1)) ? occlusion : 0.0f;
 				GLfloat rtrao = (blocksVisibility(x + 1, y + 1, z - 1)) ? occlusion : 0.0f;
 				MeshVertexData lbr = { pos.x - radius, pos.y - radius, pos.z - radius, occlusion + brao + lrao + lbrao,
-					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset
+					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData ltr = { pos.x - radius, pos.y + radius, pos.z - radius, occlusion + trao + lrao + ltrao,
-					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset
+					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rbr = { pos.x + radius, pos.y - radius, pos.z - radius, occlusion + brao + rrao + rbrao,
-					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset
+					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtr = { pos.x + radius, pos.y + radius, pos.z - radius, occlusion + trao + rrao + rtrao,
-					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset
+					normals[4].x, normals[4].y, normals[4].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && y != 0) 
@@ -854,7 +875,8 @@ void VoxelData::getMeshReduced(
 					continue;
 				}
 				glm::vec3 pos = (glm::vec3(x, y, z)*r2) + voxelOffset;
-				const float materialOffset = MaterialData::texOffset(b);
+				const glm::vec2 materialOffset = MaterialData::texOffset(b);
+
 				GLfloat bfao = (blocksVisibility(x, y - 1, z + 1)) ? occlusion : 0.0f;
 				GLfloat tfao = (blocksVisibility(x, y + 1, z + 1)) ? occlusion : 0.0f;
 				GLfloat lfao = (blocksVisibility(x - 1, y, z + 1)) ? occlusion : 0.0f;
@@ -864,16 +886,16 @@ void VoxelData::getMeshReduced(
 				GLfloat rbfao = (blocksVisibility(x + 1, y - 1, z + 1)) ? occlusion : 0.0f;
 				GLfloat rtfao = (blocksVisibility(x + 1, y + 1, z + 1)) ? occlusion : 0.0f;
 				MeshVertexData lbf = { pos.x - radius, pos.y - radius, pos.z + radius, occlusion + bfao + lfao + lbfao,
-					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset
+					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData ltf = { pos.x - radius, pos.y + radius, pos.z + radius, occlusion + tfao + lfao + ltfao,
-					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset
+					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rbf = { pos.x + radius, pos.y - radius, pos.z + radius, occlusion + bfao + rfao + rbfao,
-					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset
+					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				MeshVertexData rtf = { pos.x + radius, pos.y + radius, pos.z + radius, occlusion + tfao + rfao + rtfao,
-					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset
+					normals[5].x, normals[5].y, normals[5].z, 1.0f, materialOffset.x, materialOffset.y
 				};
 				bool potentialMerge = false;
 				if (vis && y != 0)
@@ -910,22 +932,24 @@ void VoxelData::getMeshReduced(
 	mesh.buffer(newVerts, numVerts);
 }
 
-void VoxelData::getPhysicsReduced(
-	btVector3* p_verts,
-	unsigned int& numPVerts,
-	float radius)
+uint32_t VoxelData::getPhysicsReduced(Physics& physics, float radius)
 {
-	float r2 = radius * 2.0f;
-	glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
-	const int numVoxels = _sizeX*_sizeY*_sizeZ;
+	btTriangleMesh* triangleMesh = physics.createTriangleMesh();
+
+	const float r2 = radius * 2.0f;
+	const glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
+	const size_t numVoxels = _sizeX*_sizeY*_sizeZ;
 	// Worst case is every voxel filled, no empty voxels
 	// This results in 36 vertices per each voxel
-	const int worst_case = 36 * numVoxels;
+	const size_t worst_case = 36 * numVoxels;
+	//btVector3* newVerts = CUSTOM_NEW_ARRAY(btVector3, worst_case, m_allocator);
+	//btVector3* newVerts = (btVector3*)m_allocator.allocate(sizeof(btVector3) * worst_case);
 	btVector3* newVerts = new btVector3[worst_case];
-	int numVerts = 0;
+	Log::Debug("new verts at %p", newVerts);
+	size_t numVerts = 0;
 
 	int merged = 0;
-	bool vis = false;;
+	bool vis = false;
 
 	// View from negative x
 	for (int x = _sizeX - 1; x >= 0; x--) {
@@ -1125,18 +1149,37 @@ void VoxelData::getPhysicsReduced(
 			}
 		}
 	}
-	numPVerts += numVerts;
+	int numTris = numVerts / 3;
+	for (int i = 0; i < numTris; i++)
+	{
+		// Copy triangle data into new physics mesh
+		triangleMesh->addTriangle(
+			newVerts[i * 3 + 0],
+			newVerts[i * 3 + 1],
+			newVerts[i * 3 + 2]);
+	}
+
+	//CUSTOM_DELETE_ARRAY(newVerts, m_allocator);
+	//m_allocator.deallocate(newVerts);
+	delete[] newVerts;
+
+	const bool useQuantizedAABB = true;
+	const uint32_t shapeID = physics.createTriangleMeshShape(triangleMesh, useQuantizedAABB);
+	return shapeID;
 }
 
-void VoxelData::getPhysicsCubes(
-	btCompoundShape *shape,
-	const float radius) 
+uint32_t VoxelData::getPhysicsCubes(Physics& physics, const float radius)
 {
-	float r2 = radius * 2.0f;
-	glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
-	const int numVoxels = _sizeX*_sizeY*_sizeZ;
+	uint32_t shapeID = physics.createCompountShape();
+	btCompoundShape* shape = (btCompoundShape*)physics.getShapeForID(shapeID);
+	const uint32_t cubeShapeID = physics.createCube(radius);
+	btBoxShape* cube = (btBoxShape*)physics.getShapeForID(cubeShapeID);
+ 
+	const float r2 = radius * 2.0f;
+	const glm::vec3 voxelOffset = glm::vec3(radius, radius, radius) - glm::vec3(_sizeX * radius, _sizeY * radius, _sizeZ * radius);
+	const size_t numVoxels = _sizeX * _sizeY * _sizeZ;
 
-	for (int i = 0; i < numVoxels; i++)
+	for (size_t i = 0; i < numVoxels; i++)
 	{
 		const uint8_t b = _data[i];
 
@@ -1156,18 +1199,20 @@ void VoxelData::getPhysicsCubes(
 			blocksPhysics(coord.x, coord.y, coord.z + 1)) {
 			continue;
 		}
-		btBoxShape* box = new btBoxShape(btVector3(radius, radius, radius));
+		//btBoxShape* box = new btBoxShape(btVector3(radius, radius, radius));
 		btTransform trans = btTransform();
 		trans.setIdentity();
 		trans.setOrigin(btVector3(pos.x, pos.y, pos.z));
-		shape->addChildShape(trans, box);
+		shape->addChildShape(trans, cube);
 	}
+	return shapeID;
 }
 
-void VoxelData::getPhysicsHull(
-	btConvexHullShape *shape,
-	const float radius)
+uint32_t VoxelData::getPhysicsHull(Physics& physics, const float radius)
 {
+	uint32_t shapeID = physics.createConvexHullShape();
+	btConvexHullShape* shape = (btConvexHullShape*)physics.getShapeForID(shapeID);
+
 	float r2 = radius * 2.0f;
 	glm::vec3 voxelOffset = glm::vec3(radius - (_sizeX*radius), radius - (_sizeY*radius), radius - (_sizeZ*radius));
 	const int numVoxels = _sizeX*_sizeY*_sizeZ;
@@ -1209,15 +1254,17 @@ void VoxelData::getPhysicsHull(
 		shape->addPoint(rtr_p);
 		shape->addPoint(rtf_p);
 	}
+
+	return shapeID;
 }
 
-#include "VoxelAABB.h"
-void VoxelData::getPhysicsAABBs(
-	btCompoundShape * shape,
-	const glm::vec3& radius)
+uint32_t VoxelData::getPhysicsAABBs(Physics& physics, const glm::vec3& radius)
 {
-	std::vector<VoxelAABB*> aabbVect;       // Final AABBs
-	std::vector<VoxelAABB*> aabbVectXPrev;  // Previous pass of X AABBs
+	uint32_t shapeID = physics.createCompountShape();
+	btCompoundShape* shape = (btCompoundShape*)physics.getShapeForID(shapeID);
+
+	std::vector<VoxelAABB> aabbVect;       // Final AABBs
+	std::vector<VoxelAABB> aabbVectXPrev;  // Previous pass of X AABBs
 	float minRadius = radius.x < radius.y ? radius.x : radius.y;
 	minRadius = radius.z < minRadius ? radius.z : minRadius;
 
@@ -1225,51 +1272,55 @@ void VoxelData::getPhysicsAABBs(
 	float r2 = minRadius * 2.0f;
 	glm::vec3 voxelOffset = glm::vec3(radius.x - (_sizeX*radius.x), radius.y - (_sizeY*radius.y), radius.z - (_sizeZ*radius.z));
 
-	for (int px = 0; px < _sizeX; px++) {
-		std::vector<VoxelAABB*> aabbVectX;      // This pass of X AABBs
-		std::vector<VoxelAABB*> aabbVectYPrev;  // Previous pass of Y AABBs
-		for (int py = 0; py < _sizeY; py++) {
-			std::vector<VoxelAABB*> aabbVectY;  // This pass of Y AABBs
+	for (int px = 0; px < _sizeX; px++) 
+	{
+		std::vector<VoxelAABB> aabbVectX;      // This pass of X AABBs
+		std::vector<VoxelAABB> aabbVectYPrev;  // Previous pass of Y AABBs
+		for (int py = 0; py < _sizeY; py++)
+		{
+			std::vector<VoxelAABB> aabbVectY;  // This pass of Y AABBs
 			uint8_t prevZ = EMPTY_VOXEL;
-			for (int pz = 0; pz < _sizeZ; pz++) {
+			for (int pz = 0; pz < _sizeZ; pz++) 
+			{
 				const int arrPos = getIndex(px, py, pz);
 				const uint8_t b = _data[arrPos];
 
 				if (b == EMPTY_VOXEL)
 				{
+					prevZ = EMPTY_VOXEL;
 					continue;
 				}
-				glm::vec3 pos = (glm::vec3(px, py, pz)*r2) + voxelOffset;
+				const glm::vec3 pos = (glm::vec3(px, py, pz)*r2) + voxelOffset;
 
-				VoxelAABB* aabb = NULL;
-				if (prevZ == EMPTY_VOXEL) {
-					aabb = new VoxelAABB(
-						pos - glm::vec3(radius),
-						pos + glm::vec3(radius),
-						b);
+				if (prevZ == EMPTY_VOXEL)
+				{
+					VoxelAABB aabb = VoxelAABB(pos - glm::vec3(radius), pos + glm::vec3(radius), b);
 					aabbVectY.push_back(aabb);
 				}
-				else {                // Same type, extend AABB
-					aabb = aabbVectY.back();
-					aabb->m_max.z = pos.z + radius.z;
+				else 
+				{ 
+					// Same type, extend AABB
+					aabbVectY.back().m_max.z = pos.z + radius.z;
 				}
+
+				prevZ = b;
+
 				// Compare current new y aabbs with previous set
-				for (int p = 0; p < aabbVectYPrev.size(); p++) {
-					VoxelAABB * prev = aabbVectYPrev[p];
-					if (fabsf(prev->m_min.x - aabb->m_min.x) < epsilon &&
-						fabsf(prev->m_max.x - aabb->m_max.x) < epsilon &&
-						fabsf(prev->m_min.z - aabb->m_min.z) < epsilon &&
-						fabsf(prev->m_max.z - aabb->m_max.z) < epsilon &&
-						fabsf(prev->m_max.y - aabb->m_min.y) < epsilon) {
-						aabb->m_min.y = prev->m_min.y;
+				for (int p = 0; p < aabbVectYPrev.size(); p++)
+				{
+					VoxelAABB& prev = aabbVectYPrev[p];
+					if (fabsf(prev.m_min.x - aabbVectY.back().m_min.x) < epsilon &&
+						fabsf(prev.m_max.x - aabbVectY.back().m_max.x) < epsilon &&
+						fabsf(prev.m_min.z - aabbVectY.back().m_min.z) < epsilon &&
+						fabsf(prev.m_max.z - aabbVectY.back().m_max.z) < epsilon &&
+						fabsf(prev.m_max.y - aabbVectY.back().m_min.y) < epsilon)
+					{
+						aabbVectY.back().m_min.y = prev.m_min.y;
 						aabbVectYPrev.erase(aabbVectYPrev.begin() + p);
-						delete prev;
-						prevZ = EMPTY_VOXEL;    // Must not merge with this one next
+						prevZ = EMPTY_VOXEL;    // Merged - must not merge with this one next
 						break;
 					}
 				}
-				
-				prevZ = b;
 			}   // For each z
 			if (aabbVectYPrev.size() != 0) {  // Copy previous Y aabbs to final vect
 				std::copy(aabbVectYPrev.begin(), aabbVectYPrev.end(), std::back_inserter(aabbVectX));
@@ -1286,58 +1337,69 @@ void VoxelData::getPhysicsAABBs(
 				}
 			}
 		}   // For each y
-			// Compare new X aabbs with previous set
-		for (int pXP = 0; pXP < aabbVectXPrev.size(); pXP++) {
-			for (int pX = 0; pX < aabbVectX.size(); pX++) {
-				if (pXP >= aabbVectXPrev.size()) continue;
-				VoxelAABB * prev = aabbVectXPrev[pXP];
-				VoxelAABB * aabb = aabbVectX[pX];
-				if (fabsf(prev->m_min.y - aabb->m_min.y) < epsilon &&
-					fabsf(prev->m_max.y - aabb->m_max.y) < epsilon &&
-					fabsf(prev->m_min.z - aabb->m_min.z) < epsilon &&
-					fabsf(prev->m_max.z - aabb->m_max.z) < epsilon &&
-					fabsf(prev->m_max.x - aabb->m_min.x) < epsilon) {
-					aabb->m_min.x = prev->m_min.x;
-					aabbVectXPrev.erase(aabbVectXPrev.begin() + pXP);
-					delete prev;
 
+
+		// Compare new X aabbs with previous set
+		for (int pXP = 0; pXP < aabbVectXPrev.size(); pXP++) 
+		{
+			if (aabbVectXPrev.empty() || pXP == aabbVectXPrev.size())
+			{
+				break;
+			}
+			for (int pX = 0; pX < aabbVectX.size(); pX++)
+			{
+				VoxelAABB& prev = aabbVectXPrev[pXP];
+				VoxelAABB& aabb = aabbVectX[pX];
+				if (fabsf(prev.m_min.y - aabb.m_min.y) < epsilon &&
+					fabsf(prev.m_max.y - aabb.m_max.y) < epsilon &&
+					fabsf(prev.m_min.z - aabb.m_min.z) < epsilon &&
+					fabsf(prev.m_max.z - aabb.m_max.z) < epsilon &&
+					fabsf(prev.m_max.x - aabb.m_min.x) < epsilon) {
+					aabb.m_min.x = prev.m_min.x;
+					aabbVectXPrev.erase(aabbVectXPrev.begin() + pXP);
+					if (aabbVectXPrev.empty() || pXP == aabbVectXPrev.size())
+					{
+						break;
+					}
 				}
 			}
 		}
-		if (aabbVectXPrev.size() != 0) {  // Copy previous X aabbs to final vect
+		if (aabbVectXPrev.size() != 0) 
+		{
+			// Copy previous X aabbs to final vect
 			std::copy(aabbVectXPrev.begin(), aabbVectXPrev.end(), std::back_inserter(aabbVect));
 			aabbVectXPrev.clear();
 		}
-		if (aabbVectX.size() != 0) {      // Copy current X aabbs to previous vect
+		if (aabbVectX.size() != 0)
+		{
+			// Copy current X aabbs to previous vect
 			std::copy(aabbVectX.begin(), aabbVectX.end(), std::back_inserter(aabbVectXPrev));
 			aabbVectX.clear();
 		}
-		if (px == _sizeX - 1) {
-			if (aabbVectXPrev.size() != 0) {  // Copy previous X aabbs to final vect (in case left over)
+		if (px == _sizeX - 1)
+		{
+			if (aabbVectXPrev.size() != 0)
+			{ 
+				// Copy previous X aabbs to final vect (in case left over)
 				std::copy(aabbVectXPrev.begin(), aabbVectXPrev.end(), std::back_inserter(aabbVect));
 				aabbVectXPrev.clear();
 			}
 		}
 	}   // For each x
 
-		// Create physics shapes from AABBs
-	std::vector<VoxelAABB*>::iterator
-		it = aabbVect.begin();
+	// Create physics shapes from AABBs
 	Log::Debug("[VoxelData] meshed %i physics AABBs", aabbVect.size());
-	while (it != aabbVect.end()) {
-		VoxelAABB* aabb = *it;
-		uint8_t b = aabb->m_voxel;
-		if (b != EMPTY_VOXEL) {
-			glm::vec3 aaBBSize_2 = (aabb->m_max - aabb->m_min)*0.5f;
-			glm::vec3 pos = aabb->m_min + aaBBSize_2;
-			btBoxShape* box = new btBoxShape(btVector3(aaBBSize_2.x, aaBBSize_2.y, aaBBSize_2.z));
-			btTransform trans = btTransform();
-			trans.setIdentity();
-			trans.setOrigin(btVector3(pos.x, pos.y, pos.z));
-			shape->addChildShape(trans, box);
-		}
-		it++;
-		delete aabb;
+	for (const VoxelAABB& aabb : aabbVect)
+	{
+		const glm::vec3 aaBBSize_2 = (aabb.m_max - aabb.m_min) * 0.5f;
+		const glm::vec3 pos = aabb.m_min + aaBBSize_2;
+		const uint32_t boxID = physics.createBox(aaBBSize_2.x, aaBBSize_2.y, aaBBSize_2.z);
+		btBoxShape* box = (btBoxShape*)physics.getShapeForID(boxID);
+		btTransform trans = btTransform();
+		trans.setIdentity();
+		trans.setOrigin(btVector3(pos.x, pos.y, pos.z));
+		shape->addChildShape(trans, box);
 	}
-	aabbVect.clear();
+
+	return shapeID;
 }

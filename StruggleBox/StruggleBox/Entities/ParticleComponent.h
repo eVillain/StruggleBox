@@ -2,12 +2,11 @@
 #define PARTICLE_COMPONENT_H
 
 #include "EntityComponent.h"
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
+#include "Particles.h"
 
-class Particles;
 class EntityManager;
-
-class ParticleSys;
+class ParticleSystem;
 
 class ParticleComponent : public EntityComponent
 {
@@ -16,8 +15,8 @@ public:
 	ParticleComponent(
 		const int ownerID,
 		const std::string& fileName,
-		std::shared_ptr<EntityManager> entityManager,
-		std::shared_ptr<Particles> particles);
+		EntityManager& entityManager,
+		Particles& particles);
 	~ParticleComponent();
 
 	void update(const double delta);
@@ -25,11 +24,14 @@ public:
 	void deActivate();
 	// Relative offset from main object
 	glm::vec3 offset;
-private:
-	std::shared_ptr<EntityManager> _entityManager;
-	std::shared_ptr<Particles> _particles;
 
-	std::shared_ptr<ParticleSys> _particleSys;
+	ParticleSystem* getParticleSystem() { return _particleSys; }
+private:
+	EntityManager& _entityManager;
+	Particles& _particles;
+
+	ParticleSystemID m_particleSystemID;
+	ParticleSystem* _particleSys;
 };
 
 

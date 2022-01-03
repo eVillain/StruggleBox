@@ -2,13 +2,14 @@
 #define EDITOR_ROOM_H
 
 #include "Light3D.h"
-#include <memory>
+#include <vector>
+
 class Renderer;
 
 class EditorRoom
 {
 public:
-	EditorRoom(std::shared_ptr<Renderer> renderer);
+	EditorRoom(Renderer& renderer);
 	~EditorRoom();
 
 	void draw();
@@ -17,17 +18,18 @@ public:
 	void setDefaultLights();
 	void setColoredLights();
 
-	const float getRoomWidth() const { return _roomWidth; }
+	std::vector<LightInstance>& getLights() { return m_lights; }
+	const float getRoomWidth() const { return m_roomWidth; }
+
 private:
-	std::shared_ptr<Renderer> _renderer;
-	LightInstance _lights[4];
-	CubeInstance* _floorCubes;
-	int _numCubes;
+	Renderer& m_renderer;
+	std::vector<LightInstance> m_lights;
+	CubeInstance* m_floorCubes;
+	int m_numCubes;
 
-	float _roomWidth;
-	int _tilesPerSide;
-
-	bool _rotateLights = false;
+	float m_roomWidth;
+	int m_tilesPerSide;
+	bool m_rotateLights;
 };
 
 

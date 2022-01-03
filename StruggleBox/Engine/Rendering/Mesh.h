@@ -6,13 +6,14 @@
 #include "VertexData.h"
 #include <memory>
 
+class Allocator;
 class Renderer;
 class VertBuffer;
 
 class Mesh
 {
 public:
-	Mesh(std::shared_ptr<Renderer> renderer);
+	Mesh(Renderer& renderer, Allocator& allocator);
 
 	~Mesh();
 
@@ -25,8 +26,8 @@ public:
 	virtual void draw();
 
 protected:
-	std::shared_ptr<Renderer> _renderer;
-	std::shared_ptr<VertBuffer> _vertBuffer;
+	Renderer& _renderer;
+	VertBuffer* _vertBuffer;
 
 	VertexData<MeshVertexData> _vertData;
 	bool _dirty = false;

@@ -9,24 +9,28 @@ public:
 	VertBuffer(const VertexDataType type);
 	~VertBuffer();
 
+	void initialize();
+	void destroy();
+
 	void upload(
 		void*data,
 		size_t size,
-		bool dynamic = false);
+		bool dynamic = false) const;
 
-	void bind();
+	void bind() const;
+	void unbind() const;
 
 	void draw(
 		GLenum mode,
 		unsigned int rangeEnd,
-		unsigned int rangeStart = 0);
+		unsigned int rangeStart = 0) const;
 
-	const VertexDataType getType() { return _type; }
-	const GLuint getVBO() { return _vbo; }
+	const VertexDataType getType() const { return m_type; }
+	const GLuint getVBO() const { return m_vbo; }
 
 private:
-	const VertexDataType _type;
-	GLuint _vbo;
+	const VertexDataType m_type;
+	GLuint m_vbo;
 };
 
 #endif

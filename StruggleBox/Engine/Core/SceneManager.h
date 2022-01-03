@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include <memory>
 
 class Scene;
 
@@ -14,9 +13,12 @@ public:
 	SceneManager();
     virtual ~SceneManager();
 
-    void AddActiveScene(std::shared_ptr<Scene> scene);
-    void AddInactiveScene(std::shared_ptr<Scene> scene);
-	std::shared_ptr<Scene> GetActiveScene();
+    void initialize();
+    void terminate();
+
+    void AddActiveScene(Scene* scene);
+    void AddInactiveScene(Scene* scene);
+	Scene* GetActiveScene();
 
     void InactivateActiveScene();
     void DropActiveScene();
@@ -32,9 +34,9 @@ public:
 	void SetHaltFunction(std::function<void(const std::string)> haltFunc);
 private:
     // Stack to store the current and previously active scenes
-    std::vector<std::shared_ptr<Scene>>   _stack;
+    std::vector<Scene*>   _stack;
     // Stack to store the dead scenes until they properly cleaned up
-    std::vector<std::shared_ptr<Scene>>   _dead;
+    std::vector<Scene*>   _dead;
     // Halt function to execute when out of scenes and engine must terminate
 	std::function<void(const std::string)> _haltFunc;
 

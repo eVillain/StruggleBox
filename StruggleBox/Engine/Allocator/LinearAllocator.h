@@ -3,6 +3,11 @@
 
 #include "Allocator.h"
 
+// A Linear Allocator is the simplest and fastest type of allocator.
+// Pointers to the start of the allocator, to the first free address and the total size of the allocator are maintained.
+// New allocations simply move the pointer to the first free address forward.
+// Individual deallocations cannot be made in linear allocators, instead use clear() to completely clear the memory used by the allocator.
+
 class LinearAllocator : public Allocator
 {
 public:

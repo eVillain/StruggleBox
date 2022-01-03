@@ -1,8 +1,0 @@
-TBLayout: axis: y, distribution-position: "center"
-	TBButton: id: "button-localgame", text: "Local Game"
-	TBButton: id: "button-animations", text: "Edit Animations"
-	TBButton: id: "button-objects", text: "Edit Objects"
-	TBButton: id: "button-particles", text: "Edit Particles"
-	TBButton: id: "button-materials", text: "Edit Materials"
-	TBButton: id: "button-options", text: "Options"
-	TBButton: id: "button-quit", text: "Quit"

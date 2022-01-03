@@ -6,29 +6,26 @@
 #include <vector>
 #include <memory>
 
+class Allocator;
 class Injector;
 class Renderer;
-class Particles;
-class Text;
 class SceneManager;
 class TBGUI;
 class Options;
-class Sprite;
 class Label;
 
-class MainMenuWindow;
+class ButtonNode;
+class OptionsWindow;
 
 class MainMenu : public GUIScene
 {
 public:
     MainMenu(
-		std::shared_ptr<Injector> injector,
-		std::shared_ptr<Renderer> renderer,
-		std::shared_ptr<Particles> particles,
-		std::shared_ptr<Text> text,
-		std::shared_ptr<SceneManager> sceneManager,
-		std::shared_ptr<TBGUI> gui,
-		std::shared_ptr<Options> options);
+		Injector& injector,
+        Allocator& allocator,
+		Renderer& renderer,
+		SceneManager& sceneManager,
+		Options& options);
     ~MainMenu();
     
     // Overridden from Scene
@@ -44,17 +41,17 @@ public:
     void RemoveMainMenu();
     
 private:
-	std::shared_ptr<Injector> _injector;
-	std::shared_ptr<Renderer> _renderer;
-	std::shared_ptr<Particles> _particles;
-	std::shared_ptr<Text> _text;
-	std::shared_ptr<SceneManager> _sceneManager;
-	std::shared_ptr<Options> _options;
+	Injector& _injector;
+	Renderer& _renderer;
+	//Particles& _particles;
+	SceneManager& _sceneManager;
+	Options& _options;
 
+    OptionsWindow* m_optionsWindow;
     int _particleSysID;
-    Sprite* testSprite;
-	MainMenuWindow* _mainMenu;
-    std::shared_ptr<Label> _mainMenuLabel;
+
+    ButtonNode* createMainMenuButton(const std::string& title);
+    bool OnEvent(const InputEvent theEvent, const float amount) override;
 };
 
 #endif

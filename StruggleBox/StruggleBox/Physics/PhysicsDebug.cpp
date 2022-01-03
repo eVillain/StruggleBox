@@ -90,8 +90,9 @@ void PhysicsDebug::draw3dText(const btVector3& location,const char* textString) 
 	//BMF_DrawString(BMF_GetFont(BMF_kHelvetica10),textString);
 }
 
-void PhysicsDebug::reportErrorWarning(const char* warningString) {
-	printf("%s\n",warningString);
+void PhysicsDebug::reportErrorWarning(const char* warningString) 
+{
+	Log::Error("PhysicsDebug: %s",warningString);
 }
 
 void PhysicsDebug::drawContactPoint(const btVector3& pointOnB,const btVector3& normalOnB,

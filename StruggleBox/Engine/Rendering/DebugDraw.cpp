@@ -1,7 +1,6 @@
 #include "DebugDraw.h"
 #include "Log.h"
 #include "Renderer.h"
-#include "ShaderManager.h"
 #include "Shader.h"
 #include "VertBuffer.h"
 #include "GLErrorUtil.h"
@@ -9,16 +8,16 @@
 const int MAX_VERTS = 1024;
 
 DebugDraw::DebugDraw(
-	std::shared_ptr<Renderer> renderer,
-	std::shared_ptr<ShaderManager> shaders) :
+	Renderer& renderer) :
 	_renderer(renderer),
-	_shaders(shaders)
+	_lines2DCount(0),
+	_lines3DCount(0)
 {
 	Log::Info("[DebugDraw] constructor, instance at %p", this);
-	_lineShader = _shaders->load("d_default_vColor.vsh", "d_default.fsh");
+	//_lineShader = _shaders.load("d_default_vColor.vsh", "d_default.fsh");
 	_lineBuffer2D = (ColorVertexData*)malloc(sizeof(ColorVertexData) * MAX_VERTS);
-	_vao = _renderer->addVertexArray();
-	_lineVB = _renderer->addVertBuffer(ColorVerts);
+	_vao = _renderer.addVertexArray();
+	_lineVB = _renderer.addVertBuffer(VertexDataType::ColorVerts);
 }
 
 DebugDraw::~DebugDraw()
@@ -66,7 +65,7 @@ void DebugDraw::flush()
 	CHECK_GL_ERROR();
 
 	glm::mat4 mvp2D;
-	_renderer->GetUIMatrix(mvp2D);
+	_renderer.GetUIMatrix(mvp2D);
 
 	_lineShader->begin();
 	_lineShader->setUniformM4fv("MVP", mvp2D);

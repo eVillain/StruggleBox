@@ -1,121 +1,108 @@
 #include "ConsoleDisplay.h"
-//#include "GUIDraw.h"
-#include "CommandProcessor.h"
+
+#include "GUI.h"
+#include "SpriteNode.h"
+#include "TextInputNode.h"
+#include "LabelNode.h"
+#include "LayoutNode.h"
+
+#include "Console.h"
 #include "Options.h"
 #include "FileUtil.h"
 #include "Timer.h"
-#include "Text.h"
-#include <cstdarg>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include "Console.h"
+
+//#include <cstdarg>
+//#include <iostream>
+//#include <sstream>
+//#include <fstream>
 
 ConsoleDisplay::ConsoleDisplay(
-	std::shared_ptr<GUIDraw> guiDraw,
-	std::shared_ptr<Text> text,
-	std::shared_ptr<GUI> gui,
-	std::shared_ptr<Options> options) :
-	_guiDraw(guiDraw),
-	_text(text),
-	_gui(gui),
-	_options(options),
-	_visible(false)
+	GUI& gui,
+	Options& options)
+	: m_gui(gui)
+	, m_options(options)
+	, m_backgroundSprite(nullptr)
+	, m_textInput(nullptr)
+	, m_layoutNode(nullptr)
 {
-	CommandProcessor::AddCommand("toggleConsole", Command<>([&]() { ToggleVisibility(); }));
+	Show();
 }
 
-
-void ConsoleDisplay::ToggleVisibility()
+void ConsoleDisplay::clear()
 {
-	if (_visible) { Hide(); }
-	else { Show(); }
+	//m_scrollerNode->setContent({}, ScrollStrategy::KEEP_OFFSET);
+	m_textInput->stopTextInput();
 }
-
-void ConsoleDisplay::Draw()
-{
-	if (!_visible) return;
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	int winWidth = _options->getOption<int>("r_resolutionX");
-	int winHeight = _options->getOption<int>("r_resolutionY");
-	// Draw background box
-	//_guiDraw->rect(
-	//	glm::ivec2(-winWidth/2, 0 + 1),
-	//	glm::ivec2(winWidth/2 - 1, winHeight / 2),
-	//	CONSOLE_BG_DEPTH,
-	//	LAColor((GLfloat)0.1f, (GLfloat)0.5f));
-}
-
 
 void ConsoleDisplay::Show()
 {
-	int winWidth = _options->getOption<int>("r_resolutionX");
+	int winWidth = m_options.getOption<int>("r_resolutionX");
+	int winHeight = m_options.getOption<int>("r_resolutionY");
+	setContentSize(glm::vec2(winWidth, winHeight));
+	m_backgroundSprite = m_gui.createSpriteNode(GUI::RECT_DEFAULT);
+	m_backgroundSprite->setEnable9Slice(true);
+	m_backgroundSprite->setContentSize(glm::vec2(m_contentSize.x, m_contentSize.y));
+	addChild(m_backgroundSprite);
+
 	std::string consoleInfo = "Console:  Ingenium v.";
-	consoleInfo.append(_options->getOption<std::string>("version"));
-	//_textInput = _gui->CreateWidget<TextInput, GUIDraw, Text, Input>();
-//	_textInput->GetTransform().SetPosition(glm::vec3(0, 11, CONSOLE_TEXT_DEPTH));
-	//_textInput->setSize(glm::ivec2(winWidth - 1, 22));
-	//_textInput->setDefaultText(consoleInfo);
-	//TextInputBehavior* textInputBehavior = new TextInputBehaviorCallback<ConsoleDisplay>(this, &ConsoleDisplay::OnTextInput);
-	//_textInput->setBehavior(textInputBehavior);
-	//_textInput->StartTextInput();
-	_visible = true;
+	consoleInfo.append(m_options.getOption<std::string>("version"));
+	m_textInput = m_gui.createDefaultTextInput(consoleInfo);
+	m_textInput->setContentSize(glm::vec2(m_contentSize.x - 4, 26.f));
+	m_textInput->setAnchorPoint(glm::vec2(0.f, 0.f));
+	m_textInput->setPosition(glm::vec3(2.f, 2.f, 1.f));
+	m_textInput->setUpdateCallback(std::bind(&ConsoleDisplay::OnTextInputUpdate, this, std::placeholders::_1));
+	m_textInput->setFinishCallback(std::bind(&ConsoleDisplay::OnTextInputFinish, this, std::placeholders::_1, std::placeholders::_2));
+	m_textInput->startTextInput();
+	addChild(m_textInput);
+
+	m_layoutNode = m_gui.createCustomNode<LayoutNode>();
+	m_layoutNode->setLayoutType(LayoutType::Column);
+	m_layoutNode->setContentSize(glm::vec2(m_contentSize.x - 4, m_contentSize.y - 32.f));
+	m_layoutNode->setPosition(glm::vec3(0.f, 30.f, 1.f));
+	addChild(m_layoutNode);
+
 	Refresh();
-}
-
-void ConsoleDisplay::Hide()
-{
-	for (auto label : _textLabels)
-	{
-		_text->DestroyLabel(label);
-		label = nullptr;
-	}
-	_textLabels.clear();
-
-	//_gui->DestroyWidget(_textInput);
-	_textInput = nullptr;
-
-	_visible = false;
 }
 
 void ConsoleDisplay::Refresh()
 {
-	if (!_visible) return;
-
-	size_t msgCount = Console::_textLines.size();
-	int winWidth = _options->getOption<int>("r_resolutionX");
-	//    int winHeight = _locator->Get<Options>()->getOption<int>("r_resolutionY");
-	//    int maxMessages = winHeight / CONSOLE_FONT_SIZE;
-	double labelPosX = -(winWidth / 2) + 8;    // left edge of screen
-	double labelPosY = 22 + (msgCount + 2)*CONSOLE_FONT_SIZE;
-
-	// Move existing labels up
-	for (int i = 0; i < msgCount; i++) {
-		if (_textLabels.size() > i) {
-			// Move text
-			_textLabels[i]->getTransform().SetPosition(glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH));
+	const size_t msgCount = Console::_textLines.size();	
+	for (int i = 0; i < msgCount; i++)
+	{
+		LabelNode* label;
+		if (m_textLabels.size() <= i)
+		{
+			label = m_gui.createLabelNode(Console::_textLines[i].text, GUI::FONT_DEFAULT, 12);
+			//label->setColor(Console::_textLines[i].color);
+			m_textLabels.push_back(label);
+			m_layoutNode->addChild(label);
 		}
-		else {
-			// Add line
-			auto label = _text->CreateLabel(Console::_textLines[i].text);
-			label->setFont(Fonts::FONT_PIXEL);
-			label->setFontSize(CONSOLE_FONT_SIZE);
-			label->setAlignment(Align_Left);
-			label->setColor(Console::_textLines[i].color);
-			label->getTransform().SetPosition(glm::vec3(labelPosX, labelPosY, CONSOLE_TEXT_DEPTH));
-			_textLabels.push_back(label);
+		else
+		{
+			label = m_textLabels.at(i);
+			label->setText(Console::_textLines[i].text);
 		}
-		labelPosY -= CONSOLE_FONT_SIZE;
+	}
+	m_layoutNode->refresh();
+}
+
+void ConsoleDisplay::OnTextInputUpdate(const std::string& input)
+{
+	if (input.empty())
+	{
+		return;
 	}
 }
 
-void ConsoleDisplay::OnTextInput(const std::string& input)
+void ConsoleDisplay::OnTextInputFinish(const std::string& input, const bool confirm)
 {
-	_history.push_back(input);
-	Console::Process(input);
-	Refresh();
-	//_textInput->ClearText();
-	//_textInput->StopTextInput();
-	//_textInput->StartTextInput();
+	if (confirm)
+	{
+		m_history.push_back(input);
+		Console::Process(input);
+		Refresh();
+	}
+
+	m_textInput->setText("");
+	//m_textInput->startTextInput();
 }

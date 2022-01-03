@@ -1,7 +1,7 @@
 #ifndef REFLECTION_PROBE_H
 #define REFLECTION_PROBE_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 
 enum CubeMapSide
 {
@@ -25,13 +25,9 @@ public:
 	const glm::mat4 getRotation(const CubeMapSide side);
 	const glm::mat4 getView(const CubeMapSide side);
 	const glm::mat4 getProjection(
-		const CubeMapSide side,
-		const float nearDepth,
-		const float farDepth);
+		const CubeMapSide side);
 	const glm::mat4 getMVP(
-		const CubeMapSide side,
-		const float nearDepth,
-		const float farDepth);
+		const CubeMapSide side);
 
 	void setPosition(glm::vec3 position){ _position = position; }
 	void setSize(float size) { _size = size; };

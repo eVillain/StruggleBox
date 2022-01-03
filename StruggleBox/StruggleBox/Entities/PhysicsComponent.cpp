@@ -1,4 +1,5 @@
 #include "PhysicsComponent.h"
+
 #include "VoxelFactory.h"
 #include "EntityManager.h"
 #include "Physics.h"
@@ -91,35 +92,36 @@ const float contactResponseFrequency = 1.0f / 6.0f;
 
 PhysicsComponent::PhysicsComponent(
 	const int ownerID,
-	std::shared_ptr<EntityManager> manager,
-	std::shared_ptr<Physics> physics,
-	std::shared_ptr<VoxelFactory> voxels) :
-	EntityComponent(ownerID, "Physics"),
-	_manager(manager),
-	_physics(physics),
-	_voxels(voxels)
+	EntityManager& manager,
+	Physics& physics,
+	VoxelFactory& voxels) 
+	: EntityComponent(ownerID, "Physics")
+	, _manager(manager)
+	, m_physics(physics)
+	, m_voxels(voxels)
+	, m_shapeID(0)
+	, m_shape(nullptr)
+	, m_bodyID(0)
+	, m_body(nullptr)
+	, m_isStatic(false)
+	, m_isSensor(false)
+	, m_timeAccumulator(0.0)
 {
-	physicsMeshBody = NULL;
-	physicsMeshShape = NULL;
-	physicsMeshTris = NULL;
-	physicsCompShape = NULL;
-	physicsHullShape = NULL;
-	timeAccumulator = 0.0;
-	Entity* m_owner = _manager->getEntity(_ownerID);
-	if (!m_owner->HasAttribute("scale")) {
+	Entity* m_owner = _manager.getEntity(_ownerID);
+	if (!m_owner->HasAttribute("scale"))
+	{
 		glm::vec3& scale = m_owner->GetAttributeDataPtr<glm::vec3>("scale");
 		scale = glm::vec3(0.1f);
 	}
-	if (m_owner->HasAttribute("physics"))
-	{
-		int pMode = m_owner->GetAttributeDataPtr<int>("physics");
-		Log::Debug("[PhysComponent] had physics type %i, owner: %i", pMode, _ownerID);
-		setPhysicsMode(pMode);
-	}
-	else
-	{
-		m_owner->GetAttributeDataPtr<int>("physics") = Physics_Off;
-	}
+	//if (m_owner->HasAttribute("physics"))
+	//{
+	//	int& pMode = m_owner->GetAttributeDataPtr<int>("physics");
+		//Log::Debug("[PhysComponent] had physics type %i, owner: %i", pMode, _ownerID);
+		//setPhysicsMode(pMode, false, false);
+		//pMode = (int)PhysicsMode::Physics_Off;
+	//}
+
+	m_owner->GetAttributeDataPtr<int>("physics") = (int)PhysicsMode::Physics_Off;
 }
 
 PhysicsComponent::~PhysicsComponent()
@@ -129,272 +131,189 @@ PhysicsComponent::~PhysicsComponent()
 
 void PhysicsComponent::clearPhysics()
 {
-	if (physicsMeshBody)
+	if (m_shapeID)
 	{
-		_physics->dynamicsWorld->removeRigidBody(physicsMeshBody);
-		delete physicsMeshBody;
-		physicsMeshBody = NULL;
+		m_physics.removeShape(m_shapeID);
+		m_shapeID = 0;
+		m_shape = nullptr;
 	}
-	if (physicsMeshShape)
+	if (m_bodyID)
 	{
-		delete physicsMeshShape;
-		physicsMeshShape = NULL;
+		m_physics.removeBodyFromWorld(m_body);
+		m_physics.removeBody(m_bodyID);
+		m_bodyID = 0;
+		m_body = nullptr;
 	}
-	if (physicsMeshTris)
-	{
-		delete physicsMeshTris;
-		physicsMeshTris = NULL;
-	}
-	if (physicsCompShape)
-	{
-		delete physicsCompShape;
-		physicsCompShape = NULL;
-	}
-	if (physicsHullShape)
-	{
-		delete physicsHullShape;
-		physicsHullShape = NULL;
-	}
+	Log::Debug("PhysicsComponent::clearPhysics cleared for entity %i", _ownerID);
 }
 
-void PhysicsComponent::setPhysicsMode(
-	const int newMode,
-	const bool trigger)
+void PhysicsComponent::setPhysicsMode(PhysicsMode newMode, bool isStatic, bool trigger)
 {
-	clearPhysics();
+	Entity* owner = _manager.getEntity(_ownerID);
+	const PhysicsMode oldMode = (PhysicsMode)owner->GetAttributeDataPtr<int>("physics");
 
-	if (newMode == Physics_Off)
-		return;
-
-	Entity* owner = _manager->getEntity(_ownerID);
-	if (!owner->HasAttribute("objectFile"))
+	if (oldMode == newMode)
 	{
-		Log::Error("[PhysicsComponent] no object file for physics, owner %i", _ownerID);
-		return;
-	}
-	if (!owner->HasAttribute("instanceID"))
-	{
-		Log::Error("[PhysicsComponent] no object file for physics, owner %i", _ownerID);
-		return;
-	}
-	const std::string& objectFileName = owner->GetAttributeDataPtr<std::string>("objectFile");
-
-	const glm::vec3 position = owner->GetAttributeDataPtr<glm::vec3>("position");
-	const glm::quat rotation = owner->GetAttributeDataPtr<glm::quat>("rotation");
-	const glm::vec3 scale = owner->GetAttributeDataPtr<glm::vec3>("scale");
-	//owner->GetAttributeDataPtr<int>("instanceID") = _voxels->getMesh(objFileAttr)->addInstance(position);
-
-	const float restitution = 0.3f;
-	const float friction = 0.8f;
-
-	if (newMode == Physics_Rigid_Mesh)
-	{
-		btVector3* p_verts = nullptr;
-		unsigned int numPVerts = 0;                                          // Number of physics verts
-		_voxels->getVoxels(objectFileName)->getPhysicsReduced(p_verts, numPVerts, DEFAULT_VOXEL_MESHING_WIDTH);
-		physicsMeshTris = new btTriangleMesh();
-		int numTris = numPVerts / 3;
-		for (int i = 0; i<numTris; i++) { // Copy triangle data into new physics mesh
-			physicsMeshTris->addTriangle(p_verts[i * 3 + 0],
-				p_verts[i * 3 + 1],
-				p_verts[i * 3 + 2]);
-		}
-		//Create a new btBvhTriangleMeshShape from the btTriangleMesh
-		const bool useQuantizedAABB = true;
-		physicsMeshShape = new btBvhTriangleMeshShape(physicsMeshTris, useQuantizedAABB);
-		physicsMeshBody = new btRigidBody(0.0, 0, physicsMeshShape, btVector3());
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	else if (newMode == Physics_Rigid_Blocks)
-	{
-		physicsCompShape = new btCompoundShape();
-		_voxels->getVoxels(objectFileName)->getPhysicsCubes(physicsCompShape, DEFAULT_VOXEL_MESHING_WIDTH);
-		physicsMeshBody = new btRigidBody(0.0, 0, physicsCompShape, btVector3());
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	else if (newMode == Physics_Dynamic_Mesh)
-	{
-		btVector3* p_verts = nullptr;
-		unsigned int numPVerts = 0;                                          // Number of physics verts
-		_voxels->getVoxels(objectFileName)->getPhysicsReduced(p_verts, numPVerts, DEFAULT_VOXEL_MESHING_WIDTH);
-		physicsMeshTris = new btTriangleMesh();
-		int numTris = numPVerts / 3;
-		for (int i = 0; i<numTris; i++) { // Copy triangle data into new physics mesh
-			physicsMeshTris->addTriangle(p_verts[i * 3 + 0],
-				p_verts[i * 3 + 1],
-				p_verts[i * 3 + 2]);
-		}
-		//Create a new btBvhTriangleMeshShape from the btTriangleMesh
-		const bool useQuantizedAABB = false;
-		physicsMeshShape = new btBvhTriangleMeshShape(physicsMeshTris, useQuantizedAABB);
-		btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-		btScalar mass = 0.2f;
-		btVector3 fallInertia(0, 0, 0);
-		physicsMeshShape->calculateLocalInertia(mass, fallInertia);
-		btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, physicsMeshShape, fallInertia);
-		physicsMeshBody = new btRigidBody(fallRigidBodyCI);
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	else if (newMode == Physics_Dynamic_Blocks)
-	{
-		physicsCompShape = new btCompoundShape();
-		_voxels->getVoxels(objectFileName)->getPhysicsCubes(physicsCompShape, DEFAULT_VOXEL_MESHING_WIDTH);
-		btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-		btScalar mass = 0.2f;
-		btVector3 fallInertia(0, 0, 0);
-		physicsCompShape->calculateLocalInertia(mass, fallInertia);
-		btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, physicsCompShape, fallInertia);
-		physicsMeshBody = new btRigidBody(fallRigidBodyCI);
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	else if (newMode == Physics_Dynamic_Hull)
-	{
-		btConvexHullShape* tmpConvexShape = new btConvexHullShape();
-		_voxels->getVoxels(objectFileName)->getPhysicsHull(tmpConvexShape, DEFAULT_VOXEL_MESHING_WIDTH);
-		btVector3* p_verts = nullptr;
-		unsigned int numPVerts = 0;                                          // Number of physics verts
-		_voxels->getVoxels(objectFileName)->getPhysicsReduced(p_verts, numPVerts, DEFAULT_VOXEL_MESHING_WIDTH);
-		for (unsigned int i = 0; i<numPVerts; i++)
+		if (m_body)
 		{
-			tmpConvexShape->addPoint(p_verts[i]);
-		}
-		// Create a hull approximation
-		btShapeHull* hull = new btShapeHull(tmpConvexShape);
-		btScalar margin = tmpConvexShape->getMargin();
-		hull->buildHull(margin);
-		physicsHullShape = new btConvexHullShape();
-		for (int i = 0; i<hull->numVertices(); i++)
-		{
-			physicsHullShape->addPoint(hull->getVertexPointer()[i]);
-		}
-		delete tmpConvexShape;
-		delete hull;
-		btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-		btScalar mass = 0.2f;
-		btVector3 fallInertia(0, 0, 0);
-		physicsHullShape->calculateLocalInertia(mass, fallInertia);
-		btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, physicsHullShape, fallInertia);
-		physicsMeshBody = new btRigidBody(fallRigidBodyCI);
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	else if (newMode == Physics_Dynamic_AABBs)
-	{
-		physicsCompShape = new btCompoundShape();
-		_voxels->getVoxels(objectFileName)->getPhysicsAABBs(physicsCompShape, scale*DEFAULT_VOXEL_MESHING_WIDTH);
-		btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-		btScalar mass = 0.2f;
-		btVector3 fallInertia(0, 0, 0);
-		physicsCompShape->calculateLocalInertia(mass, fallInertia);
-		btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, physicsCompShape, fallInertia);
-		physicsMeshBody = new btRigidBody(fallRigidBodyCI);
-		_physics->dynamicsWorld->addRigidBody(physicsMeshBody);
-	}
-	if (physicsMeshBody)
-	{
-		btTransform& trans = physicsMeshBody->getWorldTransform();
-		btQuaternion rot = trans.getRotation();
-		rot = btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-		trans.setRotation(rot);
-		trans.setOrigin(btVector3(position.x, position.y, position.z));
-		physicsMeshBody->setRestitution(restitution);
-		physicsMeshBody->setFriction(friction);
-		physicsMeshBody->setRollingFriction(0.5);
-		physicsMeshBody->activate(true);
-		physicsMeshBody->clearForces();
-		physicsMeshBody->setLinearVelocity(btVector3(0, 0, 0));
-		physicsMeshBody->setAngularVelocity(btVector3(0, 0, 0));
-		physicsMeshBody->setUserPointer(owner);
-		if (trigger)
-		{
-			physicsMeshBody->setCollisionFlags(
-				physicsMeshBody->getCollisionFlags() |
-				btCollisionObject::CF_NO_CONTACT_RESPONSE);
-		}
-	}
-	owner->GetAttributeDataPtr<int>("physics") = newMode;
-}
-void PhysicsComponent::update(const double deltaTime)
-{
-	Entity* owner = _manager->getEntity(_ownerID);
-	const int physicsMode = owner->GetAttributeDataPtr<int>("physics");
-	if (physicsMode != Physics_Off)
-	{
-		Entity* m_owner = _manager->getEntity(_ownerID);
-		btTransform& trans = physicsMeshBody->getWorldTransform();
-		bool updatePhysics = (m_owner->GetAttributeDataPtr<int>("ownerID") == -1);
-		if (updatePhysics) {    // Move entity to physics object position
-			btVector3 physPos = trans.getOrigin();
-			btQuaternion physRot = trans.getRotation();
-			m_owner->GetAttributeDataPtr<glm::vec3>("position") = glm::vec3(physPos.x(), physPos.y(), physPos.z());
-			// Swizzle rotation as Bullet stores it in YZWX order (get WXYZ to restore XYZW order)
-			m_owner->GetAttributeDataPtr<glm::quat>("rotation") = glm::quat(physRot.w(), physRot.x(), physRot.y(), physRot.z());
-		}
-		else {        // Force positions of physics object
-			const glm::vec3 position = m_owner->GetAttributeDataPtr<glm::vec3>("position");
-			setPosition(position);
-			const glm::quat rotation = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
-			setRotation(rotation);
-			const glm::vec3 velocity = m_owner->GetAttributeDataPtr<glm::vec3>("velocity");
-			physicsMeshBody->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
-		}
-		if (m_owner->GetAttributeDataPtr<bool>("generateCollisions")) {
-			timeAccumulator += deltaTime;
-			if (timeAccumulator > contactResponseFrequency) { // Test for collisions with other physics things
-				timeAccumulator -= contactResponseFrequency;
-				ContactSensorCallback callback(*physicsMeshBody, *this);
-				_physics->dynamicsWorld->contactTest(physicsMeshBody, callback);
+			if (isStatic != m_isStatic)
+			{
+				m_physics.removeBodyFromWorld(m_body);
+				m_physics.removeBody(m_bodyID);
+				m_bodyID = 0;
+				m_body = nullptr;
+				createBody(isStatic);
+			}
+			if (trigger != m_isSensor)
+			{
+				const int flags = trigger ?
+					m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT :
+					m_body->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT;
+					m_body->setCollisionFlags(flags);
 			}
 		}
-		else if (timeAccumulator != 0) {   // Reset collision filter
-			collisionFilter.clear();
-			timeAccumulator = 0;
+		return;
+	}
+
+	if (oldMode != PhysicsMode::Physics_Off)
+	{
+		clearPhysics();
+	}
+
+	if (newMode == PhysicsMode::Physics_Off)
+	{
+		owner->GetAttributeDataPtr<int>("physics") = (int)PhysicsMode::Physics_Off;
+		return;
+	}
+
+	const bool requiresObjectFile = requiresVoxelFile(newMode);
+
+	if (requiresObjectFile && !owner->HasAttribute("objectFile"))
+	{
+		Log::Error("[PhysicsComponent] no object file for physics, owner %i", _ownerID);
+		owner->GetAttributeDataPtr<int>("physics") = (int)PhysicsMode::Physics_Off;
+		return;
+	}
+
+	createShape(newMode);
+	createBody(isStatic);
+
+	if (m_body)
+	{
+		if (trigger)
+		{
+			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
+
+		owner->GetAttributeDataPtr<int>("physics") = (int)newMode;
+	}
+	else
+	{
+		owner->GetAttributeDataPtr<int>("physics") = (int)PhysicsMode::Physics_Off;
+	}
+
+	Log::Debug("PhysicsComponent::setPhysicsMode mode %i set for entity %i", owner->GetAttributeDataPtr<int>("physics"), _ownerID);
+}
+
+void PhysicsComponent::update(const double deltaTime)
+{
+	Entity* owner = _manager.getEntity(_ownerID);
+	const PhysicsMode physicsMode = (PhysicsMode)owner->GetAttributeDataPtr<int>("physics");
+	if (physicsMode == PhysicsMode::Physics_Off || !m_body)
+	{
+		return;
+	}
+	btTransform& trans = m_body->getWorldTransform();
+	const bool updatePhysics = owner->GetAttributeDataPtr<int>("ownerID") == 0 && deltaTime != 0.0;
+	if (updatePhysics)
+	{
+		// Move entity to physics object position
+		btVector3 physPos = trans.getOrigin();
+		btQuaternion physRot = trans.getRotation();
+		owner->GetAttributeDataPtr<glm::vec3>("position") = glm::vec3(physPos.x(), physPos.y(), physPos.z());
+		// Swizzle rotation as Bullet stores it in YZWX order (get WXYZ to restore XYZW order)
+		owner->GetAttributeDataPtr<glm::quat>("rotation") = glm::quat(physRot.w(), physRot.x(), physRot.y(), physRot.z());
+	}
+	else if (m_body)
+	{
+		// Force positions of physics object
+		const glm::vec3 position = owner->GetAttributeDataPtr<glm::vec3>("position");
+		setPosition(position);
+		const glm::quat rotation = owner->GetAttributeDataPtr<glm::quat>("rotation");
+		setRotation(rotation);
+		const glm::vec3 velocity = owner->GetAttributeDataPtr<glm::vec3>("velocity");
+		m_body->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+	}
+	if (m_body && owner->GetAttributeDataPtr<bool>("generateCollisions"))
+	{
+		m_timeAccumulator += deltaTime;
+		if (m_timeAccumulator > contactResponseFrequency)
+		{
+			// Test for collisions with other physics things
+			m_timeAccumulator -= contactResponseFrequency;
+			//ContactSensorCallback callback(*m_body, *this);
+			//m_physics.getWorld()->contactTest(m_body, callback);
+		}
+	}
+	else if (m_timeAccumulator != 0) 
+	{
+		// Reset collision filter
+		collisionFilter.clear();
+		m_timeAccumulator = 0;
 	}
 }
 
 void PhysicsComponent::setPosition(const glm::vec3 & position)
 {
-	btTransform& trans = physicsMeshBody->getWorldTransform();
+	if (!m_body)
+	{
+		return;
+	}
+	btTransform& trans = m_body->getWorldTransform();
 	btVector3& pos = trans.getOrigin();
 	float epsilon = 0.0001f;
 	if (fabsf(pos.x() - position.x) > epsilon ||
 		fabsf(pos.y() - position.y) > epsilon ||
 		fabsf(pos.z() - position.z) > epsilon) {
 		trans.setOrigin(btVector3(position.x, position.y, position.z));
-		physicsMeshBody->activate(true);
-		physicsMeshBody->clearForces();
+		m_body->activate(true);
+		m_body->clearForces();
 	}
 }
 
 void PhysicsComponent::setRotation(const glm::quat & rotation)
 {
-	btTransform& trans = physicsMeshBody->getWorldTransform();
+	if (!m_body)
+	{
+		return;
+	}
+	btTransform& trans = m_body->getWorldTransform();
 	btQuaternion rot = trans.getRotation();
 	float epsilon = 0.0001f;
-	if (fabsf(rot.x() - rotation.x) > epsilon ||
-		fabsf(rot.y() - rotation.y) > epsilon ||
-		fabsf(rot.z() - rotation.z) > epsilon ||
-		fabsf(rot.w() - rotation.w) > epsilon) {
+	if (fabsf(rot.w() - rotation.x) > epsilon ||
+		fabsf(rot.x() - rotation.y) > epsilon ||
+		fabsf(rot.y() - rotation.z) > epsilon ||
+		fabsf(rot.z() - rotation.w) > epsilon) {
 		rot = btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
 		trans.setRotation(rot);
-		physicsMeshBody->activate(true);
-		physicsMeshBody->clearForces();
+		m_body->activate(true);
+		m_body->clearForces();
 	}
 }
 
 void PhysicsComponent::setLinearVelocity(const btVector3* newLinVel)
 {
-	if (physicsMeshBody)
+	if (m_body)
 	{
-		physicsMeshBody->setLinearVelocity(*newLinVel);
+		m_body->setLinearVelocity(*newLinVel);
 	}
 }
 
 void PhysicsComponent::setAngularVelocity(const btVector3* newAngVel) 
 {
-	if (physicsMeshBody)
+	if (m_body)
 	{
-		physicsMeshBody->setAngularVelocity(*newAngVel);
+		m_body->setAngularVelocity(*newAngVel);
 	}
 }
 
@@ -404,4 +323,97 @@ void PhysicsComponent::addContactToFilter(Entity*newContact)
 	{
 		collisionFilter.push_back(newContact);
 	} /*    else already had that contact in filter, shouldn't be adding it twice :(  */
-};
+}
+
+void PhysicsComponent::createShape(const PhysicsMode mode)
+{
+	Entity* owner = _manager.getEntity(_ownerID);
+	const std::string& objectFileName = owner->GetAttributeDataPtr<std::string>("objectFile");
+	const glm::vec3 scale = owner->GetAttributeDataPtr<glm::vec3>("scale");
+
+	if (mode == PhysicsMode::Physics_Cube_Mesh)
+	{
+		m_shapeID = m_voxels.getVoxels(objectFileName)->getPhysicsReduced(m_physics, scale.x * DEFAULT_VOXEL_MESHING_WIDTH);
+	}
+	else if (mode == PhysicsMode::Physics_Cube_Blocks)
+	{
+		m_shapeID = m_voxels.getVoxels(objectFileName)->getPhysicsCubes(m_physics, scale.x * DEFAULT_VOXEL_MESHING_WIDTH);
+	}
+	else if (mode == PhysicsMode::Physics_Cube_Hull)
+	{
+		uint32_t hullShapeID = m_voxels.getVoxels(objectFileName)->getPhysicsHull(m_physics, scale.x * DEFAULT_VOXEL_MESHING_WIDTH);
+		btConvexHullShape* hullShape = (btConvexHullShape*)m_physics.getShapeForID(hullShapeID);
+		// Create a hull approximation
+		btShapeHull* hull = new btShapeHull(hullShape);
+		btScalar margin = hullShape->getMargin();
+		hull->buildHull(margin);
+		m_shapeID = m_physics.createConvexHullShape();
+		m_shape = m_physics.getShapeForID(m_shapeID);
+		for (int i = 0; i < hull->numVertices(); i++)
+		{
+			((btConvexHullShape*)m_shape)->addPoint(hull->getVertexPointer()[i]);
+		}
+		delete hull;
+	}
+	else if (mode == PhysicsMode::Physics_Cube_AABBs)
+	{
+		m_shapeID = m_voxels.getVoxels(objectFileName)->getPhysicsAABBs(m_physics, scale * DEFAULT_VOXEL_MESHING_WIDTH);
+	}
+	else if (mode == PhysicsMode::Physics_Cube_Single)
+	{
+		m_shapeID = m_physics.createCube(scale.x * DEFAULT_VOXEL_MESHING_WIDTH);
+	}
+	else if (mode == PhysicsMode::Physics_Sphere)
+	{
+		const float radius = owner->GetAttributeDataPtr<float>("sphereRadius");
+		m_shapeID = m_physics.createSphere(radius);
+	}
+	m_shape = m_physics.getShapeForID(m_shapeID);
+}
+
+void PhysicsComponent::createBody(const bool isStatic)
+{
+	Entity* owner = _manager.getEntity(_ownerID);
+	const glm::vec3 position = owner->GetAttributeDataPtr<glm::vec3>("position");
+	const glm::quat rotation = owner->GetAttributeDataPtr<glm::quat>("rotation");
+	const float mass = isStatic ? 0.f : 1.f;
+	const float restitution = 0.25f;
+	const float friction = 0.75f;
+	const float rollingFriction = 0.25f;
+
+	btVector3 fallInertia(0, 0, 0);
+	if (!isStatic)
+	{
+		m_shape->calculateLocalInertia(mass, fallInertia);
+	}
+	m_bodyID = m_physics.createBody(mass, m_shape, fallInertia);
+	m_body = m_physics.getBodyForID(m_bodyID);
+	if (!m_body)
+	{
+		Log::Error("PhysicsComponent::createBody failed to create body for entity %i!", _ownerID);
+		return;
+	}
+
+	m_body->setUserPointer(owner);
+	m_physics.addBodyToWorld(m_body, CollisionType::Group_Entity, CollisionType::Filter_Everything);
+
+	btTransform& trans = m_body->getWorldTransform();
+	const btQuaternion rot = btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+	trans.setRotation(rot);
+	trans.setOrigin(btVector3(position.x, position.y, position.z));
+	m_body->setRestitution(restitution);
+	m_body->setFriction(friction);
+	m_body->setRollingFriction(rollingFriction);
+	m_body->setLinearVelocity(btVector3(0, 0, 0));
+	m_body->setAngularVelocity(btVector3(0, 0, 0));
+	m_body->clearForces();
+	m_body->activate(true);
+}
+
+bool PhysicsComponent::requiresVoxelFile(PhysicsMode mode)
+{
+	return mode == PhysicsMode::Physics_Cube_Mesh ||
+		mode == PhysicsMode::Physics_Cube_Blocks ||
+		mode == PhysicsMode::Physics_Cube_AABBs ||
+		mode == PhysicsMode::Physics_Cube_Hull;
+}

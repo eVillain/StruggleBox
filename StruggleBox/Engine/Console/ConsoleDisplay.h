@@ -1,50 +1,39 @@
-#ifndef CONSOLE_DISPLAY_H
-#define CONSOLE_DISPLAY_H
+#pragma once
 
 #include "ConsoleDefs.h"
+#include "Node.h"
 #include <vector>
 #include <string>
 #include <memory>
 
-class GUIDraw;
-class Text;
 class GUI;
 class Options;
-class Label;
+class LabelNode;
+class TextInputNode;
+class SpriteNode;
+class LayoutNode;
 
-class TextInput;
-
-class ConsoleDisplay
+class ConsoleDisplay : public Node
 {
 public:
 	ConsoleDisplay(
-		std::shared_ptr<GUIDraw> guiDraw,
-		std::shared_ptr<Text> text,
-		std::shared_ptr<GUI> gui,
-		std::shared_ptr<Options> options);
+		GUI& gui,
+		Options& options);
 
-	void ToggleVisibility();
-	bool isVisible() { return _visible; };
-
-	void Draw();
+	void clear();
 
 private:
-	std::shared_ptr<GUIDraw> _guiDraw;
-	std::shared_ptr<Text> _text;
-	std::shared_ptr<GUI> _gui;
-	std::shared_ptr<Options> _options;
+	GUI& m_gui;
+	Options& m_options;
 
-
-	std::vector<std::shared_ptr<Label>> _textLabels;
-	std::shared_ptr<TextInput> _textInput;
-	std::vector<std::string> _history;
-	bool _visible;
+	SpriteNode* m_backgroundSprite;
+	TextInputNode* m_textInput;
+	LayoutNode* m_layoutNode;
+	std::vector<LabelNode*> m_textLabels;
+	std::vector<std::string> m_history;
 
 	void Refresh();
 	void Show();
-	void Hide();
-	void OnTextInput(const std::string& input);
+	void OnTextInputUpdate(const std::string& input);
+	void OnTextInputFinish(const std::string& input, const bool confirm);
 };
-
-#endif // !CONSOLE_DISPLAY_H
-

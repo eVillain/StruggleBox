@@ -7,8 +7,8 @@
 enum LightType {
 	Light_Type_None = 0,
 	Light_Type_Directional = 1,
-	Light_Type_Point = 3,
-	Light_Type_Spot = 4,
+	Light_Type_Point = 2,
+	Light_Type_Spot = 3,
 };
 
 struct LightInstance
@@ -22,7 +22,7 @@ struct LightInstance
 	float spotCutoff = 360.0f;      // Set to <= 90.0 for spot lights
 	float spotExponent = 1.0f;      // Spot light exponent
 	bool shadowCaster = false;      // Does it cast shadows?
-	bool rayCaster = false;         // Does it cast visible light rays?
+	float raySize = 16.f;			// Does it cast visible light rays?
 	bool active = true;             // Whether light is on
 };
 

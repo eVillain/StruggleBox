@@ -4,15 +4,14 @@
 #include <string>
 #include <memory>
 
+class Allocator;
 class VoxelData;
 
 class VoxelLoader
 {
 public:
-	static std::shared_ptr<VoxelData> load(const std::string fileName);
-	static void save(
-		const std::string fileName,
-		std::shared_ptr<VoxelData> data);
+	static VoxelData* load(const std::string& fileName, Allocator& allocator);
+	static void save(const std::string& fileName, const VoxelData* data, Allocator& allocator);
 
 
 

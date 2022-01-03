@@ -9,7 +9,7 @@ class InventoryComponent : public EntityComponent
 public:
     InventoryComponent(
 		const int owner,
-		std::shared_ptr<EntityManager> manager);
+		EntityManager& manager);
     virtual ~InventoryComponent();
 
     virtual void update(const double delta);
@@ -23,7 +23,7 @@ public:
     std::vector<Entity*> getInventory() { return inventory; };
 
 private:
-	std::shared_ptr<EntityManager> _manager;
+	EntityManager& _manager;
 	std::vector<Entity*> inventory;
 	int maxItems;
 	bool updated;

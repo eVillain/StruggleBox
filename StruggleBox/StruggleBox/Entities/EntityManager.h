@@ -8,12 +8,15 @@
 
 const float ENTITY_SEARCH_RADIUS = 8.0f;
 
-class Injector;
-class Entity;
+class Allocator;
+class Renderer;
+class VoxelFactory;
+class Particles;
+class Physics;
 
 class EntityComponent;
 class ActorComponent;
-class CubeComponent;
+class VoxelComponent;
 class ExplosiveComponent;
 class HealthComponent;
 class HumanoidComponent;
@@ -22,74 +25,106 @@ class ItemComponent;
 class Light3DComponent;
 class ParticleComponent;
 class PhysicsComponent;
-class World3D;
+class RenderComponent;
+class SelfDestructComponent;
+
+enum class EntityComponentFamily {
+	Actor,
+	Voxel,
+	Explosive,
+	Health,
+	Humanoid,
+	Inventory,
+	Item,
+	Light3D,
+	Particle,
+	Physics,
+	Render,
+	SelfDestruct,
+};
 
 class EntityManager
 {
 public:
-	EntityManager(std::shared_ptr<Injector> injector);
+	static const std::vector<std::string> ENTITY_COMPONENT_FAMILY_NAMES;
+
+	EntityManager(Allocator& allocator, Renderer& renderer, VoxelFactory& voxelFactory, Particles& particles, Physics& physics);
 	~EntityManager();
 
 	void update(const double delta);
 
 	void draw();
 
-	int addEntity(const std::string name);
+	EntityID addEntity(const std::string& name);
 
-	int addEntity(
-		const std::string filePath,
-		const std::string fileName);
+	EntityID addEntity(
+		const std::string& filePath,
+		const std::string& fileName);
 
 	void saveEntity(
 		Entity* entity,
-		const std::string filePath,
-		const std::string fileName);
+		const std::string& filePath,
+		const std::string& fileName);
 
 	void setComponent(
-		const int entityID,
+		const EntityID entityID,
 		EntityComponent* component);
 
 	EntityComponent* getComponent(
-		const int entityID,
-		const std::string componentFamily);
+		const EntityID entityID,
+		const std::string& componentFamily);
+
+	EntityComponent* addComponent(
+		const EntityID entityID,
+		const std::string& componentFamily);
 
 	void removeComponent(
-		const int entityID,
+		const EntityID entityID,
 		EntityComponent* component);
 
-	void killEntity(const int entityID);
+	std::vector<EntityComponent*> getAllComponents(const EntityID entityID);
 
-	Entity* getEntity(const int entityID);
+	void destroyEntity(const EntityID entityID);
+
+	Entity* getEntity(const EntityID entityID);
 
 	Entity* getNearestEntity(const glm::vec3 position,
-		const int ignoreID = ENTITY_NONE,
+		const EntityID ignoreID = ENTITY_NONE,
 		const EntityType filterType = ENTITY_NONE,
 		const float radius = ENTITY_SEARCH_RADIUS);
 
-	std::map<int, Entity*> getNearbyEntities(const glm::vec3 position,
-		const int ignoreID = ENTITY_NONE,
+	std::map<EntityID, Entity*> getNearbyEntities(const glm::vec3 position,
+		const EntityID ignoreID = ENTITY_NONE,
 		const EntityType filterType = ENTITY_NONE,
 		const float radius = ENTITY_SEARCH_RADIUS);
 
-	std::map<int, Entity*>& GetEntities() { return entityMap; };
+	std::map<EntityID, Entity*>& GetEntities() { return entityMap; };
+
+	Allocator& getAllocator() { return m_allocator; }
 
 private:
-	std::shared_ptr<Injector> _injector;
+	Allocator& m_allocator;
+	Renderer& m_renderer;
+	VoxelFactory& m_voxelFactory;
+	Particles& m_particles;
+	Physics& m_physics;
 
-	std::map<int, Entity*> entityMap;   // EntityID, pointer to Entity
-	std::queue<int> eraseQueue;         // EntityIDs to remove after update
-	std::map<int, ActorComponent*>      _actorComponents;
-	std::map<int, CubeComponent*>       _cubeComponents;
-	std::map<int, ExplosiveComponent*>  _explosiveComponents;
-	std::map<int, HealthComponent*>     _healthComponents;
-	std::map<int, HumanoidComponent*>   _humanoidComponents;
-	std::map<int, InventoryComponent*>  _inventoryComponents;
-	std::map<int, ItemComponent*>       _itemComponents;
-	std::map<int, Light3DComponent*>    _light3DComponents;
-	std::map<int, ParticleComponent*>   _particleComponents;
-	std::map<int, PhysicsComponent*>    _physicsComponents;
+	std::map<EntityID, Entity*> entityMap;   // EntityID, pointer to Entity
+	std::queue<EntityID> eraseQueue;         // EntityIDs to remove after update
+	std::map<EntityID, ActorComponent*>      _actorComponents;
+	std::map<EntityID, VoxelComponent*>       _cubeComponents;
+	std::map<EntityID, ExplosiveComponent*>  _explosiveComponents;
+	std::map<EntityID, HealthComponent*>     _healthComponents;
+	std::map<EntityID, HumanoidComponent*>   _humanoidComponents;
+	std::map<EntityID, InventoryComponent*>  _inventoryComponents;
+	std::map<EntityID, ItemComponent*>       _itemComponents;
+	std::map<EntityID, Light3DComponent*>    _light3DComponents;
+	std::map<EntityID, ParticleComponent*>   _particleComponents;
+	std::map<EntityID, PhysicsComponent*>    _physicsComponents;
+	std::map<EntityID, RenderComponent*>	_renderComponents;
+	std::map<EntityID, SelfDestructComponent*> _selfDestructComponents;
 
-	void removeEntity(const int entityID);
+	void removeEntity(const EntityID entityID);
 };
 
 #endif

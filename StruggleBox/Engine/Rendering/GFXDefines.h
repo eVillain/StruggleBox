@@ -1,11 +1,12 @@
 #ifndef GFX_DEFINES_H
 #define GFX_DEFINES_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "glm/gtc/quaternion.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 #define DEFAULT_SCREEN_WIDTH  1280
 #define DEFAULT_SCREEN_HEIGHT 720
@@ -19,57 +20,56 @@ const GLfloat ORTHO_FARDEPTH = 100.0f;
 #define MAX_RENDER_VERTS 250000
 
 // Structure for colored vertex data/impostor sphere
-typedef struct
-{
+typedef struct ColorVertexData {
     GLfloat x,y,z,w;		// World pos
     GLfloat r,g,b,a;		// Diffuse color
 } ColorVertexData;
 
 // Structure for mesh vertex data
-typedef struct
-{
+typedef struct MeshVertexData {
 	GLfloat x, y, z, w;		// World pos x,y,z + ao (w)
-	GLfloat nx, ny, nz, nw; // Normal x,y,z (w unused)
-	GLfloat m;				// Material index
+	GLfloat nx, ny, nz;     // Normal x,y,z
+    GLfloat tx, ty, tz;     // Tangent x,y,z
+    GLfloat uvx, uvy;       // Texture UV coords
+	GLfloat mx, my;		    // Material coords
 } MeshVertexData;
 
 // Structure for impostor sphere data
-typedef struct
-{
+typedef struct SphereVertexData {
 	GLfloat x, y, z;		// World pos
 	GLfloat r;				// Radius
-	GLfloat m;				// Material index
+	GLfloat mx, my;			// Material coords
 } SphereVertexData;
 
 // Structure for textured vertex data
-typedef struct
-{
-	GLfloat x, y, z, w;		// World pos
-	GLfloat u, v;			// Texture coordinates
+typedef struct TexturedVertexData {
+	glm::vec3 pos;		// World pos
+	glm::vec2 uv;	    // Texture coordinates
 } TexturedVertexData;
 
 // Structure for object instance data
-typedef struct {
+typedef struct InstanceTransformData {
     glm::vec3 position;     // Position in world coordinates
     glm::quat rotation;     // Rotation quaternion
     glm::vec3 scale;        // Scale
 } InstanceData;
 
-// Structure for colored cube instance data
-typedef struct {
+// Structure for material cube instance data
+typedef struct CubeInstance {
     GLfloat x, y, z;        // Cube coordinates
     GLfloat s;              // Cube size 
     GLfloat rx,ry,rz,rw;    // Cube rotation quaternion
-	GLfloat m;				// Material index
+	GLfloat mx, my;	        // Material coordinates
 } CubeInstance;
 
-// Structure for textured cube instance data
-typedef struct {
+// Structure for colored cube instance data
+typedef struct CubeInstanceColor {
     GLfloat x, y, z;        // Cube coordinates
-    GLfloat s;              // Cube size
-    GLfloat rx,ry,rz,rw;    // Cube rotation
-    GLfloat t;              // Cube texture/type
-} CubeTexInstance;
+    GLfloat s;              // Cube size 
+    GLfloat rx, ry, rz, rw; // Cube rotation quaternion
+    GLfloat cr, cg, cb, ca; // Color values
+    GLfloat mr, mm, me;     // Material roughness, metalness, emissiveness
+} CubeInstanceColor;
 
 enum StencilLayer {
     Stencil_None = 0,
@@ -105,139 +105,6 @@ static const GLfloat square2D_texCoords[] = {
     1.0, 0.0,
     1.0, 1.0,
     0.0, 1.0,
-};
-
-static const GLfloat cube_vertices[] = {
-    // front
-    -0.5, -0.5, 0.5, 1.0,
-    0.5, -0.5, 0.5, 1.0,
-    0.5, 0.5, 0.5, 1.0,
-    0.5, 0.5, 0.5, 1.0,
-    -0.5, 0.5, 0.5, 1.0,
-    -0.5, -0.5, 0.5, 1.0,
-    // right
-    0.5, -0.5, 0.5, 1.0,
-    0.5, -0.5, -0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    0.5, 0.5,  0.5, 1.0,
-    0.5, -0.5, 0.5, 1.0,
-    // back
-    -0.5, 0.5, -0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    0.5, -0.5, -0.5, 1.0,
-    0.5, -0.5, -0.5, 1.0,
-    -0.5, -0.5, -0.5, 1.0,
-    -0.5, 0.5, -0.5, 1.0,
-    // left
-    -0.5, -0.5,-0.5, 1.0,
-    -0.5, -0.5, 0.5, 1.0,
-    -0.5, 0.5, 0.5, 1.0,
-    -0.5, 0.5, 0.5, 1.0,
-    -0.5, 0.5,-0.5, 1.0,
-    -0.5, -0.5,-0.5, 1.0,
-    // bottom
-    -0.5, -0.5, -0.5, 1.0,
-    0.5, -0.5, -0.5, 1.0,
-    0.5, -0.5, 0.5, 1.0,
-    0.5, -0.5, 0.5, 1.0,
-    -0.5, -0.5, 0.5, 1.0,
-    -0.5, -0.5, -0.5, 1.0,
-    // top
-    -0.5, 0.5, 0.5, 1.0,
-    0.5, 0.5, 0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    -0.5, 0.5, -0.5, 1.0,
-    -0.5, 0.5, 0.5, 1.0,
-};
-static const GLfloat cube_normals[] = {
-    // front
-    0.0, 0.0, 1.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    0.0, 0.0, 1.0, 1.0,
-    // right
-    1.0, 0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0, 1.0,
-    1.0, 0.0, 0.0, 1.0,
-    // back
-    0.0, 0.0, -1.0, 1.0,
-    0.0, 0.0, -1.0, 1.0,
-    0.0, 0.0, -1.0, 1.0,
-    0.0, 0.0, -1.0, 1.0,
-    0.0, 0.0, -1.0, 1.0,
-    0.0, 0.0, -1.0, 1.0,
-    // left
-    -1.0, 0.0, 0.0, 1.0,
-    -1.0, 0.0, 0.0, 1.0,
-    -1.0, 0.0, 0.0, 1.0,
-    -1.0, 0.0, 0.0, 1.0,
-    -1.0, 0.0, 0.0, 1.0,
-    -1.0, 0.0, 0.0, 1.0,
-    // bottom
-    0.0, -1.0, 0.0, 1.0,
-    0.0, -1.0, 0.0, 1.0,
-    0.0, -1.0, 0.0, 1.0,
-    0.0, -1.0, 0.0, 1.0,
-    0.0, -1.0, 0.0, 1.0,
-    0.0, -1.0, 0.0, 1.0,
-    // top
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0, 1.0,
-};
-static const GLfloat cube_texcoords[] = {
-    // front
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    // right
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    // back
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    // left
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    // bottom
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    // top
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
 };
 
 typedef struct {
@@ -413,5 +280,13 @@ const unsigned char checker_texture[ C_TEX_WIDTH * C_TEX_HEIGHT ] = {
     0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
 };
 
-
+// Light matrices to look in all 6 directions for cubemapping
+static const glm::mat4 lightViewMatrix[6] = {
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f,-1.0f, 0.0f)),  // +x
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(-1.0f,0.0f, 0.0f), glm::vec3(0.0f,-1.0f, 0.0f)),  // -x
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),  // +y
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,-1.0f, 0.0f), glm::vec3(0.0f, 0.0f,-1.0f)),  // -y
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f,-1.0f, 0.0f)),  // +z
+    glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 0.0f,-1.0f), glm::vec3(0.0f,-1.0f, 0.0f))   // -z
+};
 #endif

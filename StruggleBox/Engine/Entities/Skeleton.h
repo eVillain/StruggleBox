@@ -9,7 +9,7 @@
 struct KeyFrame
 {
 	double time;
-	InstanceData data;
+	InstanceTransformData data;
 };
 
 typedef uint16_t JointID;
@@ -46,7 +46,7 @@ public:
 		const glm::vec3& position,
 		const float time);
 
-	std::vector<InstanceData> getInstanceData(
+	std::vector<InstanceTransformData> getInstanceData(
 		const std::string& animation,
 		const float time,
 		const glm::vec3& position = glm::vec3(),
@@ -68,7 +68,7 @@ private:
 	std::map<JointID, std::vector<JointID>> _children;
 
 	void getInstanceData(
-		std::vector<InstanceData> instances,
+		std::vector<InstanceTransformData> instances,
 		const std::string& animation,
 		const float time,
 		JointID currentJoint,
@@ -76,7 +76,7 @@ private:
 		const glm::quat parentWorldRotation,
 		const glm::vec3 parentWorldScale);
 
-	InstanceData getFrameAtTime(AnimationStream& stream, const float time);
+	InstanceTransformData getFrameAtTime(AnimationStream& stream, const float time);
 
 	void getNearestJoint(
 		const std::string& animation,

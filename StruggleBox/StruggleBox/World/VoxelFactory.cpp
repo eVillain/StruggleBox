@@ -1,13 +1,20 @@
 #include "VoxelFactory.h"
+
+#include "Allocator.h"
 #include "VoxelLoader.h"
 
-VoxelFactory::VoxelFactory(std::shared_ptr<Renderer> renderer) :
-	_renderer(renderer)
+VoxelFactory::VoxelFactory(Renderer& renderer, Allocator& allocator)
+	: _renderer(renderer)
+	, m_allocator(allocator)
 {
 }
 
 VoxelFactory::~VoxelFactory()
 {
+	for (auto pair : _meshes)
+	{
+		CUSTOM_DELETE(pair.second, m_allocator);
+	}
 }
 
 void VoxelFactory::draw()
@@ -18,12 +25,12 @@ void VoxelFactory::draw()
 	}
 }
 
-const unsigned int VoxelFactory::addInstance(const std::string & fileName)
+const unsigned int VoxelFactory::addInstance(const std::string& fileName)
 {
 	return getMesh(fileName)->addInstance();
 }
 
-std::shared_ptr<VoxelData> VoxelFactory::getVoxels(const std::string & fileName)
+VoxelData* VoxelFactory::getVoxels(const std::string& fileName)
 {
 	auto pair = _voxels.find(fileName);
 	if (pair != _voxels.end())
@@ -31,7 +38,7 @@ std::shared_ptr<VoxelData> VoxelFactory::getVoxels(const std::string & fileName)
 	return loadVoxels(fileName);
 }
 
-std::shared_ptr<InstancedMesh> VoxelFactory::getMesh(const std::string & fileName)
+InstancedMesh* VoxelFactory::getMesh(const std::string& fileName)
 {
 	auto pair = _meshes.find(fileName);
 	if (pair != _meshes.end())
@@ -39,19 +46,19 @@ std::shared_ptr<InstancedMesh> VoxelFactory::getMesh(const std::string & fileNam
 	return loadMesh(fileName);
 }
 
-bool VoxelFactory::isLoaded(const std::string & fileName)
+bool VoxelFactory::isLoaded(const std::string& fileName)
 {
 	return (_voxels.find(fileName) != _voxels.end());
 }
 
-bool VoxelFactory::isMeshed(const std::string & fileName)
+bool VoxelFactory::isMeshed(const std::string& fileName)
 {
 	return (_meshes.find(fileName) != _meshes.end());
 }
 
-std::shared_ptr<VoxelData> VoxelFactory::loadVoxels(const std::string & fileName)
+VoxelData*VoxelFactory::loadVoxels(const std::string& fileName)
 {
-	std::shared_ptr<VoxelData> data = VoxelLoader::load(fileName);
+	VoxelData* data = VoxelLoader::load(fileName, m_allocator);
 	if (data)
 	{
 		_voxels[fileName] = data;
@@ -59,10 +66,11 @@ std::shared_ptr<VoxelData> VoxelFactory::loadVoxels(const std::string & fileName
 	return data;
 }
 
-std::shared_ptr<InstancedMesh> VoxelFactory::loadMesh(const std::string & fileName)
+InstancedMesh* VoxelFactory::loadMesh(const std::string& fileName)
 {
-	std::shared_ptr<InstancedMesh> mesh = std::make_shared<InstancedMesh>(_renderer);
-	getVoxels(fileName)->getMeshReduced(*mesh.get(), DEFAULT_VOXEL_MESHING_WIDTH);
+	InstancedMesh* mesh = CUSTOM_NEW(InstancedMesh, m_allocator)(_renderer, m_allocator);
+	VoxelData* data = getVoxels(fileName);
+	data->getMeshLinear(*mesh, DEFAULT_VOXEL_MESHING_WIDTH);
 	_meshes[fileName] = mesh;
 	return mesh;
 }

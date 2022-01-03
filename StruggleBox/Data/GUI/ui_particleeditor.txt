@@ -1,4 +1,0 @@
-TBLayout: axis: y, distribution-position: "left-top"
-	TBLayout: axis: x, distribution-position: "left-top"
-		TBButton: id: "file-button",	text: "File"
-		TBButton: id: "options-button", text: "Options"

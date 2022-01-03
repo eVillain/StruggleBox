@@ -2,7 +2,7 @@
 #define ACTOR_COMPONENT_H
 
 #include "EntityComponent.h"
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 #include <memory>
 
 class EntityManager;
@@ -19,13 +19,13 @@ class ActorComponent : public EntityComponent
 public:
 	ActorComponent(
 		const int ownerID,
-		std::shared_ptr<EntityManager> manager);
+		EntityManager& manager);
 	~ActorComponent();
 
 	virtual void update(const double delta);
 
 private:
-	std::shared_ptr<EntityManager> _manager;
+	EntityManager& _manager;
 
 	double lastUpdateTime;
 	double lastMoveTime;

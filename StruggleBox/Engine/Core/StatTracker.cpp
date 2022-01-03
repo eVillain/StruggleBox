@@ -1,96 +1,38 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "StatTracker.h"
-#include "HyperVisor.h"
-#include "Text.h"
+
 #include "GFXHelpers.h"
 #include "Renderer.h"
-
 #include "Options.h"
 #include "Log.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 StatTracker::StatTracker(
-	std::shared_ptr<Options> options,
-	std::shared_ptr<Text> text) :
-	_options(options),
-	_text(text)
+	Options& options) :
+	_options(options)
 {
 	Log::Info("[StatTracker] constructor, instance at %p", this);
-
-    // Whether StatTracker is visible
-    s_showStats = false;
-    
-    lastBarNum = 0;
-    
-    // Renderer statistics
-    s_rFPS = 0;
-    s_rFrameDelta = 0;
-    s_rTime = 0;
-    s_pTime = 0;
-    s_pCollisions = 0;
-    s_pManifolds = 0;
-    s_eTime = 0;
-    s_eNum = 0;
-    
-    s_rNumTris = 0;
-    s_rNumSegs = 0;
-    s_rNumSpheres = 0;
-    s_rNumLights2D = 0;
-    s_rNumLights3D = 0;
-    
-    s_tNumJobs = 0;
-    // Physics statistics
-    //    int s_pBodies = 0;
-    //    int s_pStaticBodies = 0;
-    //    int s_pShapes = 0;
-    //    int s_pStaticShapes = 0;
-    //    int s_pArbiters = 0;
-    //    int s_pPoints = 0;
-    //    int s_pConstraints = 0;
-    //    double s_pKE = 0.0;
 }
 StatTracker::~StatTracker()
 {
 	Log::Info("[StatTracker] destructor, instance at %p", this);
 }
 
-// Statistics setters
-void StatTracker::SetRFPS( double newFPS ) { s_rFPS = newFPS; };
-void StatTracker::SetRFrameDelta( double newFrameDelta ) { s_rFrameDelta = newFrameDelta; };
-void StatTracker::SetRTime( double newTime ) { s_rTime = newTime; };
-void StatTracker::SetPTime( double newTime ) { s_pTime = newTime; };
-void StatTracker::SetPCollisions( int newCollisions ) { s_pCollisions = newCollisions; };
-void StatTracker::SetPManifodlds( const int newManifolds ) { s_pManifolds = newManifolds; };
-void StatTracker::SetETime( double newTime ) { s_eTime = newTime; };
-void StatTracker::SetENum( int newEntities ) { s_eNum = newEntities; };
-void StatTracker::SetRNumTris( int newNumTris ) { s_rNumTris = newNumTris; };
-void StatTracker::SetRNumSegs( int newNumSegs ) { s_rNumSegs = newNumSegs; };
-void StatTracker::SetRNumSpheres( int newNumSpheres ) { s_rNumSpheres = newNumSpheres; };
-void StatTracker::SetRNumLights2D( int newNumLights2D ) { s_rNumLights2D = newNumLights2D; };
-void StatTracker::SetRNumLights3D( int newNumLights3D ) { s_rNumLights3D = newNumLights3D; };
-void StatTracker::SetTNumJobs( const int newJobs ) { s_tNumJobs = newJobs; };
-// Physics
-//    void SetPBodies( int newBodies ) { s_pBodies = newBodies; };
-//    void SetPStaticBodies( int newStaticBodies ) { s_pStaticBodies = newStaticBodies; };
-//    void SetPShapes( int newShapes ) { s_pShapes = newShapes; };
-//    void SetPStaticShapes( int newStaticShapes ) { s_pStaticShapes = newStaticShapes; };
-//    void SetPArbiters( int newArbiters ) { s_pArbiters = newArbiters; };
-//    void SetPPoints( int newPoints ) { s_pPoints = newPoints; };
-//    void SetPConstraints( int newConstraints ) { s_pConstraints = newConstraints; };
-//    void SetPKE( double newKE ) { s_pKE = newKE; };
-
-void StatTracker::ToggleStats()
+void StatTracker::trackFloatValue(const float value, const std::string& name)
 {
-    s_showStats = !s_showStats;
-    if (s_showStats) { DisplayStats(); }
-    else { HideStats(); }
+    m_floatStats[name] = value;
+}
+
+void StatTracker::trackIntValue(const int32_t value, const std::string& name)
+{
+    m_intStats[name] = value;
 }
 
 void StatTracker::DisplayStats()
 {
-    int x = _options->getOption<int>("r_resolutionX")/2-300;
-    int y = _options->getOption<int>("r_resolutionY")/2-40;
+    int x = _options.getOption<int>("r_resolutionX")/2-300;
+    int y = _options.getOption<int>("r_resolutionY")/2-40;
     
     //int fontSize = 20;
     //int labelID = _text->AddText( "Stats:", glm::vec3(x, y, 0.0), true, 32, FONT_MENU, 0.0f );

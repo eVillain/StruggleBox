@@ -51,7 +51,9 @@ void* StackAllocator::allocate(size_t size, uint8_t alignment)
 
 void StackAllocator::deallocate(void* p)
 {
+#if _DEBUG
 	assert( p == _prev_position );
+#endif
 
 	//Access the AllocationHeader in the bytes before p
 	AllocationHeader* header = (AllocationHeader*)(pointer_math::subtract(p, sizeof(AllocationHeader)));
@@ -60,9 +62,9 @@ void StackAllocator::deallocate(void* p)
 
 	_current_pos = pointer_math::subtract(p, header->adjustment);
 
-	#if _DEBUG
+#if _DEBUG
 	_prev_position = header->prev_address;
-	#endif
+#endif
 
 	_num_allocations--;
 }

@@ -7,22 +7,22 @@
 class LogOutputSTD : public LogOutput
 {
 public:
-    virtual void Debug(const std::string message)
+    virtual void Debug(const std::string& message)
     {
         std::cout << "DEBUG: " << message << "\n";
     }
     
-    virtual void Info(const std::string message)
+    virtual void Info(const std::string& message)
     {
         std::cout << "INFO: " << message << "\n";
     }
     
-    virtual void Warn(const std::string message)
+    virtual void Warn(const std::string& message)
     {
         std::cout << "WARN: " << message << "\n";
     }
     
-    virtual void Error(const std::string message)
+    virtual void Error(const std::string& message)
     {
         std::cout << "ERROR: " << message << "\n";
     }

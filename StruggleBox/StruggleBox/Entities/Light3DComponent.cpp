@@ -5,15 +5,17 @@
 
 Light3DComponent::Light3DComponent(
 	const int ownerID,
-	std::shared_ptr<EntityManager> entityManager) :
-	EntityComponent(ownerID, "Light3D"),
-	_entityManager(entityManager)
+	EntityManager& entityManager) 
+	: EntityComponent(ownerID, "Light3D")
+	, _entityManager(entityManager)
 {
 	_light.type = Light_Type_Point;
 	_light.position.w = 10.0f;
 	_light.color = LAColor(1.0f, 0.0f);;
-	_light.attenuation = glm::vec3(0.5f, 0.35f, 0.2f);
-	_light.shadowCaster = true;
+	_light.attenuation = glm::vec3(1.0f, 0.5f, 0.25f);
+	_light.shadowCaster = false;
+	_light.raySize = 0.f;
+	_light.active = false;
 	offset = glm::vec3();
 }
 
@@ -22,7 +24,7 @@ Light3DComponent::~Light3DComponent()
 
 void Light3DComponent::update(const double delta)
 {
-	Entity* m_owner = _entityManager->getEntity(_ownerID);
+	Entity* m_owner = _entityManager.getEntity(_ownerID);
 	glm::vec3 ownerPos = m_owner->GetAttributeDataPtr<glm::vec3>("position");
 	glm::quat ownerRot = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
 	glm::vec3 lightPos = ownerPos + (ownerRot*offset);

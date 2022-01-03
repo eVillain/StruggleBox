@@ -1,5 +1,4 @@
-#ifndef SCENE_H
-#define SCENE_H
+#pragma once
 
 #include <string>
 
@@ -20,16 +19,15 @@ public:
     virtual void Update(const double delta) = 0;
     virtual void Draw() = 0;
     
-    bool IsInitialized() { return _init; };
-    bool IsPaused() { return _paused; };
+    bool IsInitialized() { return m_init; };
+    bool IsPaused() { return m_paused; };
     
 private:
-    const std::string _sceneID;
-    bool _init;
-    bool _paused;
+    const std::string m_sceneID;
+    bool m_init;
+    bool m_paused;
     
     Scene(const Scene&);            // Intentionally undefined constructor
     Scene& operator=(const Scene&); // Intentionally undefined constructor
 };
 
-#endif /* SCENE_H */

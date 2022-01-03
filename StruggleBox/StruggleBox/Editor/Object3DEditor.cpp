@@ -1,4 +1,6 @@
 #include "Object3DEditor.h"
+
+#include "EditorRoom.h"
 #include "Camera.h"
 #include "FileUtil.h"
 #include "PathUtil.h"
@@ -9,14 +11,10 @@
 #include "LightSystem3D.h"
 #include "Camera.h"
 
-#include "TBGUI.h"
 #include "FileWindow.h"
-#include "OptionsWindow.h"
 #include "ObjectWindow.h"
 #include "MeshWindow.h"
 
-#include "TextureManager.h"
-#include "Text.h"
 #include "Console.h"
 #include "Serialise.h"
 #include "Particles.h"
@@ -26,7 +24,7 @@
 #include "VoxelLoader.h"
 
 #include "EntityManager.h"
-#include "CubeComponent.h"
+#include "VoxelComponent.h"
 #include "PhysicsComponent.h"
 #include "HumanoidComponent.h"
 #include "ActorComponent.h"
@@ -35,117 +33,46 @@
 #include "Log.h"
 #include "Random.h"
 
-#include "zlib.h"
-#include "tb_menu_window.h"
+#include "CoreIncludes.h"
 #include <glm/gtx/rotate_vector.hpp>
 #include <fstream>              // File input/output
+#include <algorithm>
 
-// Ugly hack to avoid zlib corruption on win systems
-#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
-#  include <fcntl.h>
-#  include <io.h>
-#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
-#else
-#  define SET_BINARY_MODE(file)
-#endif
-
-const float VOXEL_RADIUS = 0.25f;
+const float VOXEL_RADIUS = 0.125f;
 const float VOXEL_WIDTH = VOXEL_RADIUS*2.0f;
 const float roomWidth = 128.0f;
 
 Object3DEditor::Object3DEditor(
-	std::shared_ptr<TBGUI> gui,
-	std::shared_ptr<Camera> camera,
-	std::shared_ptr<Renderer> renderer,
-	std::shared_ptr<Options> options,
-	std::shared_ptr<Input> input,
-	std::shared_ptr<LightSystem3D> lights,
-	std::shared_ptr<Text> text) :
-	EditorScene(gui, camera, renderer, options, input),
-	_lighting(lights),
-	_text(text),
-	_objectWindow(nullptr),
-	_meshWindow(nullptr)
+	Camera& camera,
+	Allocator& allocator,
+	Renderer& renderer,
+	Options& options,
+	Input& input,
+	StatTracker& statTracker)
+	: EditorScene(camera, allocator, renderer, options, input, statTracker)
+	, _objectWindow(nullptr)
+	, _meshWindow(nullptr)
 {
 	Log::Info("[Object3DEditor] constructor, instance at %p", this);
 
-	_camera->position = glm::vec3(16, 16, 16);
-	_camera->targetPosition = glm::vec3(16, 16, 16);
-	_camera->targetRotation = glm::vec3(-M_PI_4, M_PI_4, 0);
-	_camera->rotation = glm::vec3(-M_PI_4, M_PI_4, 0);
+	m_camera.position = glm::vec3(m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f);
+	m_camera.targetPosition = glm::vec3(m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f);
+	m_camera.targetRotation = glm::vec3(-M_PI_4, M_PI_4, 0);
+	m_camera.rotation = glm::vec3(-M_PI_4, M_PI_4, 0);
 
 	columnHeight = 8;
-	TextureManager::Inst()->LoadTexture(FileUtil::GetPath().append("Data/GFX/"), "Crosshair.png");
 	selectionAABB = AABB3D();
 
-	_mesh = std::make_shared<InstancedMesh>(_renderer);
+	_mesh = CUSTOM_NEW(InstancedMesh, m_allocator)(m_renderer, m_allocator);
 	_instanceID = _mesh->addInstance(glm::vec3(0,2,0));
-	_voxels = std::make_shared<VoxelData>(8, 8, 8);
+	_voxels = CUSTOM_NEW(VoxelData, m_allocator)(32, 64, 32, m_allocator);
 
-	(*_voxels)(0, 0, 0) = 2;
+	(*_voxels)(0, 0, 0) = 2; // quick hack to set one voxel to non-empty
 	refreshVoxelMesh();
-
-	// Setup GUI
-	_root.SetLayoutDistributionPosition(tb::LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP);
-	_root.SetAxis(tb::AXIS_Y);
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("New Object", TBIDC("open-new")));
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("Load Object", TBIDC("open-load")));
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("Save Object", TBIDC("open-save")));
-
-	_root.AddListener("file-button", [&](const tb::TBWidgetEvent& ev) {
-		tb::TBButton *button = tb::TBSafeCast<tb::TBButton>(ev.target);
-		tb::TBMenuWindow* filePopup = new tb::TBMenuWindow(button, TBIDC("file-menu"));
-		filePopup->Show(&_file_menu_source, tb::TBPopupAlignment());
-	});
-
-	_root.AddListener("file-menu", [&](const tb::TBWidgetEvent& ev) {
-		if (ev.ref_id == TBIDC("open-new"))
-		{
-			_mesh = nullptr;
-			_voxels = nullptr;
-			_mesh = std::make_shared<InstancedMesh>(_renderer);
-			_voxels = std::make_shared<VoxelData>(2, 2, 2);
-		}
-		else if (ev.ref_id == TBIDC("open-load"))
-		{
-			FileWindow* window = new FileWindow(_gui->getRoot(), PathUtil::ObjectsPath(), "bwo", Mode_Load);
-			window->SetCallback(new CallbackLambda<std::string>([&](std::string file) {
-				if (file.length() > 0)
-					LoadObject(file);
-			}));
-		}
-		else if (ev.ref_id == TBIDC("open-save"))
-		{
-			FileWindow* window = new FileWindow(_gui->getRoot(), PathUtil::ObjectsPath(), "bwo", Mode_Save);
-			window->SetCallback(new CallbackLambda<std::string>([&](std::string file) {
-				if (file.length() > 0)
-					SaveObject(file);
-			}));
-		}
-	});
-
-	_root.AddListener("options-button", [&](const tb::TBWidgetEvent& ev) {
-		new OptionsWindow(&_root, _options);
-	});
-	_root.AddListener("mesh-button", [&](const tb::TBWidgetEvent& ev) {
-		if (_meshWindow != nullptr)
-		{
-			_meshWindow->Die();
-			_meshWindow = nullptr;
-		}
-		else
-		{
-			_meshWindow = new MeshWindow(_gui->getRoot(), _mesh);
-		}
-	});
-	_root.AddListener("refresh-button", [&](const tb::TBWidgetEvent& ev) {
-		refreshVoxelMesh();
-	});
 }
 
 Object3DEditor::~Object3DEditor()
 {
-	TextureManager::Inst()->UnloadTexture("Crosshair.png");
 }
 
 void Object3DEditor::Initialize()
@@ -153,8 +80,7 @@ void Object3DEditor::Initialize()
 	EditorScene::Initialize();
 	Log::Info("[Object3DEditor] initializing...");
 
-	_room.buildRoom(128.0f, 32);
-	_renderer->setRoomSize(128.0f);
+	m_room.buildRoom(32.0f, 32);
 
 	ShowEditor();
 }
@@ -176,28 +102,27 @@ void Object3DEditor::Resume()
 	ShowEditor();
 }
 
-void Object3DEditor::Release()
-{
-	EditorScene::Release();
-}
-
 void Object3DEditor::ShowEditor()
 {
-	std::string path = PathUtil::GUIPath() + "ui_voxelobjecteditor.txt";
-	_root.LoadResourceFile(path.c_str());
-
-	_objectWindow = new ObjectWindow(_gui->getRoot(), _voxels, &_renderer->getMaterials());
-	_objectWindow->SetPosition(tb::TBPoint(_gui->getRoot()->GetRect().w - _objectWindow->GetRect().w, 0));
+	if (!_objectWindow)
+	{
+		_objectWindow = m_gui.createCustomNode<ObjectWindow>(m_gui, m_renderer, m_renderer.getMaterials());
+		_objectWindow->setVoxels(_voxels);
+		_objectWindow->setResizeCallback(std::bind(&Object3DEditor::resizeVoxelData, this, std::placeholders::_1));
+		_objectWindow->setRescaleCallback(std::bind(&Object3DEditor::rescaleVoxelData, this, std::placeholders::_1));
+		_objectWindow->setUpdateCallback(std::bind(&Object3DEditor::refreshVoxelMesh, this));
+		_objectWindow->setPositionX(m_renderer.getWindowSize().x - _objectWindow->getContentSize().x);
+		m_gui.getRoot().addChild(_objectWindow);
+	}
 }
 
 void Object3DEditor::RemoveEditor()
 {
-	_objectWindow->Die();
-	_objectWindow = nullptr;
-
-	if (_meshWindow)
-		_meshWindow->Die();
-	_meshWindow = nullptr;
+	if (_objectWindow)
+	{
+		m_gui.destroyNodeAndChildren(_objectWindow);
+		_objectWindow = nullptr;
+	}
 }
 
 void Object3DEditor::Update(double delta)
@@ -217,13 +142,18 @@ void Object3DEditor::Draw()
 	CubeInstance tableCube = {
 		objectPosition.x, (objectPosition.y+0.005f)-(tableSize*2.0f)+objectVolume.y*0.5,objectPosition.z,tableSize,
 		0.0f,0.0f,0.0f,1.0f,
-		MaterialData::texOffset(50)
+		MaterialData::texOffsetX(1), MaterialData::texOffsetY(1)
 	};
-	_renderer->bufferCubes(&tableCube, 1);
+	m_renderer.bufferCubes(&tableCube, 1);
 
 	DrawEditCursor();
 
 	_mesh->draw();
+}
+
+const std::string Object3DEditor::getFilePath() const
+{
+	return FileUtil::GetPath() + "Data/Objects/";
 }
 
 inline const glm::ivec3 getNextBlockDirection(
@@ -245,11 +175,11 @@ inline const glm::ivec3 getNextBlockDirection(
 void Object3DEditor::DrawEditCursor()
 {
 	// Refresh position of cursor in world
-	_cursor.posWorld = _renderer->GetCursor3DPos(_cursor.posScrn);
+	m_cursor.posWorld = m_renderer.GetCursor3DPos(m_cursor.posScrn);
 	const glm::vec3 voxelRadius = glm::vec3(VOXEL_RADIUS);
 	const glm::vec3 objectVolume = _voxels->getVolume(VOXEL_RADIUS);
 	const glm::vec3 objectPosition = _mesh->getPosition(_instanceID);
-	const glm::vec3 cursorObjectSpace = _cursor.posWorld - objectPosition + (objectVolume*0.5f);
+	const glm::vec3 cursorObjectSpace = m_cursor.posWorld - objectPosition + (objectVolume*0.5f);
 	_cursorObjectCoord = (cursorObjectSpace) / (VOXEL_WIDTH);
 
 	if (_voxels->contains(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z))
@@ -260,25 +190,25 @@ void Object3DEditor::DrawEditCursor()
 
 		if (cursorVoxel == EMPTY_VOXEL)
 		{
-			_renderer->DrawBoxOutline(cursorVoxelCenter, voxelRadius*1.01f, COLOR_SELECT);
+			drawBoxOutline(cursorVoxelCenter, voxelRadius*1.01f, COLOR_SELECT);
 		}
 		else
 		{
-			_renderer->DrawBoxOutline(cursorVoxelCenter, voxelRadius, COLOR_RED);
+			drawBoxOutline(cursorVoxelCenter, voxelRadius, COLOR_RED);
 			// Find closest cursor projected position
-			const glm::ivec3 projectedMove = getNextBlockDirection(_cursor.posWorld, cursorVoxelCenter);
+			const glm::ivec3 projectedMove = getNextBlockDirection(m_cursor.posWorld, cursorVoxelCenter);
 			glm::ivec3 projectedVoxelXoord = _cursorObjectCoord + projectedMove;
 			bool projectedInside = _voxels->contains(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z);
 			if (projectedInside)
 			{
 				glm::vec3 nextBlockAtCursor = objectPosition + (glm::vec3(projectedVoxelXoord) * (VOXEL_WIDTH)) - (objectVolume*0.5f) + voxelRadius;
-				_renderer->DrawBoxOutline(nextBlockAtCursor, voxelRadius*1.01f, COLOR_SELECT);
+				drawBoxOutline(nextBlockAtCursor, voxelRadius*1.01f, COLOR_SELECT);
 			}
 		}
 	}
 
 	// Outline for object size
-	_renderer->DrawBoxOutline(objectPosition, objectVolume*0.5f, LAColor(1.0, 0.5));
+	drawBoxOutline(objectPosition, objectVolume*0.5f + glm::vec3(0.1f, 0.1f, 0.1f), LAColor(1.0, 0.5));
 }
 
 void Object3DEditor::Cancel()
@@ -299,17 +229,17 @@ void Object3DEditor::Create()
 		const glm::vec3 objectPosition = _mesh->getPosition(_instanceID);
 		glm::vec3 cursorVoxelCenter = objectPosition + (glm::vec3(_cursorObjectCoord) * (VOXEL_WIDTH)) - (objectVolume*0.5f) + voxelRadius;
 		// Find closest cursor projected position
-		const glm::ivec3 projectedMove = getNextBlockDirection(_cursor.posWorld, cursorVoxelCenter);
+		const glm::ivec3 projectedMove = getNextBlockDirection(m_cursor.posWorld, cursorVoxelCenter);
 		glm::ivec3 projectedVoxelXoord = _cursorObjectCoord + projectedMove;
 		bool projectedInside = _voxels->contains(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z);
 		if (!projectedInside)
 			return;
 
-		(*_voxels)(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z) = _objectWindow->GetCurrentID();
+		(*_voxels)(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z) = _objectWindow->getCurrentID();
 	}
 	else
 	{ 
-		(*_voxels)(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z) = _objectWindow->GetCurrentID();
+		(*_voxels)(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z) = _objectWindow->getCurrentID();
 	}
 	refreshVoxelMesh();
 }
@@ -331,7 +261,7 @@ void Object3DEditor::Erase()
 		const glm::vec3 objectPosition = _mesh->getPosition(_instanceID);
 		glm::vec3 cursorVoxelCenter = objectPosition + (glm::vec3(_cursorObjectCoord) * (VOXEL_WIDTH)) - (objectVolume*0.5f) + voxelRadius;
 		// Find closest cursor projected position
-		const glm::ivec3 projectedMove = getNextBlockDirection(_cursor.posWorld, cursorVoxelCenter);
+		const glm::ivec3 projectedMove = getNextBlockDirection(m_cursor.posWorld, cursorVoxelCenter);
 		glm::ivec3 projectedVoxelXoord = _cursorObjectCoord + projectedMove;
 		bool projectedInside = _voxels->contains(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z);
 		if (!projectedInside)
@@ -339,6 +269,39 @@ void Object3DEditor::Erase()
 
 		(*_voxels)(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z) = EMPTY_VOXEL;
 	}
+	refreshVoxelMesh();
+}
+
+void Object3DEditor::resizeVoxelData(const glm::ivec3& resize)
+{
+	uint16_t sizeX = _voxels->getSizeX();
+	uint16_t sizeY = _voxels->getSizeY();
+	uint16_t sizeZ = _voxels->getSizeZ();
+	if (resize.x > 0) { sizeX *= 2; }
+	else if (resize.x < 0) { sizeX /= 2; }
+	if (resize.y > 0) { sizeY *= 2; }
+	else if (resize.y < 0) { sizeY /= 2; }
+	if (resize.z > 0) { sizeZ *= 2; }
+	else if (resize.z < 0) { sizeZ /= 2; }
+	sizeX = std::max<uint16_t>(sizeX, 1);
+	sizeY = std::max<uint16_t>(sizeY, 1);
+	sizeZ = std::max<uint16_t>(sizeZ, 1);
+
+	CUSTOM_DELETE(_voxels, m_allocator);
+	_voxels = CUSTOM_NEW(VoxelData, m_allocator)(sizeX, sizeY, sizeZ, m_allocator);
+
+	(*_voxels)(0, 0, 0) = 2; // quick hack to set one voxel to non-empty
+
+	if (_objectWindow)
+	{
+		_objectWindow->setVoxels(_voxels);
+	}
+	refreshVoxelMesh();
+}
+
+void Object3DEditor::rescaleVoxelData(const float scale)
+{
+	_voxels->setScale(scale);
 	refreshVoxelMesh();
 }
 
@@ -352,7 +315,7 @@ void Object3DEditor::LoadObject(const std::string fileName)
 		size_t fileNPos = fileName.find_last_of("/");
 		std::string shortFileName = fileName;
 		if (fileNPos) shortFileName = fileName.substr(fileNPos + 1);
-		_voxels = VoxelLoader::load(fileName);
+		_voxels = VoxelLoader::load(fileName, m_allocator);
 		refreshVoxelMesh();
 	}
 }
@@ -361,77 +324,67 @@ void Object3DEditor::SaveObject(const std::string fileName)
 {
 	if (fileName.length() > 0)
 	{
-		VoxelLoader::save(fileName, _voxels);
+		VoxelLoader::save(fileName, _voxels, m_allocator);
 	}
 	else {} // Cancelled saving cube
 }
 
-bool Object3DEditor::OnEvent(const std::string& theEvent, const float& amount)
+bool Object3DEditor::OnEvent(const InputEvent event, const float amount)
 {
-	if (EditorScene::OnEvent(theEvent, amount))
+	if (EditorScene::OnEvent(event, amount))
 		return true;
 
 	if (amount == 1.0f) {
-		if (theEvent == INPUT_SHOOT)
+		if (event == InputEvent::Shoot)
 		{
-			_cursor.leftClick = true;
-			_cursor.lClickPosWorld = _cursor.posWorld;
-			_cursor.lClickPosScrn = _cursor.posScrn;
+			m_cursor.leftClick = true;
+			m_cursor.lClickPosWorld = m_cursor.posWorld;
+			m_cursor.lClickPosScrn = m_cursor.posScrn;
 		}
-		else if (theEvent == INPUT_SHOOT2)
+		else if (event == InputEvent::Aim)
 		{
-			_cursor.rightClick = true;
-			_cursor.rClickPosWorld = _cursor.posWorld;
-			_cursor.rClickPosScrn = _cursor.posScrn;
+			m_cursor.rightClick = true;
+			m_cursor.rClickPosWorld = m_cursor.posWorld;
+			m_cursor.rClickPosScrn = m_cursor.posScrn;
 		}
-		else if (theEvent == INPUT_LOOK_DOWN) {
-
-		}
-		else if (theEvent == INPUT_LOOK_UP) {
-
-		}
-		else if (theEvent == INPUT_LOOK_LEFT) {
-
-		}
-		else if (theEvent == INPUT_LOOK_RIGHT) {
-
-		}
-		else if (theEvent == INPUT_SCROLL_Y)
+		else if (event == InputEvent::Scroll_Y)
 		{
-			_objectWindow->SetCurrentID(_objectWindow->GetCurrentID() + amount);
+			_objectWindow->setCurrentID(_objectWindow->getCurrentID() + amount);
 		}
 	}
-	else if (amount == -1.0f) {
-		if (theEvent == INPUT_SHOOT && _cursor.leftClick) 
+	else if (amount == -1.0f)
+	{
+		if (event == InputEvent::Shoot && m_cursor.leftClick)
 		{
-			_cursor.leftClick = false;
+			m_cursor.leftClick = false;
 			Create();
 		}
-		else if (theEvent == INPUT_SHOOT2 && _cursor.rightClick)
+		else if (event == InputEvent::Aim && m_cursor.rightClick)
 		{
-			_cursor.rightClick = false;
-			if (glm::length(_cursor.posScrn - _cursor.rClickPosScrn) != 0) {
+			m_cursor.rightClick = false;
+			if (glm::length(m_cursor.posScrn - m_cursor.rClickPosScrn) != 0) {
 				// Mouse was dragged
 			}
 			else {
 				Erase();
 			}
 		}
-		else if (theEvent == INPUT_BACK) {
+		else if (event == InputEvent::Back) 
+		{
 			if (!selectionAABB.IsClear())
 			{
 				selectionAABB.Clear();
 				return true;
 			}
 		}
-		else if (theEvent == INPUT_BLOCKS_REPLACE)
+		else if (event == InputEvent::Edit_Blocks_Replace)
 		{
 			if (_voxels->contains(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z))
 			{
 				const uint8_t cursorVoxel = (*_voxels)(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z);
 				if (cursorVoxel != EMPTY_VOXEL)
 				{
-					_voxels->replaceType(cursorVoxel, _objectWindow->GetCurrentID());
+					_voxels->replaceType(cursorVoxel, _objectWindow->getCurrentID());
 					refreshVoxelMesh();
 				}
 				else
@@ -441,38 +394,42 @@ bool Object3DEditor::OnEvent(const std::string& theEvent, const float& amount)
 					const glm::vec3 objectPosition = _mesh->getPosition(_instanceID);
 					glm::vec3 cursorVoxelCenter = objectPosition + (glm::vec3(_cursorObjectCoord) * (VOXEL_WIDTH)) - (objectVolume*0.5f) + voxelRadius;
 					// Find closest cursor projected position
-					const glm::ivec3 projectedMove = getNextBlockDirection(_cursor.posWorld, cursorVoxelCenter);
+					const glm::ivec3 projectedMove = getNextBlockDirection(m_cursor.posWorld, cursorVoxelCenter);
 					glm::ivec3 projectedVoxelXoord = _cursorObjectCoord + projectedMove;
 					bool projectedInside = _voxels->contains(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z);
 					if (projectedInside)
 					{
 						const uint8_t projectedVoxel = (*_voxels)(projectedVoxelXoord.x, projectedVoxelXoord.y, projectedVoxelXoord.z);
 						if (projectedVoxel != EMPTY_VOXEL) {
-							_voxels->replaceType(projectedVoxel, _objectWindow->GetCurrentID());
+							_voxels->replaceType(projectedVoxel, _objectWindow->getCurrentID());
 							refreshVoxelMesh();
 						}
 					}
 				}
 			}
-			if (theEvent == INPUT_EDIT_OBJECT) {
-				_camera->thirdPerson = !_camera->thirdPerson;
-				if (_camera->thirdPerson)
-					_camera->targetPosition = _mesh->getPosition(_objectWindow->GetCurrentID());
+			if (event == InputEvent::Edit_Mode_Object)
+			{
+				m_camera.thirdPerson = !m_camera.thirdPerson;
+				if (m_camera.thirdPerson)
+				{
+					m_camera.targetPosition = glm::vec3(m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f, m_room.getRoomWidth() - 1.f);
+					m_camera.targetRotation = glm::vec3(-M_PI_4, M_PI_4, 0);
+				}
 				return true;
 			}
 		}
-		else if (theEvent == INPUT_GRAB)
+		else if (event == InputEvent::Grab)
 		{
 			if (_voxels->contains(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z))
 			{
 				const uint8_t cursorVoxel = (*_voxels)(_cursorObjectCoord.x, _cursorObjectCoord.y, _cursorObjectCoord.z);
-				_objectWindow->SetCurrentID(cursorVoxel);
+				_objectWindow->setCurrentID(cursorVoxel);
 			}
 			return true;
 		}
-		else if (theEvent == INPUT_SCROLL_Y)
+		else if (event == InputEvent::Scroll_Y)
 		{
-			_objectWindow->SetCurrentID(_objectWindow->GetCurrentID() + amount);
+			_objectWindow->setCurrentID(_objectWindow->getCurrentID() + amount);
 		}
 	}
 	return false;
@@ -487,6 +444,6 @@ bool Object3DEditor::OnMouse(const glm::ivec2& coord)
 
 void Object3DEditor::refreshVoxelMesh()
 {
-	_voxels->getMeshReduced(*_mesh, VOXEL_RADIUS);
+	_voxels->getMeshLinear(*_mesh, VOXEL_RADIUS);
 }
 

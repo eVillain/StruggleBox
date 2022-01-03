@@ -11,13 +11,13 @@ const float brainViewDist = 10.0f;
 
 ActorComponent::ActorComponent(
 	const int ownerID,
-	std::shared_ptr<EntityManager> manager) :
+	EntityManager& manager) :
 EntityComponent(ownerID, "Actor"),
 _manager(manager)
 {
     lastUpdateTime=0.0;
     lastMoveTime=0.0;
-    targetPosition = _manager->getEntity(ownerID)->GetAttributeDataPtr<glm::vec3>("position");
+    targetPosition = _manager.getEntity(ownerID)->GetAttributeDataPtr<glm::vec3>("position");
     targetState = Target_Move;
     targetEntity = NULL;
 }
@@ -30,7 +30,7 @@ void ActorComponent::update(const double delta)
     //if ( m_manager->world->paused ) return;
     lastUpdateTime += delta;
     lastMoveTime += delta;
-    Entity* m_owner = _manager->getEntity(_ownerID);
+    Entity* m_owner = _manager.getEntity(_ownerID);
     const glm::vec3 position = m_owner->GetAttributeDataPtr<glm::vec3>("position");
     if ( lastUpdateTime > brainUpdateTime ) {       // Time to update the brain
         // Try to gather data about us and the environment in 0.0 to 1.0 ranges
@@ -44,11 +44,11 @@ void ActorComponent::update(const double delta)
         // TODO:: Get value for weapon damage etc to prioritize grabbing new weapons
         
         // Gather nearby entities
-        std::map<int, Entity*> nearbyEnts = _manager->getNearbyEntities(position,
+        std::map<EntityID, Entity*> nearbyEnts = _manager.getNearbyEntities(position,
                                                                          _ownerID,
                                                                          ENTITY_NONE,
                                                                          brainViewDist);
-        std::map<int, Entity*>::iterator it;
+        std::map<EntityID, Entity*>::iterator it;
         Entity* interestingEntity = NULL;   // Try to find biggest absolute interest,
         int interestType = ENTITY_NONE;
         float topInterest = 0.0f;           // Negative values mean we want to move away
@@ -57,7 +57,7 @@ void ActorComponent::update(const double delta)
             const int type = ent->GetAttributeDataPtr<int>("type");
             float interest = 0.0f;
             if ( type == ENTITY_ITEM ) {
-                if ( ent->GetAttributeDataPtr<int>("ownerID") == -1 ) {
+                if ( ent->GetAttributeDataPtr<int>("ownerID") == 0 ) {
                     if ( ent->GetAttributeDataPtr<int>("damage") > 0 ) {
                         interest = (armed ? 0.0f : 1.0f);
                     } else if ( ent->GetAttributeDataPtr<int>("healing") > 0 ) {
@@ -115,7 +115,8 @@ void ActorComponent::update(const double delta)
             else if ( targetState == Target_Flee ) { running = true; }
         } else { // Close enough to perform an action on target
             if ( targetState == Target_Pickup && targetEntity ) {
-                if ( targetEntity->GetAttributeDataPtr<int>("ownerID") != -1 ) {
+                if ( targetEntity->GetAttributeDataPtr<int>("ownerID") != 0 ) 
+                {
                     targetEntity = NULL;
                     targetState = Target_Move;
                 } else {

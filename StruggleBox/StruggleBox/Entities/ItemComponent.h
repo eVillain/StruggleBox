@@ -2,7 +2,7 @@
 #define ITEM_COMPONENT_H
 
 #include "EntityComponent.h"
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 
 typedef enum {
     Item_None = 0,
@@ -87,16 +87,14 @@ inline static std::string NameForItem(const ItemType type)
 
 class EntityManager;
 class Particles;
-class Text;
 
 class ItemComponent : public EntityComponent
 {
 public:
     ItemComponent(
 		const int ownerID,
-		std::shared_ptr<EntityManager> entityManager,
-		std::shared_ptr<Particles> particles,
-		std::shared_ptr<Text> text);
+		EntityManager& entityManager,
+		Particles& particles);
 
     void update(const double delta);
 
@@ -105,9 +103,8 @@ public:
                    glm::vec3 position);
 
 private:
-	std::shared_ptr<EntityManager> _entityManager;
-	std::shared_ptr<Particles> _particles;
-	std::shared_ptr<Text> _text;
+	EntityManager& _entityManager;
+	Particles& _particles;
 };
 
 #endif

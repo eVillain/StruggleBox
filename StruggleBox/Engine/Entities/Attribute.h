@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "GFXHelpers.h"
+#include "Log.h"
 
 /// Sanity check class, should never get called unless something is broken
 class SomethingIsSomethingElse
@@ -66,7 +67,10 @@ public:
     T_ & as() const
     {
         if (magic_number_for<T_>() != _value->magic_number)
-            throw "[Attribute] magic number mismatch, wrong data type";;
+        {
+            Log::Error("[Attribute] magic number mismatch, wrong data type");
+            assert(false);
+        }
         return std::static_pointer_cast< AttributeValue<T_> >(_value)->value;
     }
     
@@ -82,16 +86,30 @@ public:
     
     const std::string GetValueString()
     {
-        if (magic_number_for<bool>() == _value->magic_number) {
-            return boolToString(std::static_pointer_cast< AttributeValue<bool> >(_value)->value);
-        } else if (magic_number_for<int>() == _value->magic_number) {
-            return intToString(std::static_pointer_cast< AttributeValue<int> >(_value)->value);
-        } else if (magic_number_for<float>() == _value->magic_number) {
-            return floatToString(std::static_pointer_cast< AttributeValue<float> >(_value)->value);
-        } else if (magic_number_for<double>() == _value->magic_number) {
-            return doubleToString(std::static_pointer_cast< AttributeValue<double> >(_value)->value);
-        } else if (magic_number_for<std::string>() == _value->magic_number) {
-            return std::string(std::static_pointer_cast< AttributeValue<std::string> >(_value)->value);
+        if (magic_number_for<bool>() == _value->magic_number)
+        {
+            return boolToString(std::static_pointer_cast<AttributeValue<bool>>(_value)->value);
+        }
+        else if (magic_number_for<int>() == _value->magic_number)
+        {
+            return intToString(std::static_pointer_cast<AttributeValue<int>>(_value)->value);
+        }
+        else if (magic_number_for<float>() == _value->magic_number)
+        {
+            return floatToString(std::static_pointer_cast<AttributeValue<float>>(_value)->value);
+        } 
+        else if (magic_number_for<double>() == _value->magic_number)
+        {
+            return doubleToString(std::static_pointer_cast<AttributeValue<double>>(_value)->value);
+        } 
+        else if (magic_number_for<std::string>() == _value->magic_number)
+        {
+            return std::string(std::static_pointer_cast<AttributeValue<std::string>>(_value)->value);
+        }
+        else if (magic_number_for<glm::vec3>() == _value->magic_number) 
+        {
+            const glm::vec3 value = std::static_pointer_cast<AttributeValue<glm::vec3>>(_value)->value;
+            return floatToString(value.x) + ", " + floatToString(value.y) + ", " + floatToString(value.z);
         }
         return "Unknown Attribute type";
     };

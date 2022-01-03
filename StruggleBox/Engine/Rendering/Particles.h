@@ -1,38 +1,34 @@
-#ifndef PARTICLES_H
-#define PARTICLES_H
+#pragma once
 
-#include "ParticleSys.h"
 #include <string>
 #include <map>
-#include <memory>
 
+class Allocator;
 class Renderer;
+class ParticleSystem;
+class ParticleRenderer;
+
+typedef uint32_t ParticleSystemID;
 
 class Particles
 {
 public:
-    Particles(std::shared_ptr<Renderer> renderer);
+    Particles(Allocator& allocator, Renderer& renderer);
     ~Particles();
     
-    std::shared_ptr<ParticleSys> create(const std::string filePath,
-                                        const std::string fileName);
-    int getSystemID(std::shared_ptr<ParticleSys> system);
-    void destroy(std::shared_ptr<ParticleSys> system);
-    void destroy(const int sysID);
-    void Update(const double deltaTime);
-    void Draw();
-    void drawUnlit();
-    void drawLit();
+    ParticleSystemID create(const std::string filePath, const std::string fileName);
+    ParticleSystem* getSystemByID(const ParticleSystemID systemID);
+    void destroy(const ParticleSystemID systemID);
 
-    bool paused() const { return _paused; };
-    void pause() { _paused = true; };
-    void resume() { _paused = false; };
+    void update(const double deltaTime);
+    void draw();
 
 private:
-	std::shared_ptr<Renderer> _renderer;
-    std::map<int, std::shared_ptr<ParticleSys>> _systems;
-    bool _paused;
-    static int _nextParticleSysID;
+    Allocator& m_allocator;
+	Renderer& m_renderer;
+
+    std::map<ParticleSystemID, ParticleSystem*> m_systems;
+    std::map<ParticleSystemID, ParticleRenderer*> m_renderers;
+    ParticleSystemID m_nextParticleSysID;
 };
 
-#endif /* PARTICLES_H */

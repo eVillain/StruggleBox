@@ -1,71 +1,28 @@
 #ifndef RENDERER_BASE_H
 #define RENDERER_BASE_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
+#include "RendererDefines.h"
 #include "GFXDefines.h"
 #include "Color.h"
+#include "VertexData.h"
 #include "Rect2D.h"
 #include "MaterialData.h"
 #include "Light3D.h"
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
-class VertBuffer;
 class Mesh;
-class Texture;
+class Shader;
 class Sprite;
 class SpriteBatch;
+class Texture2D;
+class TextureAtlas;
+class TextAtlas;
+class VertBuffer;
 struct SDL_Window;
-
-enum VertexDataType
-{
-	ColorVerts,
-	MeshVerts,
-	TexturedVerts,
-	SpriteVerts,
-	SphereVerts,
-	InstanceVerts,
-	InstancedCubeVerts,
-};
-
-struct BlendMode
-{
-	GLuint srcFunc;
-	GLuint dstFunc;
-	bool enable;
-};
-
-struct DepthMode
-{
-	bool enable;
-	bool mask;
-};
-
-struct DrawPackage
-{
-	VertexDataType type;
-	GLuint buffer;
-	unsigned int rangeEnd;
-	unsigned int rangeStart;
-	GLuint texture;
-	BlendMode blendMode;
-	DepthMode depthMode;
-	bool render3D;
-};
-
-struct InstancedDrawPackage
-{
-	GLuint instanceBuffer;
-	unsigned int instanceCount;
-	VertexDataType type;
-	GLuint buffer;
-	unsigned int rangeEnd;
-	unsigned int rangeStart;
-	GLuint texture;
-	BlendMode blendMode;
-	DepthMode depthMode;
-};
 
 class Renderer
 {
@@ -73,11 +30,31 @@ public:
     virtual ~Renderer() { };
     
     virtual void Initialize() = 0;
-    virtual void ShutDown() = 0;
+    virtual void Terminate() = 0;
     
     // Start and end frame drawing
     virtual void BeginDraw() = 0;
     virtual void EndDraw() = 0;
+
+    virtual TextureID getTextureID(const std::string& textureName, bool load) = 0;
+    virtual void getTextureIDAsync(const std::string& textureName, const std::function<void(TextureID)>& callback) = 0;
+    virtual const Texture2D* getTextureByID(const TextureID textureID) = 0;
+
+    virtual TextureAtlasID getTextureAtlasID(const std::string& textureAtlasName) = 0;
+    virtual const TextureAtlas* getTextureAtlasByID(const TextureAtlasID textureAtlasID) = 0;
+    virtual TextureAtlasID getTextureAtlasIDForFrame(const std::string& frameName) = 0;
+
+    virtual ShaderID getShaderID(const std::string& shaderVertexName, const std::string& shaderFragName) = 0;
+    virtual ShaderID getShaderID(const std::string& shaderGeometryName, const std::string& shaderVertexName, const std::string& shaderFragName) = 0;
+    virtual const Shader* getShaderByID(const ShaderID shaderID) = 0;
+
+    virtual TextAtlasID getTextAtlasID(const std::string& textAtlasName, const uint8_t fontHeight) = 0;
+    virtual TextAtlas* getTextAtlasByID(const TextAtlasID textAtlasID) = 0;
+
+    virtual TexturedVertexData* queueTexturedVerts(const uint32_t numVerts, const TextureID textureID) = 0;
+    virtual TexturedVertexData* queueTextVerts(const uint32_t numVerts, const TextureID textureID) = 0;
+
+    virtual glm::ivec2 getWindowSize() const = 0;
 
 	virtual void RenderLightingFX(
 		const glm::mat4& model,
@@ -98,37 +75,39 @@ public:
 	virtual GLuint addVertexArray() = 0;
 
 	// New vertex buffer methods
-	virtual std::shared_ptr<VertBuffer> addVertBuffer(const VertexDataType type) = 0;
-	virtual void queueMesh(std::shared_ptr<Mesh> mesh) = 0;
+	virtual VertBuffer* addVertBuffer(const VertexDataType type) = 0;
+    virtual void destroyVertBuffer(VertBuffer* buffer) = 0;
+    virtual BaseVertexData* createVertexData(const size_t size, const VertexDataType type) = 0;
+    virtual void destroyVertexData(BaseVertexData* vertexData) = 0;
+	//virtual void queueMesh(std::shared_ptr<Mesh> mesh) = 0;
 	virtual void queueDeferredBuffer(
-		const VertexDataType type,
-		const GLuint buffer,
+        const VertBuffer* buffer,
+        const void* data,
+        const unsigned int rangeStart,
 		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true }) = 0;
+		const TextureID texture,
+		const BlendMode blendMode,
+		const DepthMode depthMode) = 0;
 
 	virtual void queueForwardBuffer(
-		const VertexDataType type,
-		const GLuint buffer,
+		const VertBuffer* buffer,
+        const void* data,
+		const unsigned int rangeStart,
 		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true },
-		const bool render3D = false) = 0;
+		const TextureID texture,
+		const BlendMode blendMode,
+		const DepthMode depthMode) = 0;
 
 	virtual void queueDeferredInstances(
 		const GLuint instanceBuffer,
 		const unsigned int instanceCount,
 		const VertexDataType type,
 		const GLuint buffer,
+		const unsigned int rangeStart,
 		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true }) = 0;
+		const TextureID texture,
+		const BlendMode blendMode,
+		const DepthMode depthMode) = 0;
 	
 	// New lighting methods
 	virtual void queueLights(
@@ -139,16 +118,17 @@ public:
 
     // Vertex buffer operations
 	virtual void renderVertBuffer(
-		std::shared_ptr<VertBuffer> buffer,
+		VertBuffer* buffer,
 		const unsigned int rangeEnd,
 		const unsigned int rangeStart = 0,
-		const Texture* tex = NULL,
+		const Texture2D* tex = NULL,
 		const bool render3D = true) = 0;
 
     // General triangle buffering functions
     //virtual void BufferVerts( const ColorVertexData* verts, const int numVerts ) = 0;
     //virtual void BufferVerts( const NormalVertexData* verts, const int numVerts ) = 0;
     virtual void BufferSpheres( const SphereVertexData* spheres, const int numSpheres ) = 0;
+    virtual void BufferFireballs(const SphereVertexData* spheres, const int numFireballs) = 0;
     virtual void RenderVerts() = 0;
     virtual void renderSpheres(
 		const glm::mat4& view,
@@ -163,7 +143,10 @@ public:
     virtual void render3DLines(const glm::mat4& mvp) = 0;
 
     virtual void bufferCubes(const CubeInstance* cubes, const size_t count) = 0;
-    virtual void renderCubes(const glm::mat4& mvp) = 0;
+    virtual void renderCubes(const glm::mat4& view, const glm::mat4& projection, Shader& shader) = 0;
+
+    virtual void bufferColorCubes(const CubeInstanceColor* cubes, const size_t count) = 0;
+    virtual void renderColorCubes(const glm::mat4& view, const glm::mat4& projection, Shader& shader) = 0;
 
 	// 2D Drawing functions ( drawn immediately )
     virtual void DrawPolygon(const int count,
@@ -191,9 +174,6 @@ public:
                   Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f ) = 0;
     virtual void DrawGrid( float gridSize, Rect2D rect, int subDivisions, Color color = COLOR_WHITE ) = 0;
     virtual void Draw3DGrid( const glm::vec3& pos, const float size, const int divisions ) = 0;
-    // 2D Drawing textured
-    virtual void DrawSprite( const Sprite& sprite ) = 0;
-    virtual void DrawSpriteBatch( const SpriteBatch& batch ) = 0;
 
     virtual void DrawImage( const glm::vec2 center, const float width, const float height,
                            const std::string texName, const float z = 0.0f, const Color color = COLOR_WHITE) = 0;
@@ -207,8 +187,6 @@ public:
     virtual void DrawTextureArray( const Rect2D rect, const Rect2D texRect,
                                   const int width, const int height,
                                  const GLbyte* data, const float z = 0.0f, const Color color = COLOR_WHITE) = 0;
-    // 3D Drawing functions ( drawn immediately )
-    virtual void DrawBoxOutline( glm::vec3 center, glm::vec3 boxSize, Color color ) = 0;
     // Get cursor 3D coordinates from screen pos
     virtual const glm::vec3 GetCursor3DPos( const glm::vec2 cursorPos ) const = 0;
     
@@ -220,10 +198,7 @@ public:
 	virtual void setRoomSize(float size) = 0;
 
 protected:
-    // Variables    
-    bool initialized;
-    bool shouldClose;
-
+    // Variables
     int windowWidth, windowHeight;
     // Variables for the current camera attributes
     GLfloat r_camX, r_camY, r_camZoom;

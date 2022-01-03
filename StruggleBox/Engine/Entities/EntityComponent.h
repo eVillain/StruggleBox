@@ -10,7 +10,7 @@ class EntityComponent
 {
 public:
     EntityComponent(
-		const int ownerID,
+		const EntityID ownerID,
 		const std::string family ) :
 		_ownerID(ownerID),
 		_family(family)
@@ -18,11 +18,11 @@ public:
     virtual ~EntityComponent() {};
     virtual void update(const double delta) = 0;
     
-	const int getOwnerID() const { return _ownerID; };
-    const std::string getFamily() const { return _family; };
+	const EntityID getOwnerID() const { return _ownerID; };
+    const std::string& getFamily() const { return _family; };
 
 protected:
-	const int _ownerID;
+	const EntityID _ownerID;
     std::string _family;
 };
 

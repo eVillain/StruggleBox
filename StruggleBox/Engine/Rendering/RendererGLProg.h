@@ -2,26 +2,36 @@
 #define RENDERER_GL_PROG_H
 
 #include "Renderer.h"
+#include "TextureCache.h"
+#include "TextureAtlasCache.h"
+#include "ShaderCache.h"
+#include "FrameCache.h"
+#include "TextAtlasCache.h"
+#include "LinearAllocator.h"
+#include "TextureLoader.h"
+
 #include "VertBuffer.h"
 #include "VertexData.h"
 #include "GBuffer.h"
+#include "DebugCubeBuffer.h"
+#include "ArrayBufferVertex.h"
+#include "ArrayBufferInstance.h"
 #include "ReflectionProbe.h"
 #include "MaterialTexture.h"
-
+#include "Material.h"
+#include "LightSystem3D.h"
 #include <vector>
 #include <map>
 #include <memory>
 
+class Allocator;
 class Options;
 class StatTracker;
-class LightSystem3D;
 class Camera;
-class ShaderManager;
-
 class Shader;
-class Texture;
 class Sprite;
 class Mesh;
+class ThreadPool;
 
 // Rendering modes
 enum RenderMode {
@@ -35,27 +45,44 @@ enum RenderMode {
     RM_Shadowmap    = 7,
 };
 
+constexpr size_t MAX_SPRITE_VERTS_PER_TEXTURE = 8 * 1024;
+constexpr size_t MAX_UI_TEXTURES = 16;
+constexpr size_t MAX_UI_VERTS_PER_TEXTURE = 8 * 1024;
+constexpr size_t MAX_TEXT_VERTS_PER_TEXTURE = 128 * 1024;
 
 class RendererGLProg : public Renderer
 {
 public:
-    RendererGLProg(
-		std::shared_ptr<Options> options,
-		std::shared_ptr<Camera> camera,
-		std::shared_ptr<LightSystem3D> lights,
-		std::shared_ptr<ShaderManager> shaders);
+    RendererGLProg(Allocator& allocator, Options& options, Camera& camera, ThreadPool& threadPool);
     ~RendererGLProg();
     
-    void Initialize();
-    void ShutDown();
+    void Initialize() override;
+    void Terminate() override;
 
     void Resize(const int width, const int height);
-    // Start and end frame drawing
-    void BeginDraw();
-    void EndDraw();
-    void UpdateStats();
-    
 
+    void BeginDraw() override;
+    void EndDraw() override;    
+
+    TextureID getTextureID(const std::string& textureName, bool load) override;
+    void getTextureIDAsync(const std::string& textureName, const std::function<void(TextureID)>& callback) override;
+    const Texture2D* getTextureByID(const TextureID textureID) override;
+
+    TextureAtlasID getTextureAtlasID(const std::string& textureAtlasName) override;
+    const TextureAtlas* getTextureAtlasByID(const TextureAtlasID textureAtlasID) override;
+    TextureAtlasID getTextureAtlasIDForFrame(const std::string& frameName) override;
+
+    ShaderID getShaderID(const std::string& shaderVertexName, const std::string& shaderFragName) override;
+    ShaderID getShaderID(const std::string& shaderGeometryName, const std::string& shaderVertexName, const std::string& shaderFragName) override;
+    const Shader* getShaderByID(const ShaderID shaderID) override;
+
+    TextAtlasID getTextAtlasID(const std::string& textAtlasName, const uint8_t fontHeight) override;
+    TextAtlas* getTextAtlasByID(const TextAtlasID textAtlasID) override;
+
+    TexturedVertexData* queueTexturedVerts(const uint32_t numVerts, const TextureID textureID) override;
+    TexturedVertexData* queueTextVerts(const uint32_t numVerts, const TextureID textureID) override;
+
+    glm::ivec2 getWindowSize() const override;
 
 	void RenderLightingFX(
 		const glm::mat4& model,
@@ -69,9 +96,7 @@ public:
     void PostProcess();
     void RenderFromTexture( const GLuint tex );
     
-    void PassSSAO( const GLuint fbo );
     void PassStencil( const GLuint fbo );
-    void PassLightRays( glm::vec3 lightWorldPos, const GLuint fbo );
     
     // Matrix functionality
     void GetUIMatrix( glm::mat4& target );
@@ -85,38 +110,42 @@ public:
 	GLuint addVertexArray();
 
 	// New vertex buffer methods
-	std::shared_ptr<VertBuffer> addVertBuffer(const VertexDataType type);
-	void queueMesh(std::shared_ptr<Mesh> mesh);
+    VertBuffer* addVertBuffer(const VertexDataType type) override;
+    void destroyVertBuffer(VertBuffer* buffer) override;
+    BaseVertexData* createVertexData(const size_t size, const VertexDataType type) override;
+    void destroyVertexData(BaseVertexData* vertexData) override;
+    template <typename T> VertexData<T>* allocVertexData(const size_t size, const VertexDataType type);
+
+	//void queueMesh(std::shared_ptr<Mesh> mesh);
 
 	void queueDeferredBuffer(
-		const VertexDataType type,
-		const GLuint buffer,
-		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true });
+        const VertBuffer* buffer,
+        const void* data,
+        const unsigned int rangeStart,
+        const unsigned int rangeEnd,
+        const TextureID texture,
+        const BlendMode blendMode,
+        const DepthMode depthMode) override;
 
 	void queueForwardBuffer(
-		const VertexDataType type,
-		const GLuint buffer,
-		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true },
-		const bool render3D = false);
+        const VertBuffer* buffer,
+        const void* data,
+        const unsigned int rangeStart,
+        const unsigned int rangeEnd,
+        const TextureID texture,
+        const BlendMode blendMode,
+        const DepthMode depthMode) override;
 
 	void queueDeferredInstances(
 		const GLuint instanceBuffer,
 		const unsigned int instanceCount,
 		const VertexDataType type,
 		const GLuint buffer,
+		const unsigned int rangeStart,
 		const unsigned int rangeEnd,
-		const unsigned int rangeStart = 0,
-		const GLuint tex = 0,
-		const BlendMode blendMode = { 0,0,0 },
-		const DepthMode depthMode = { true,true });
+		const TextureID tex,
+		const BlendMode blendMode,
+		const DepthMode depthMode);
 
 	void queueLights(
 		const LightInstance* lights,
@@ -126,16 +155,17 @@ public:
 
     // Vertex buffer operations
 	void renderVertBuffer(
-		std::shared_ptr<VertBuffer> buffer,
+		VertBuffer* buffer,
 		const unsigned int rangeEnd,
 		const unsigned int rangeStart = 0,
-		const Texture* tex = NULL,
-		const bool render3D = true);
+		const Texture2D* tex = NULL,
+		const bool render3D = true) override;
 
     // General triangle buffering functions
     //void BufferVerts( const ColorVertexData* verts, const int numVerts );
     //void BufferVerts( const NormalVertexData* verts, const int numVerts );
-    void BufferSpheres( const SphereVertexData* spheres, const int numSpheres );
+    void BufferSpheres( const SphereVertexData* spheres, const int numSpheres ) override;
+    void BufferFireballs( const SphereVertexData* spheres, const int numFireballs ) override;
 
     void RenderVerts();
     void renderSpheres(
@@ -152,8 +182,11 @@ public:
     void Buffer3DLine( glm::vec3 a, glm::vec3 b, Color aColor, Color bColor );
     void render3DLines(const glm::mat4& mvp);
 
-    void bufferCubes(const CubeInstance* cubes, const size_t count);
-    void renderCubes(const glm::mat4& mvp);
+    void bufferCubes(const CubeInstance* cubes, const size_t count) override;
+    void renderCubes(const glm::mat4& view, const glm::mat4& projection, Shader& shader) override;
+
+    void bufferColorCubes(const CubeInstanceColor* cubes, const size_t count) override;
+    void renderColorCubes(const glm::mat4& view, const glm::mat4& projection, Shader& shader) override;
 
 	// 2D Drawing functions ( drawn immediately )
     void DrawPolygon(const int count,
@@ -181,9 +214,6 @@ public:
                   Color lineColor = COLOR_NONE, Color fillColor = COLOR_WHITE, float z = 0.0f );
     void DrawGrid( float gridSize, Rect2D rect, int subDivisions, Color color );
     void Draw3DGrid( const glm::vec3& pos, const float size, const int divisions );
-    // 2D Drawing textured
-    void DrawSprite( const Sprite& sprite );
-    void DrawSpriteBatch( const SpriteBatch& batch );
 
     void DrawImage( const glm::vec2 center, const float width, const float height,
                    const std::string texName, const float z = 0.0f, const Color color = COLOR_WHITE);
@@ -201,34 +231,36 @@ public:
     void DrawCubeMap( const Rect2D rect, const CubeTexVerts& texCoords,
                      const GLuint tex, const float z = 0.0f, const Color color = COLOR_WHITE);
 
-    // 3D Drawing functions ( drawn immediately )
-    void DrawBoxOutline( glm::vec3 center, glm::vec3 boxSize, Color color );
-    void DrawSphere(float radius, unsigned int rings, unsigned int sectors);
-
     const glm::vec3 GetCursor3DPos( const glm::vec2 cursorPos ) const;
     
 	// This is stupid but needed for now
-	void setRoomSize(float size) { _reflectionProbe.setSize(size); }
+	void setRoomSize(float size) { m_reflectionProbe.setSize(size); }
     // Common accessors
     const std::string GetInfo() const;
 	MaterialData& getMaterials() { return _materials; }
 	void refreshMaterials();
 
 private:
-    // Real global dependencies
-	std::shared_ptr<Options> _options;
-	std::shared_ptr<Camera> _camera;
-	std::shared_ptr<LightSystem3D> _lighting;
-	std::shared_ptr<ShaderManager> _shaders;
+    Allocator& m_allocator;
+    Options& m_options;
+	Camera& m_camera;
+    ThreadPool& m_threadPool;
+    LinearAllocator m_frameAllocator;
+
+    TextureLoader m_textureLoader;
+    TextureCache m_textureCache;
+    TextureAtlasCache m_atlasCache;
+    ShaderCache m_shaderCache;
+    FrameCache m_frameCache;
+    TextAtlasCache m_textAtlasCache;
+
+    LightSystem3D m_lightSystem3D;
     
-	GBuffer _gBuffer;
-	ReflectionProbe _reflectionProbe;
+	GBuffer m_gBuffer;
+	ReflectionProbe m_reflectionProbe;
 
-	std::map<GLuint, std::shared_ptr<VertBuffer>> _vertBuffers;
+	std::map<GLuint, VertBuffer*> _vertBuffers;
 	std::vector<GLuint> _vertArrays;
-
-	std::vector<std::shared_ptr<Mesh>> _renderQueueDeferred;
-	GLuint _vaoNormalVerts, _vboNormalVerts;	// TODO: Remove vbo from here
 
 	std::vector<DrawPackage> _deferredQueue;
 	std::vector<InstancedDrawPackage> _deferredInstanceQueue;
@@ -237,76 +269,76 @@ private:
 
 	MaterialData _materials;
 	MaterialTexture _materialTexture;
+    Material _material;
 
 	// Cube rendering
-	GLuint _cube_vao, _cube_vbo;
-	std::shared_ptr<VertBuffer> _cubeVB;
-	VertexData<CubeInstance> _cubeData;
+    ArrayBufferInstance<CubeInstance> m_cubeBuffer;
+    ArrayBufferInstance<CubeInstanceColor> m_colorCubeBuffer;
+    ArrayBufferVertex<SphereVertexData> m_sphereBuffer;
+    ArrayBufferVertex<SphereVertexData> m_fireBallBuffer;
+    //DebugCubeBuffer m_debugCube;
 
-	// Billboard sprites and impostor sphere rendering
-	GLuint _sphere_vao;
-	std::shared_ptr<VertBuffer> _sphereVB;
-	VertexData<SphereVertexData> _sphereData;
-
-	GLuint _sprite_vao;
-	std::shared_ptr<VertBuffer> _spriteVB;
-	VertexData<TexturedVertexData> _spriteData;
-	
-	// Colored verts - forward rendered
-	GLuint _colorVert_vao;
-	std::shared_ptr<VertBuffer> _colorVertVB;
-	VertexData<TexturedVertexData> _colorVertData;
-
-    GLuint ao_fbo, ao_texture;  // The ambient occlusion FBO and texture
+	// Billboard sprites
+	GLuint m_sprite_vao, m_sprite_vbo;
 
     GLuint final_fbo, final_texture;    // Final lit image FBO and texture
     
     GLuint light_fbo, light_textures[5];    // Light FBO and texures
-    std::shared_ptr<Shader> f_shaderDefault_vColor, d_shaderDefault_uColor;
-    //std::shared_ptr<Shader> d_shaderLight;
-    std::shared_ptr<Shader> d_shaderLightShadow;
-    std::shared_ptr<Shader> d_shaderMesh;
-    std::shared_ptr<Shader> d_shaderInstance;
-    std::shared_ptr<Shader> d_shaderCube;
-    std::shared_ptr<Shader> _shaderDeferredSprite, _shaderDeferredSphere, d_shaderCloud;
-	std::shared_ptr<Shader> _shaderDeferredMesh;
-    std::shared_ptr<Shader> d_shaderBlurH;
-    std::shared_ptr<Shader> d_shaderBlurV;
+    Shader* f_shaderDefault_vColor;
+    Shader* d_shaderDefault_uColor;
+    Shader* d_shaderLightShadow;
+    Shader* d_shaderMesh;
+    Shader* d_shaderInstance;
+    Shader* d_shaderCubeSimple;
+    Shader* d_shaderCubeFancy; // does surface displacement
+    Shader* d_shaderCubeColor;
+    Shader* f_shaderDebugCube;
+    Shader* _shaderDeferredSprite;
+    Shader* _shaderDeferredSphere;
+    Shader* _shaderForwardFireball;
+    Shader* d_shaderCloud;
+	Shader* _shaderDeferredMesh;
+    Shader* d_shaderBlurH;
+    Shader* d_shaderBlurV;
     // Post processing
-    std::shared_ptr<Shader> d_shaderSunPP;
-    std::shared_ptr<Shader> d_shaderSky;
-    std::shared_ptr<Shader> d_shaderPost;   // Final post-process shader
-    std::shared_ptr<Shader> d_shaderDepth;
-    std::shared_ptr<Shader> d_shaderLensFlare;
+    Shader* f_shaderLensFlare;
+    Shader* d_shaderSky;
+    Shader* d_shaderPost;   // Final post-process shader
+    Shader* d_shaderDepth;
+    Shader* d_shaderLensFlare;
     // Light rays
-    std::shared_ptr<Shader> d_shaderLightRays;
+    Shader* d_shaderLightRays;
     float lr_exposure, lr_decay, lr_density, lr_weight;
-    std::shared_ptr<Shader> d_shaderSSAO;
-    std::shared_ptr<Shader> d_shaderEdgeSobel;
-    std::shared_ptr<Shader> d_shaderEdgeFreiChen;
-    std::shared_ptr<Shader> d_shaderShadowMapMesh;
-    std::shared_ptr<Shader> d_shaderShadowMapObject;
-    std::shared_ptr<Shader> d_shaderShadowMapSphere;
-    std::shared_ptr<Shader> d_shaderShadowMapCube;
-
-    std::shared_ptr<Shader> d_shaderFXAA;
+    Shader* d_shaderEdgeSobel;
+    Shader* d_shaderEdgeFreiChen;
+    Shader* d_shaderShadowMapMesh;
+    Shader* d_shaderShadowMapObject;
+    Shader* d_shaderShadowMapSphere;
+    Shader* d_shaderShadowMapCube;
+    // Light bloom
+    Shader* f_shaderBloomBrightPass;
+    Shader* f_shaderBlurGaussian;
 
     //  ----    FORWARD RENDERING   ----    //
-    std::shared_ptr<Shader> f_shaderDefault;
-    std::shared_ptr<Shader> f_shaderUI_tex, f_shaderUI_color, f_shaderUI_vColor;
-    std::shared_ptr<Shader> f_shaderUI_cubeMap;
-    std::shared_ptr<Shader> f_shaderSprite;
+    Shader* f_shaderDefault;
+    Shader* f_shaderUI_tex;
+    Shader* f_shaderUI_text;
+    Shader* f_shaderUI_color;
+    Shader* f_shaderUI_vColor;
+    Shader* f_shaderUI_cubeMap;
+    Shader* f_shaderSprite;
+
+    // Lighting shaders
+    Shader* m_lightShaderEmissive;
+    Shader* m_lightShaderBasic;
+    Shader* m_lightShaderBadass;
+    Shader* m_lightShaderDisney;
 
     //  ----    //
     RenderMode renderMode;      // For debugging mainly
     
     // Matrices for 2D and 3D rendering, store them and only calculate once at beginning of frame
     glm::mat4 mvp3D, mvp2D;
-    
-    // General purpose polygon buffers TODO: MAKE INTO PROPER VERTBUFFER
-    //ColorVertexData vertBufferColor[MAX_BUFFERED_VERTS*2];
-    //GLuint colorVerts_vao, colorVerts_vbo;
-    //unsigned int numBufferedColorVerts;
 
     // 2D Square buffers and vertex array objects
     GLuint square2D_vao, square2D_vbo;
@@ -321,7 +353,7 @@ private:
 
 	// Triangle mesh rendering
 	GLuint _mesh_vao;
-	std::shared_ptr<VertBuffer> _meshVB;
+	VertBuffer* _meshVB;
 
     // UI textured rendering buffers
 	GLuint ui_vbo, ui_vao;
@@ -330,16 +362,21 @@ private:
 
     float fxaaOffset;
     
-    bool ssao_depthOnly;
-    // SSAO noise texture
-    Texture* tex_ssao_noise;
     // Lens dirt texture for lens flare effect
-    Texture* tex_lens_dirt;
+    TextureID tex_lens_dirt;
+    TextureID tex_noise;
 
     GLuint shadow_fbo, shadow_cube_fbo;
     GLuint shadow_texture, shadow_cubeMap;
-    
-    
+
+    struct TexturedVertsDataPackage {
+        TexturedVertexData* data;
+        uint32_t count;
+        uint32_t capacity;
+    };
+    std::map<TextureID, TexturedVertsDataPackage> m_texturedVertexPackages;
+    std::map<TextureID, TexturedVertsDataPackage> m_textVertexPackages;
+
     void SetDefaults();
     void SetScreenMode();
     
@@ -361,11 +398,13 @@ private:
 		const glm::mat4& projection,
 		const glm::vec3& position);
 
-	// helpers
-	void setBlendMode(BlendMode mode);
-	void setDepthMode(DepthMode mode);
+    void flushTexturedVertsQueue();
+    void flushTextVertsQueue();
 
+    void renderBloom();
+	// helpers
 	void prepareFinalFBO(const int width, const int height);
+    void renderDebug();
 };
 
 #endif /* RENDERER_GL_PROG_H */

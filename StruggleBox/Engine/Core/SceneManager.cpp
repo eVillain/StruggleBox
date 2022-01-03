@@ -13,33 +13,40 @@ SceneManager::SceneManager()
 SceneManager::~SceneManager()
 {
 	Log::Info("[SceneManager] destructor, instance at %p", this);
+}
 
+void SceneManager::initialize()
+{
+}
+
+void SceneManager::terminate()
+{
     // Drop all active scenes
-    while( !_stack.empty() ) {
+    while (!_stack.empty()) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
-        
+        Scene* aScene = _stack.back();
+
         // Pop the currently active scene off the stack
         _stack.pop_back();
-        
+
         // Pause the currently active scene
         aScene->Pause();
-        
+
         // De-initialize the scene
         aScene->Release();
     }
-    
+
     // Delete all our dropped scenes
-    while( !_dead.empty() ) {
+    while (!_dead.empty()) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _dead.back();
-        
+        Scene* aScene = _dead.back();
+
         // Pop the currently active scene off the stack
         _dead.pop_back();
-        
+
         // Pause the currently active scene
         aScene->Pause();
-        
+
         // De-initialize the scene
         aScene->Release();
     }
@@ -50,7 +57,7 @@ bool SceneManager::IsEmpty()
     return _stack.empty();
 }
 
-void SceneManager::AddActiveScene(std::shared_ptr<Scene> theScene)
+void SceneManager::AddActiveScene(Scene* theScene)
 {
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddActiveScene() received a bad pointer");
@@ -71,7 +78,7 @@ void SceneManager::AddActiveScene(std::shared_ptr<Scene> theScene)
     _stack.back()->Initialize();
 }
 
-void SceneManager::AddInactiveScene(std::shared_ptr<Scene> theScene)
+void SceneManager::AddInactiveScene(Scene* theScene)
 {
     // Check that they didn't provide a bad pointer
     assert(NULL != theScene && "SceneManagerager::AddInactiveScene() received a bad pointer");
@@ -82,7 +89,7 @@ void SceneManager::AddInactiveScene(std::shared_ptr<Scene> theScene)
     _stack.insert(_stack.begin(), theScene);
 }
 
-std::shared_ptr<Scene> SceneManager::GetActiveScene()
+Scene* SceneManager::GetActiveScene()
 {
     if ( _stack.empty() ) {
         printf("[SceneManager] WARNING: no active scene to get!");
@@ -98,7 +105,7 @@ void SceneManager::InactivateActiveScene()
     // Is there no currently active scene to drop?
     if(!_stack.empty()) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
+		Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -136,7 +143,7 @@ void SceneManager::DropActiveScene()
     // Is there no currently active scene to drop?
     if( !_stack.empty() ) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
+		Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -178,7 +185,7 @@ void SceneManager::ResetActiveScene()
     // Is there no currently active scene to reset?
     if(!_stack.empty()) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
+		Scene* aScene = _stack.back();
                 
         // Pause the currently active scene
         aScene->Pause();
@@ -203,7 +210,7 @@ void SceneManager::RemoveActiveScene()
     // Is there no currently active scene to drop?
     if( !_stack.empty() ) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
+		Scene* aScene = _stack.back();
         
         // Pause the currently active scene
         aScene->Pause();
@@ -239,7 +246,7 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
 #if DEBUGSCENES
     printf("SceneManager: setting active scene - %s\n", theSceneID.c_str() );
 #endif
-    std::vector<std::shared_ptr<Scene>>::iterator it;
+    std::vector<Scene*>::iterator it;
     
     // Find the scene that matches theSceneID
     for( it=_stack.begin(); it != _stack.end(); it++ ) {
@@ -247,7 +254,7 @@ void SceneManager::SetActiveScene(std::string theSceneID) {
         // currently active scene
         if( (*it)->GetID() == theSceneID ) {
             // Get a pointer to soon to be currently active scene
-			std::shared_ptr<Scene> aScene = *it;
+			Scene* aScene = *it;
             
             // Erase it from the list of previously active scenes
             _stack.erase(it);
@@ -282,7 +289,7 @@ void SceneManager::Cleanup(void)
     // Remove one of our dead scenes
     if( !_dead.empty() ) {
         // Retrieve the dead scene
-		std::shared_ptr<Scene> aScene = _dead.back();
+		Scene* aScene = _dead.back();
         assert(NULL != aScene && "SceneManagerager::HandleCleanup() invalid dropped scene pointer");
 #if DEBUGSCENES
         printf("SceneManager: cleaning up dead scene - %s\n", aScene->GetID().c_str() );
@@ -317,11 +324,11 @@ void SceneManager::KillPreviousScene()
 {
     if ( _stack.size() > 1 ) {
         // Retrieve the currently active scene
-		std::shared_ptr<Scene> aScene = _stack.back();
+		Scene* aScene = _stack.back();
         // Pop the currently active scene off the stack
         _stack.pop_back();
         // Retrieve the previous scene
-		std::shared_ptr<Scene> bScene = _stack.back();
+		Scene* bScene = _stack.back();
         // Pop the previous scene off the stack
         _stack.pop_back();
         // Pause the currently active scene

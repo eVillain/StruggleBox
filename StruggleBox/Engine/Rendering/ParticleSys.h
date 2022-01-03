@@ -1,8 +1,7 @@
-#ifndef PARTICLE_SYS_H
-#define PARTICLE_SYS_H
+#pragma once
 
 #include "GFXDefines.h"
-#include "Texture.h"
+#include "Texture2D.h"
 #include "Renderer.h"
 #include "VertexData.h"
 #include "Dictionary.h"
@@ -10,130 +9,123 @@
 #include <queue>
 #include <memory>
 
-/// The Particle emitter lives forever
-#define ParticleSystemDurationInfinity -1
-
-/// The starting size of the particle is equal to the ending size
-#define ParticleSystemStartSizeEqualToEndSize -1
-
-/// The starting radius of the particle is equal to the ending radius
-#define ParticleSystemStartRadiusEqualToEndRadius -1
-
 /// Contains the values of each individual particle.
 typedef struct sParticle {
-public:
     glm::vec3   pos;
     glm::vec3   startPos;
-    
 	Color       color;
 	Color       deltaColor;
-    
 	float		size;
 	float		deltaSize;
-    
 	float		rotation;
 	float		deltaRotation;
-    
 	float		timeToLive;
-    
     union {
-		// Mode A
-		struct {
+		struct { // Mode A
             float       dirX, dirY, dirZ;
 			float		radialAccel;
 			float		tangentialAccel;
 		} A;
-		// Mode B
-		struct {
+		struct { // Mode B
 			float		angle;
 			float		degreesPerSecond;
 			float		radius;
 			float		deltaRadius;
 		} B;
 	} mode;
-    
 } Particle;
 
-enum ParticleSysMode {          // System mode (Gravity or Radial)
+enum class ParticleSysMode {          // System mode (Gravity or Radial)
     ParticleSysGravity = 0,
     ParticleSysRadial = 1
 };
 
-enum ParticleSysDimensions {    // System dimensions (2D or 3D)
+enum class ParticleSysDimensions {    // System dimensions (2D or 3D)
     ParticleSys2D = 0,
     ParticleSys3D = 1
 };
-enum ParticleSysLighting {      // System lighting (self lit or requires lighting pass)
+enum class ParticleSysLighting {      // System lighting (self lit or requires lighting pass)
     ParticleSysLightOff = 0,
     ParticleSysLightOn = 1
 };
 
-///  Defines a particle system and particles contained within
-///  Heavily inspired by Cocos2D and Particle Designer
-class ParticleSys
+struct ParticleSystemConfig
 {
-public:
-    ParticleSys(
-		std::shared_ptr<Renderer> renderer,
-		const std::string filePath,
-		const std::string fileName);
-
-    ~ParticleSys();
-
-    void InitFromFile( const std::string filePath, const std::string fileName );
-    void SaveToFile( const std::string filePath, const std::string fileName );
-    
-    void Update( const double dt );
-    void Draw();
-
-    void StopSystem();
-    
-    glm::vec3 position;
-    int dimensions;     // 0=2D or 1=3D
-    int lighting;       // 0 = self-lit, 1 = needs lighting
-    bool active;        // Is particle system active
+    int maxParticles;
+    ParticleSysDimensions dimensions;     // 0=2D or 1=3D
+    ParticleSysLighting lighting;       // 0 = self-lit, 1 = needs lighting
+    ParticleSysMode emitterType;          // Gravity or Radial
     float emissionRate; // Rate of particle emission
-    int particleCount;  // Current number of particles
     float elapsed;      // Amount of time system has run
     float emitCounter;  // Time remaining for particle emission
-    
-    float angle;        // Particle spawn angle
-    float angleVar;     // Particle spawn angle variance
+    float angle, angleVar;  // Particle spawn angle and variance
     int blendFuncSrc, blendFuncDst;
     float duration;
-    int emitterType;    // Gravity or Radial
+    Color startColor, startColorVar;
     Color finishColor, finishColorVar;
-    float finishParticleSize, finishParticleSizeVar;
-    glm::vec3 gravity;
-    
-    int maxParticles;
-    float maxRadius, maxRadiusVar;
-    float minRadius, minRadiusVar;
+    float startSize, startSizeVar;  // Start size and variance
+    float finishSize, finishSizeVar;
     float lifeSpan, lifeSpanVar;
-    
-    float radialAccel, radialAccelVar;
-    float rotPerSec, rotPerSecVar;
     float rotEnd, rotEndVar;
     float rotStart, rotStartVar;
-    glm::vec3 sourcePos;
-    glm::vec3 sourcePosVar;
+    glm::vec3 sourcePos, sourcePosVar;
+
+    float maxRadius, maxRadiusVar;
+    float minRadius, minRadiusVar;
+    float rotPerSec, rotPerSecVar;
+
+    glm::vec3 gravity;
     float speed, speedVar;
-    Color startColor, startColorVar;
-    
-    float startSize, startSizeVar;  // Start size and variance
+    float radialAccel, radialAccelVar;
     float tangAccel, tangAccelVar;  // Tangential acceleration and variance
-    
+
     std::string texFileName;    // Texture filename
+};
+
+class Allocator;
+
+///  Defines a particle system and particles contained within
+///  Heavily inspired by Cocos2D and Particle Designer
+class ParticleSystem
+{
+public:
+    ParticleSystem(const ParticleSystemConfig& config, Particle* particleData);
+    ~ParticleSystem();
+
+    void Update(const double deltaTime);
+
+    void StopSystem();
+
+    BlendMode getBlendMode() const;
+    DepthMode getDepthMode() const;
+
+    Particle* getParticles() { return m_particles; }
+
+    bool getIsDirty() const { return m_dirty; }
+    void setIsDirty(bool dirty) { m_dirty = dirty; }
+
+    size_t getParticleCount() const { return m_particleCount; }
+    const glm::vec3& getPosition() const { return m_config.sourcePos; }
+    void setPosition(const glm::vec3& position) { m_config.sourcePos = position; }
+    const glm::vec3& getSourcePosVar() const { return m_config.sourcePosVar; }
+
+    float getDuration() const { return m_config.duration; }
+    void setDuration(float duration) { m_config.duration = duration; }
+    ParticleSysLighting getLighting() const { return m_config.lighting; }
+    void setSpeed(float speed) { m_config.speed = speed; }
+    void setActive(bool active) { m_active = active; }
 
 private:
-	std::shared_ptr<Renderer> _renderer;
-	Texture* texture;
-	std::shared_ptr<VertBuffer> _vertBuffer;
-	VertexData<ColorVertexData> _vertData;
-	Particle* particles;        // Array of particles
-	bool _dirty;
+    ParticleSystemConfig m_config;
+
+    size_t m_particleCount;  // Current number of particles
+
+    bool m_active;        // Is particle system active
+    float m_elapsed;      // Amount of time system has run
+    float m_emitCounter;  // Time remaining for particle emission
+
+	Particle* m_particles;        // Array of particles
+	bool m_dirty;
 
 	bool AddParticle();
 };
-
-#endif

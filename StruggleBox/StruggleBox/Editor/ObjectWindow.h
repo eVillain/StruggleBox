@@ -1,11 +1,14 @@
-#ifndef OBJECT_WINDOW_H
-#define OBJECT_WINDOW_H
+#pragma once
 
-#include "Window.h"
+#include "WindowNode.h"
+#include <functional>
 #include <memory>
 
 class MaterialData;
 class VoxelData;
+class MaterialPicker;
+class ButtonNode;
+class SpriteNode;
 
 enum ObjectTool {
 	ObjectTool_None = 0,        // No tool selected
@@ -14,33 +17,59 @@ enum ObjectTool {
 	ObjectTool_Selection = 3,   // Select volume
 };
 
-class ObjectWindow : public Window
+class ObjectWindow : public WindowNode
 {
 public:
 	ObjectWindow(
-		tb::TBWidget* root,
-		std::shared_ptr<VoxelData> voxels,
-		MaterialData* materials);
-	~ObjectWindow();
+		const GUI& gui,
+		Renderer& renderer, 
+		MaterialData& materials);
 
-	bool OnEvent(const tb::TBWidgetEvent & ev);
-	const int GetCurrentID() { return _currentID; }
-	void SetCurrentID(const int newID);
-
-	const bool GetObjectTool() { return _editTool; }
-	const bool GetColorLights() { return _colorLights; }
-
-	void refresh();
+	void setVoxels(VoxelData* voxels);
+	void setResizeCallback(const std::function<void(const glm::ivec3&)>& cb) { m_resizeCallback = cb; }
+	void setRescaleCallback(const std::function<void(float)>& cb) { m_rescaleCallback = cb; }
+	void setUpdateCallback(const std::function<void()>& cb) { m_updateCallback = cb; }
+	void setCurrentID(const uint8_t newID);
+	const uint8_t getCurrentID() { return m_currentID; }
+	const ObjectTool getObjectTool() { return m_editTool; }
 
 private:
-	std::shared_ptr<VoxelData> _voxels;
-	MaterialData* _materials;
-	int _currentID;
+	static const glm::vec2 WINDOW_SIZE;
 
-	ObjectTool _editTool;                // Block or Instance
-	bool _colorLights;                   // Test colored lights on object
+	Renderer& m_renderer;
+	MaterialData& m_materials;
+	VoxelData* m_voxels;
+	uint8_t m_currentID;
+	ObjectTool m_editTool;
 
-	void refreshMaterials();
+	std::function<void(const glm::ivec3&)> m_resizeCallback;
+	std::function<void(float)> m_rescaleCallback;
+	std::function<void()> m_updateCallback;
+
+	LabelNode* m_materialLabel;
+	SpriteNode* m_materialSprite;
+	ButtonNode* m_pickerButton;
+	MaterialPicker* m_materialPicker;
+
+	LabelNode* m_voxelSizeLabel;
+	ButtonNode* m_voxelSizeIncXButton;
+	ButtonNode* m_voxelSizeDecXButton;
+	ButtonNode* m_voxelSizeIncYButton;
+	ButtonNode* m_voxelSizeDecYButton;
+	ButtonNode* m_voxelSizeIncZButton;
+	ButtonNode* m_voxelSizeDecZButton;
+
+	LabelNode* m_voxelScaleLabel;
+	ButtonNode* m_voxelScaleIncButton;
+	ButtonNode* m_voxelScaleDecButton;
+
+	ButtonNode* m_clearButton;
+	ButtonNode* m_fillButton;
+	ButtonNode* m_generateTreeButton;
+
+	void setupMaterialOptions();
+	void setupVoxelOptions();
+
+	void onMaterialPickerButton(bool state);
+	void refresh();
 };
-
-#endif

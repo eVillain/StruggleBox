@@ -2,55 +2,29 @@
 #define PRIMITIVES_H
 
 #include "GFXDefines.h"
-#include "Color.h"
+#include "CubeConstants.h"
+#include "Allocator.h"
 
-static inline const MeshVertexData* createCubeMesh(float material) 
+static inline const MeshVertexData* createCubeMesh(Allocator& allocator, float materialX, float materialY) 
 {
-	const MeshVertexData cube[] = 
+	MeshVertexData* cube = (MeshVertexData*)allocator.allocate(sizeof(MeshVertexData) * 36);
+	for (int cubeVert = 0; cubeVert < 36; cubeVert++)
 	{
-		// front
-		-0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
-		0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
-		0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
-		0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
-		-0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
-		-0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
-		// right
-		0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
-		0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-		0.5, 0.5, -0.5, 1.0, 0.0, 0.0,
-		0.5, 0.5, -0.5, 1.0, 0.0, 0.0,
-		0.5, 0.5,  0.5, 1.0, 0.0, 0.0,
-		0.5, -0.5, 0.5, 1.0, 0.0, 0.0,
-		// back
-		-0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
-		0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
-		0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
-		0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
-		-0.5, -0.5, -0.5, 0.0, 0.0, -1.0,
-		-0.5, 0.5, -0.5, 0.0, 0.0, -1.0,
-		// left
-		-0.5, -0.5,-0.5, -1.0, 0.0, 0.0,
-		-0.5, -0.5, 0.5, -1.0, 0.0, 0.0,
-		-0.5, 0.5, 0.5, -1.0, 0.0, 0.0,
-		-0.5, 0.5, 0.5, -1.0, 0.0, 0.0,
-		-0.5, 0.5,-0.5, -1.0, 0.0, 0.0,
-		-0.5, -0.5,-0.5, -1.0, 0.0, 0.0,
-		// bottom
-		-0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
-		0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
-		0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
-		0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
-		-0.5, -0.5, 0.5, 0.0, -1.0, 0.0,
-		-0.5, -0.5, -0.5, 0.0, -1.0, 0.0,
-		// top
-		-0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
-		0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
-		0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
-		0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
-		-0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
-		-0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
-	};
+		const int vIndex = cubeVert * 4;
+		const int ntIndex = cubeVert * 3;
+		const int uvIndex = cubeVert * 3;
+
+		cube[cubeVert] =
+		{
+			CubeConstants::raw_cube_vertices[vIndex + 0], CubeConstants::raw_cube_vertices[vIndex + 1], CubeConstants::raw_cube_vertices[vIndex + 2], CubeConstants::raw_cube_vertices[vIndex + 3],
+			CubeConstants::raw_cube_normals[ntIndex + 0], CubeConstants::raw_cube_normals[ntIndex + 1], CubeConstants::raw_cube_normals[ntIndex + 2],
+			CubeConstants::raw_cube_tangents[ntIndex + 0], CubeConstants::raw_cube_tangents[ntIndex + 1], CubeConstants::raw_cube_tangents[ntIndex + 2],
+			CubeConstants::raw_cube_texcoords[uvIndex + 0], CubeConstants::raw_cube_texcoords[uvIndex + 1],
+			materialX, materialY
+		};
+	}
+
+	return cube;
 }
 
 #endif // !PRIMITIVES_H

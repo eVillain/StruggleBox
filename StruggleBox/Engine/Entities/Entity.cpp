@@ -4,7 +4,7 @@
 #include "GFXHelpers.h"
 #include "Color.h"
 
-int Entity::_nextEntityID = 1;
+EntityID Entity::_nextEntityID = 1;
 
 // This tells the compiler to create the following data type functions
 // Using GetAttributeDataPtr<type> without defining the type here will not compile

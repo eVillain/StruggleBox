@@ -1,75 +1,55 @@
 #include "MainMenu.h"
+
+#include "Allocator.h"
 #include "Injector.h"
 #include "FileUtil.h"
 #include "Random.h"
 #include "Timer.h"
-#include "TBGUI.h"
 #include "OptionsWindow.h"
 #include "Log.h"
 #include "Options.h"
 #include "Renderer.h"
 #include "SceneManager.h"
+#include "StatTracker.h"
+
 #include "LocalGame.h"
 #include "Object3DEditor.h"
 #include "Particle3DEditor.h"
 #include "MaterialEditor.h"
 #include "AnimationEditor.h"
+#include "EntityEditor.h"
 #include "Particles.h"
-#include "Text.h"
 #include "PathUtil.h"
 #include "CommandProcessor.h"
+#include "Camera.h"
+#include "LightSystem3D.h"
+#include "Physics.h"
+#include "World3D.h"
+#include "TextureAtlas.h"
+
+#include "SpriteNode.h"
+#include "ButtonNode.h"
+#include "LabelNode.h"
+#include "WindowNode.h"
+#include "TextInputNode.h"
+#include "SliderNode.h"
+#include "Input.h"
 
 MainMenu::MainMenu(
-	std::shared_ptr<Injector> injector,
-	std::shared_ptr<Renderer> renderer,
-	std::shared_ptr<Particles> particles,
-	std::shared_ptr<Text> text,
-	std::shared_ptr<SceneManager> sceneManager,
-	std::shared_ptr<TBGUI> gui,
-	std::shared_ptr<Options> options) :
-	GUIScene("MainMenu", gui),
-_injector(injector),
-_renderer(renderer),
-_particles(particles),
-_text(text),
-_sceneManager(sceneManager),
-_options(options),
-_particleSysID(-1),
-_mainMenu(nullptr)
+	Injector& injector,
+	Allocator& allocator,
+	Renderer& renderer,
+	SceneManager& sceneManager,
+	Options& options)
+	: GUIScene("MainMenu", allocator, renderer, injector.getInstance<Input>(), options, injector.getInstance<StatTracker>())
+	, _injector(injector)
+	, _renderer(renderer)
+	, _sceneManager(sceneManager)
+	, _options(options)
+	, m_optionsWindow(nullptr)
+	, _particleSysID(-1)
 {
 	Log::Info("[MainMenu] constructor, instance at %p", this);
-	_root.AddListener("button-localgame", [&](const tb::TBWidgetEvent& ev) {
-		_injector->mapSingleton<LocalGame,
-			Injector, Camera, Renderer, Options, Input, EntityManager, Text, Physics, Particles>();
-		_injector->getInstance<SceneManager>()->AddActiveScene(_injector->getInstance<LocalGame>());
-	});
-	_root.AddListener("button-animations", [&](const tb::TBWidgetEvent& ev) {
-		_injector->mapSingleton<AnimationEditor,
-			TBGUI, Camera, Renderer, Options, Input>();
-		_injector->getInstance<SceneManager>()->AddActiveScene(_injector->getInstance<AnimationEditor>());
-	});
-	_root.AddListener("button-objects", [&](const tb::TBWidgetEvent& ev) {
-		_injector->mapSingleton<Object3DEditor,
-			TBGUI, Camera, Renderer, Options, Input, LightSystem3D, Text>();
-		_injector->getInstance<SceneManager>()->AddActiveScene(_injector->getInstance<Object3DEditor>());
-	});
-	_root.AddListener("button-materials", [&](const tb::TBWidgetEvent& ev) {
-		_injector->mapSingleton<MaterialEditor,
-			TBGUI, Camera, Renderer, Options, Input, LightSystem3D, SceneManager>();
-		_injector->getInstance<SceneManager>()->AddActiveScene(_injector->getInstance<MaterialEditor>());
-	});
-	_root.AddListener("button-particles", [&](const tb::TBWidgetEvent& ev) {
-		_injector->mapSingleton<Particle3DEditor,
-			TBGUI, Camera, Renderer, Options, Input, LightSystem3D, Particles>();
-		_injector->getInstance<SceneManager>()->AddActiveScene(_injector->getInstance<Particle3DEditor>());
-	});
-	_root.AddListener("button-options", [&](const tb::TBWidgetEvent& ev) {
-		new OptionsWindow(_gui->getRoot(), _injector->getInstance<Options>());
-	});
-
-	_root.AddListener("button-quit", [&](const tb::TBWidgetEvent& ev) {
-		CommandProcessor::Buffer("quit");
-	});
 }
 
 MainMenu::~MainMenu()
@@ -92,13 +72,22 @@ void MainMenu::ReInitialize()
 
 void MainMenu::Pause()
 {
+	if (IsPaused())
+	{
+		return;
+	}
 	Log::Info("[MainMenu] pausing...");
+
 	GUIScene::Pause();
 	RemoveMainMenu();
 }
 
 void MainMenu::Resume()
 {
+	if (!IsPaused())
+	{
+		return;
+	}
 	Log::Info("[MainMenu] resuming...");
 	GUIScene::Resume();
 	ShowMainMenu();
@@ -112,64 +101,169 @@ void MainMenu::Release()
 
 void MainMenu::ShowMainMenu()
 {
-	std::string path = PathUtil::GUIPath() + "ui_mainmenu.txt";
-	_root.LoadResourceFile(path.c_str());
+	const int hH = _options.getOption<int>("r_resolutionY") / 2;
+	const int hW = _options.getOption<int>("r_resolutionX") / 2;
+	const float buttonSpacing = 42.f;
+	float buttonPosY = hH + 100.f;
 
-    _mainMenuLabel = _text->CreateLabel("Main Menu");
-    _mainMenuLabel->setFont(Fonts::FONT_FELL_NORMAL);
-    _mainMenuLabel->setFontSize(96);
-	_mainMenuLabel->getTransform().SetPositionY(200.0);
+	LabelNode* label = m_gui.createLabelNode("Main Menu", GUI::FONT_DEFAULT, 96);
+	label->setPosition(glm::vec3(hW, hH + 200, 0.f));
+	label->setAnchorPoint(glm::vec2(0.5f, 0.5f));
+	m_gui.getRoot().addChild(label);
 
-	// Add random particle system
-	int hH = _options->getOption<int>("r_resolutionY") / 2;
-	int W = _options->getOption<int>("r_resolutionX");
+	const std::string prevState = _sceneManager.GetPreviousSceneName();
+	if (prevState.empty())
+	{
+		ButtonNode* localGameButton = createMainMenuButton("Local Game");
+		localGameButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		localGameButton->setCallback([this](bool) {
+			_injector.mapSingleton<LocalGame, Allocator, Camera, Renderer, Options, Input, SceneManager, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<LocalGame>());
+			});
+		m_gui.getRoot().addChild(localGameButton);
+		buttonPosY -= buttonSpacing;
 
-	std::string particlePath = FileUtil::GetPath().append("Data/Particles/");
-	Random::RandomSeed((int)Timer::Microseconds());
-	int rnd = Random::RandomInt(0, 3);
-	if (rnd == 0) {
-		std::shared_ptr<ParticleSys> testSys = _particles->create(particlePath, "HellFire2D.plist");
-		testSys->sourcePos = glm::vec3(-W / 2, -hH, 0);
-		testSys->sourcePosVar = glm::vec3(W, 0, 0);
-		_particleSysID = _particles->getSystemID(testSys);
+		ButtonNode* animationButton = createMainMenuButton("Animation Editor");
+		animationButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		animationButton->setCallback([this](bool) {
+			_injector.mapSingleton<AnimationEditor,
+				Camera, Allocator, Renderer, Options, Input, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<AnimationEditor>());
+			});
+		m_gui.getRoot().addChild(animationButton);
+		buttonPosY -= buttonSpacing;
+
+		ButtonNode* entityButton = createMainMenuButton("Entity Editor");
+		entityButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		entityButton->setCallback([this](bool) {
+			_injector.mapSingleton<EntityEditor,
+				Camera, Allocator, Renderer, Options, Input, SceneManager, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<EntityEditor>());
+			});
+		m_gui.getRoot().addChild(entityButton);
+		buttonPosY -= buttonSpacing;
+
+		ButtonNode* objectButton = createMainMenuButton("Object Editor");
+		objectButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		objectButton->setCallback([this](bool) {
+			_injector.mapSingleton<Object3DEditor,
+				Camera, Allocator, Renderer, Options, Input, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<Object3DEditor>());
+			});
+		m_gui.getRoot().addChild(objectButton);
+		buttonPosY -= buttonSpacing;
+
+		ButtonNode* materialButton = createMainMenuButton("Materials Editor");
+		materialButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		materialButton->setCallback([this](bool) {
+			_injector.mapSingleton<MaterialEditor,
+				Camera, Allocator, Renderer, Options, Input, SceneManager, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<MaterialEditor>());
+			});
+		m_gui.getRoot().addChild(materialButton);
+		buttonPosY -= buttonSpacing;
+
+		ButtonNode* particleButton = createMainMenuButton("Particle Editor");
+		particleButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		particleButton->setCallback([this](bool) {
+			_injector.mapSingleton<Particle3DEditor,
+				Camera, Allocator, Renderer, Options, Input, StatTracker>();
+			_sceneManager.AddActiveScene(&_injector.getInstance<Particle3DEditor>());
+			});
+		m_gui.getRoot().addChild(particleButton);
+		buttonPosY -= buttonSpacing;
 	}
-	else if (rnd == 1) {
-		std::shared_ptr<ParticleSys> testSys = _particles->create(particlePath, "Smoker2D.plist");
-		testSys->sourcePos = glm::vec3(0, 0, 0);
-		_particleSysID = _particles->getSystemID(testSys);
+	else
+	{
+		ButtonNode* backToPreviousButton = createMainMenuButton("Back to " + prevState);
+		backToPreviousButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		backToPreviousButton->setCallback([this, prevState](bool) {
+			_sceneManager.SetActiveScene(prevState);
+			});
+		m_gui.getRoot().addChild(backToPreviousButton);
+		buttonPosY -= buttonSpacing;
 	}
-	else if (rnd == 2) {
-		std::shared_ptr<ParticleSys> testSys = _particles->create(particlePath, "Smoke2D.plist");
-		testSys->sourcePos = glm::vec3(-W / 2, -hH, 0);
-		testSys->sourcePosVar = glm::vec3(W, 0, 0);
-		_particleSysID = _particles->getSystemID(testSys);
-	}
-	else {
-		std::shared_ptr<ParticleSys> testSys = _particles->create(particlePath, "Snow2D.plist");
-		testSys->sourcePos = glm::vec3(-W / 2, hH, 0);
-		testSys->sourcePosVar = glm::vec3(W, 0, 0);
-		_particleSysID = _particles->getSystemID(testSys);
-	}
+
+	ButtonNode* optionsButton = createMainMenuButton("Options");
+	optionsButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+	optionsButton->setCallback([this](bool state) {
+		if (state)
+		{
+			m_optionsWindow = m_gui.createCustomNode<OptionsWindow>(m_gui, _options);
+			m_optionsWindow->setPosition(glm::vec3(8.f, 8.f, 10.f));
+			m_gui.getRoot().addChild(m_optionsWindow);
+		}
+		else if (m_optionsWindow)
+		{
+			m_gui.getRoot().removeChild(m_optionsWindow);
+			m_gui.destroyNodeAndChildren(m_optionsWindow);
+			m_optionsWindow = nullptr;
+		}
+		});
+	optionsButton->setToggleable(true);
+	m_gui.getRoot().addChild(optionsButton);
+	buttonPosY -= buttonSpacing;
+
+	ButtonNode* exitButton = createMainMenuButton("Exit");
+	exitButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+	exitButton->setCallback([](bool) {
+		CommandProcessor::Buffer("quit");
+		});
+	m_gui.getRoot().addChild(exitButton);
+	buttonPosY -= buttonSpacing;
+
     Log::Info("[MainMenu] added main menu content");
 }
 
 void MainMenu::RemoveMainMenu()
 {
-    _text->DestroyLabel(_mainMenuLabel);
-    _mainMenuLabel = nullptr;
+	auto& children = m_gui.getRoot().getChildren();
+	for (auto& child : children)
+	{
+		m_gui.destroyNodeAndChildren(child);
+	}
+	m_gui.getRoot().removeAllChildren();
 
-    _particles->destroy(_particleSysID);
-    _particleSysID = -1;
-    
     Log::Info("[MainMenu] removed main menu content");
+}
+
+ButtonNode* MainMenu::createMainMenuButton(const std::string& title)
+{
+	static const glm::vec2 BUTTON_SIZE = glm::vec2(180.f, 40.f);
+	ButtonNode* button = m_gui.createDefaultButton(BUTTON_SIZE, title);
+	button->setAnchorPoint(glm::vec2(0.5f, 0.5f));
+	return button;
+}
+
+bool MainMenu::OnEvent(const InputEvent event, const float amount)
+{
+	if (GUIScene::OnEvent(event, amount))
+	{
+		return true;
+	}
+	if (event == InputEvent::Back && amount < 0.f)
+	{
+		//Show main menu
+		const std::string prevState = _sceneManager.GetPreviousSceneName();
+		if (!prevState.empty())
+		{
+			_sceneManager.SetActiveScene(prevState);
+		}
+		else
+		{
+			CommandProcessor::Buffer("quit");
+		}
+		return true;
+	}
+	return false;
 }
 
 void MainMenu::Update(const double delta)
 {
-    _particles->Update(delta);
+	GUIScene::Update(delta);
 }
 
 void MainMenu::Draw()
 {
-
+	GUIScene::Draw();
 }

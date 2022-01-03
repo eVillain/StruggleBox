@@ -2,7 +2,7 @@
 
 InventoryComponent::InventoryComponent(
 	const int ownerID,
-	std::shared_ptr<EntityManager> manager) :
+	EntityManager& manager) :
 EntityComponent(ownerID, "Inventory"),
 _manager(manager)
 {

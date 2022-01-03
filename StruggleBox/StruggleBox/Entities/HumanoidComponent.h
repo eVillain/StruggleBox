@@ -2,7 +2,7 @@
 #define HUMANOID_COMPONENT_H
 
 #include "EntityComponent.h"
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 #include <glm/gtc/quaternion.hpp>
 
 class EntityManager;
@@ -22,13 +22,13 @@ typedef enum {
     Legs_Jumping = 4,
 } LegsState;
 
-typedef enum {
+enum class ArmState {
     Arm_Idle = 0,
     Arm_Holding = 1,
     Arm_Blocking = 2,
     Arm_Swinging = 3,
     Arm_Throwing = 4,
-} ArmState;
+};
 
 class HumanoidComponent : public EntityComponent
 {
@@ -38,9 +38,9 @@ public:
     
     HumanoidComponent(
 		const int ownerID,
-		std::shared_ptr < EntityManager> entityManager,
-		std::shared_ptr<Physics> physics,
-		std::shared_ptr<VoxelFactory> voxels);
+		EntityManager& entityManager,
+		Physics& physics,
+		VoxelFactory& voxels);
     virtual ~HumanoidComponent();
 
     virtual void update(const double delta);
@@ -48,36 +48,37 @@ public:
     
     void setCharacterType( const int newType );
 
-    glm::vec3 GetPosition();
-    glm::vec3 GetRotation();
-    
     const void Rotate( const float rotX, const float rotY );
     void Rotate(glm::quat orientation);
     void Warp(glm::vec3 position);
     
-    void TakeHit(const glm::vec3 direction);
+    //void TakeHit(const glm::vec3 direction);
     
     // Item interface
     void Grab( Entity* grabbedObject );
+
     void Store( Entity* storedObject );
     void Drop( Entity* droppedObject );
-    
     void Wield( Entity* wieldObject );
     
     void Die();
     
     void ThrowStart();
-    void ThrowItem( const glm::vec3 targetPos );
+    void ThrowItem(const glm::vec3 targetPos);
     void UseRightHand();
+
+    void WieldNextItemFromBackpack();
     
+
+    ArmState getRightArmState() const { return rightArmAnimState; }
+
 private:
-	std::shared_ptr<EntityManager> _entityManager;
-	std::shared_ptr<Physics> _physics;
-	std::shared_ptr<VoxelFactory> _voxels;
+	EntityManager& _entityManager;
+	Physics& _physics;
+	VoxelFactory& _voxels;
 
     float characterHeight;
     float characterRadius;
-    float wantedAngle;
     float sizeScale;
     float walkSpeed;
     
@@ -96,9 +97,12 @@ private:
     float torsoLeanAngle;
     float torsoBobAmount;
 
-	Entity* backPack;
-	Entity* rightHandItem;
-	Entity* leftHandItem;
+	Entity* m_backpack;
+	Entity* m_rightHandItem;
+	Entity* m_leftHandItem;
+	Entity* m_headAccessoryItem;
+
+    void removeAllVoxelMeshInstances(bool spawnAsDebris);
 };
 
 #endif

@@ -13,24 +13,20 @@ public:
     Shader();
     ~Shader();
 
-    void initialize(
-		const std::string vshSource,
-		const std::string fshSource);
+    void initialize(const std::string& vshSource, const std::string& fshSource);
+	void initialize(const std::string& gshSource, const std::string& vshSource, const std::string& fshSource);
+    void terminate();
 
-	void initialize(
-		const std::string gshSource,
-		const std::string vshSource,
-		const std::string fshSource);
+    void begin() const { glUseProgram(m_program); }
+    void end() const { glUseProgram(0); }
 
-    inline void begin() const { glUseProgram(prog); };
-    inline void end() const { glUseProgram(0); };
-
-    inline GLuint GetVertexShader() { return vertex_shader; };
-    inline GLuint GetFragmentShader() { return fragment_shader; };
-    inline GLuint GetProgram() { return prog; };
+    GLuint GetVertexShader() { return m_vertexShader; }
+    GLuint getGeometryShader() { return m_geometryShader; }
+    GLuint GetFragmentShader() { return m_fragmentShader; }
+    GLuint GetProgram() { return m_program; };
     
-	GLint getAttribute(const std::string name) const;
-	GLint getUniform(const std::string name) const;
+	GLint getAttribute(const std::string& name) const;
+	GLint getUniform(const std::string& name) const;
 
     void setUniform2fv(const char *name, float x,float y) const;
     void setUniform2fv(const char *name, const glm::vec2 & v) const;
@@ -46,10 +42,10 @@ public:
     void setUniform1bv(const char *name, bool val ) const;
 
 private:
-    GLuint geometry_shader;
-    GLuint vertex_shader;
-    GLuint fragment_shader;
-    GLuint prog;
+    GLuint m_program;
+    GLuint m_vertexShader;
+    GLuint m_geometryShader;
+    GLuint m_fragmentShader;
 
     GLuint compile(GLenum type, const GLchar **source);
     GLuint attach(GLuint program, GLenum type, const GLchar **source);

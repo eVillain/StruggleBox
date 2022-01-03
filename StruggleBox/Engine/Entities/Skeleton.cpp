@@ -12,9 +12,9 @@ JointID Skeleton::addJoint(const JointID parentID)
 	if (parentID >= _joints.size() &&
 		parentID != ROOT_JOINT_ID)
 		return ROOT_JOINT_ID;
-	std::string newName = "Joint" + StringUtil::IntToString(_joints.size());
+	std::string newName = "Joint" + StringUtil::LongToString(_joints.size());
 	_joints.push_back({newName, parentID});
-	JointID newID = _joints.size() - 1;
+	JointID newID = (JointID)(_joints.size() - 1);
 	if (parentID != newID) {
 		_children[parentID].push_back(newID);
 	}
@@ -43,14 +43,14 @@ JointID Skeleton::getNearestJoint(
 	return result.current;
 }
 
-std::vector<InstanceData> Skeleton::getInstanceData(
+std::vector<InstanceTransformData> Skeleton::getInstanceData(
 	const std::string& animation,
 	const float time,
 	const glm::vec3& position,
 	const glm::quat& rotation,
 	const glm::vec3& scale)
 {
-	std::vector<InstanceData> instances(_joints.size());
+	std::vector<InstanceTransformData> instances(_joints.size());
 	getInstanceData(instances, animation, time, ROOT_JOINT_ID, position, rotation, scale);
 	return instances;
 }
@@ -80,7 +80,7 @@ KeyFrame & Skeleton::getKeyFrame(
 }
 
 void Skeleton::getInstanceData(
-	std::vector<InstanceData> instances,
+	std::vector<InstanceTransformData> instances,
 	const std::string & animation,
 	const float time,
 	JointID currentJoint,
@@ -92,7 +92,7 @@ void Skeleton::getInstanceData(
 	SkeletalAnimation& skeletalAnimation = _animations[animation];
 	AnimationStream& stream = skeletalAnimation[currentJoint];
 
-	const InstanceData currentFrame = getFrameAtTime(stream, time);
+	const InstanceTransformData currentFrame = getFrameAtTime(stream, time);
 
 	glm::vec3 pos = currentFrame.position;
 	glm::quat rot = currentFrame.rotation;
@@ -122,7 +122,7 @@ void Skeleton::getInstanceData(
 	}
 }
 
-InstanceData Skeleton::getFrameAtTime(
+InstanceTransformData Skeleton::getFrameAtTime(
 	AnimationStream & stream,
 	const float time)
 {
@@ -143,8 +143,8 @@ InstanceData Skeleton::getFrameAtTime(
 			else
 				nextFrame = i + 1;
 
-			const InstanceData& prev = frame.data;
-			const InstanceData& next = stream[nextFrame].data;
+			const InstanceTransformData& prev = frame.data;
+			const InstanceTransformData& next = stream[nextFrame].data;
 
 			const float frameTime = time - timeCount;
 			const float timeRatio = frameTime / frame.time;
@@ -174,7 +174,7 @@ void Skeleton::getNearestJoint(
 	SkeletalAnimation& skeletalAnimation = _animations[animation];
 	AnimationStream& stream = skeletalAnimation[currentJoint];
 
-	const InstanceData currentFrame = getFrameAtTime(stream, time);
+	const InstanceTransformData currentFrame = getFrameAtTime(stream, time);
 
 	glm::vec3 pos = currentFrame.position;
 	glm::quat rot = currentFrame.rotation;

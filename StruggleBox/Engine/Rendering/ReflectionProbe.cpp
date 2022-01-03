@@ -9,7 +9,7 @@ static const glm::mat4 cubeRotationMatrix[6] = {
 	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 1.0f, 0.0f, 0.0f), glm::vec3(0.0f,-1.0f, 0.0f)),  // +x
 	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,-1.0f, 0.0f)),	// -x
 	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),  // +y
-	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 0.0f,-1.0f, 0.0f), glm::vec3(0.0f, 0.0f,  1.0f)),  // -y
+	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 0.0f,-1.0f, 0.0f), glm::vec3(0.0f, 0.0f,-1.0f)),  // -y
 	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 0.0f, 0.0f, 1.0f), glm::vec3(0.0f,-1.0f, 0.0f)),  // +z
 	glm::lookAt(glm::vec3(0.0f,0.0f,0.0f), glm::vec3( 0.0f, 0.0f,-1.0f), glm::vec3(0.0f,-1.0f, 0.0f))   // -z
 };
@@ -25,7 +25,10 @@ static const glm::vec3 cubeViewPosition[6] = {
 
 ReflectionProbe::ReflectionProbe() :
 	_empty(true),
-	_size(16.0f)
+	_size(16.0f),
+	_cubeMap(0),
+	_fbo(0),
+	_textureSize(0)
 {
 	Console::AddVar((float&)_size, "probeSize");
 }
@@ -79,22 +82,18 @@ const glm::mat4 ReflectionProbe::getRotation(const CubeMapSide side)
 const glm::mat4 ReflectionProbe::getView(const CubeMapSide side)
 {
 	glm::vec3 viewPos = cubeViewPosition[side] * (_size*2.0f);
-	return glm::translate(cubeRotationMatrix[side], viewPos-_position);
+	return cubeRotationMatrix[side]; // glm::translate(cubeRotationMatrix[side], viewPos - _position);
 }
 
 const glm::mat4 ReflectionProbe::getProjection(
-	const CubeMapSide side,
-	const float nearDepth,
-	const float farDepth)
+	const CubeMapSide side)
 {
-	const float offset = 2.0f;
-	return glm::perspective((float)M_PI_2, 1.0f, _size+ offset, _size*3.0f + offset);
+	const float offset = 1.0f;
+	return glm::perspective((float)M_PI_2, 1.0f, offset, _size + offset);
 }
 
 const glm::mat4 ReflectionProbe::getMVP(
-	const CubeMapSide side,
-	const float nearDepth,
-	const float farDepth)
+	const CubeMapSide side)
 {
-	return getProjection(side, 0.0f, 0.0f) * getView(side);
+	return getProjection(side) * getView(side);
 }

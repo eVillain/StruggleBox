@@ -5,11 +5,11 @@
 
 HealthComponent::HealthComponent(
 	const int ownerID,
-	std::shared_ptr<EntityManager> manager) :
+	EntityManager& manager) :
 EntityComponent(ownerID, "Health"),
 _manager(manager)
 {
-    Entity* _owner = _manager->getEntity(_ownerID);
+    Entity* _owner = _manager.getEntity(_ownerID);
     bool setDefaults = !_owner->HasAttribute("maxHealth");
     health = &_owner->GetAttributeDataPtr<int>("health");
     maxHealth = &_owner->GetAttributeDataPtr<int>("maxHealth");
@@ -27,11 +27,11 @@ void HealthComponent::update(const double delta)
 {
     if ( *health <= 0 )
 	{
-		Entity* _owner = _manager->getEntity(_ownerID);
+		Entity* _owner = _manager.getEntity(_ownerID);
         Log::Debug("[HealthComponent] Entity %i (%s) health reached zero, died",
 			_ownerID,
 			_owner->GetAttributeDataPtr<std::string>("name"));
-		_manager->killEntity(_ownerID);
+		_manager.destroyEntity(_ownerID);
     }
     if ( damageTimer != 0.0 )
 	{
@@ -44,7 +44,7 @@ void HealthComponent::addHealth(
 	int newHealth,
 	Entity* healer )
 {
-    Entity* _owner = _manager->getEntity(_ownerID);
+    Entity* _owner = _manager.getEntity(_ownerID);
     Log::Debug("[HealthComponent] Entity %i (%s) healed by %i points\n",
 		_ownerID,
 		_owner->GetAttributeDataPtr<std::string>("name").c_str(),
@@ -59,7 +59,7 @@ void HealthComponent::takeDamage(
 {
     if ( damageTimer == 0.0 )
 	{
-        Entity* _owner = _manager->getEntity(_ownerID);
+        Entity* _owner = _manager.getEntity(_ownerID);
 		Log::Debug("[HealthComponent] Entity %i (%s) took %i damage",
 			_ownerID,
 			_owner->GetAttributeDataPtr<std::string>("name").c_str(),
@@ -72,7 +72,7 @@ void HealthComponent::takeDamage(
 				damagerID,
 				damager->GetAttributeDataPtr<std::string>("name").c_str());
             if ( damageOwnerID != -1 ) {
-                Entity* damageOwner = _manager->getEntity(damageOwnerID);
+                Entity* damageOwner = _manager.getEntity(damageOwnerID);
                 if (damageOwner)
 				{
 					Log::Debug("[HealthComponent] Entity to blame is %i (%s)",

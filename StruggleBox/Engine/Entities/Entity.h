@@ -13,7 +13,7 @@ typedef enum {
     ENTITY_SKELETON = 3,        // Undead, kills good things
     ENTITY_ITEM = 4,            // Can be picked up, used and thrown
     ENTITY_PROJECTILE = 5,      // Physical object fired from weapons
-    ENTITY_LIGHT = 6,           // NOT IMPLEMENTED - MIGHT BE FACTORED OUT INTO A COMPONENT OR INTO CUBE DATA
+    ENTITY_DEBRIS = 6,          // Physical bits of debris/body chunks
 } EntityType;
 
 typedef enum {
@@ -27,7 +27,7 @@ inline static std::string NameForEntity(const EntityType type)
 {
     switch (type) {
         case ENTITY_NONE:
-            return "No entity";
+            return "No entity type";
             break;
         case ENTITY_DECOR:
             return "Decor entity";
@@ -44,8 +44,8 @@ inline static std::string NameForEntity(const EntityType type)
         case ENTITY_PROJECTILE:
             return "Projectile entity";
             break;
-        case ENTITY_LIGHT:
-            return "Light entity";
+        case ENTITY_DEBRIS:
+            return "Debris entity";
             break;
         default:
 			return "Unknown entity";
@@ -55,6 +55,8 @@ inline static std::string NameForEntity(const EntityType type)
 
 class EntityComponent;
 
+typedef uint32_t EntityID;
+
 class Entity
 {
 public:
@@ -62,7 +64,7 @@ public:
     ~Entity();
 
     // Entity Interface
-    const unsigned int GetID() const;
+    const EntityID GetID() const;
 
     // Attribute Interface
     bool HasAttribute(const std::string& attrName) const;
@@ -85,14 +87,14 @@ public:
     const std::vector<std::string> GetAttributeNames();
     const std::vector<std::string> GetAttributeTypes();
     Attribute* GetAttributeBase(const std::string& attrName) const;
-    static const int GetNextEntityID() { return _nextEntityID; };
+    static const EntityID GetNextEntityID() { return _nextEntityID; };
     std::map<const std::string, Attribute*>& GetAttributes() { return m_Attributes; }
 
     // Debugging output of all attributes and components
     void Print();
     
 private:
-    static int _nextEntityID;
+    static EntityID _nextEntityID;
 
     void RemoveAttribute(const std::string& attrName);
     void ClearAttributes();
@@ -100,7 +102,7 @@ private:
     template<typename T> void AddAttribute(const std::string& attrName, T value);
     
     // Entity Data
-    unsigned int m_ID;
+    EntityID m_ID;
     bool attributeUpdate;
     std::map<const std::string, Attribute*> m_Attributes;
     template<typename T> Attribute* GetAttribute(const std::string& attrName);

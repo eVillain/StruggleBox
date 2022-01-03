@@ -1,5 +1,4 @@
-#ifndef PHYSICS_COMPONENT_H
-#define PHYSICS_COMPONENT_H
+#pragma once
 
 #include "EntityComponent.h"
 #include <vector>
@@ -14,6 +13,17 @@ class btCompoundShape;
 class btConvexHullShape;
 class btRigidBody;
 class btVector3;
+class btCollisionShape;
+
+enum class PhysicsMode {
+    Physics_Off = 0,
+    Physics_Cube_Mesh = 1,
+    Physics_Cube_Blocks = 2,
+    Physics_Cube_Hull = 3,
+    Physics_Cube_AABBs = 4,
+    Physics_Cube_Single = 5,
+    Physics_Sphere = 6
+};
 
 class PhysicsComponent : public EntityComponent
 {
@@ -22,9 +32,9 @@ public:
 
 	PhysicsComponent(
 		const int ownerID,
-		std::shared_ptr<EntityManager> manager,
-		std::shared_ptr<Physics> physics,
-		std::shared_ptr<VoxelFactory> voxels);
+		EntityManager& manager,
+		Physics& physics,
+		VoxelFactory& voxels);
     ~PhysicsComponent();
 
     void update(const double delta);
@@ -34,30 +44,32 @@ public:
 
     void clearPhysics();
 
-    void setPhysicsMode(const int newMode,
-                        const bool trigger = false);
+    void setPhysicsMode(PhysicsMode newMode, bool isStatic, bool trigger = false);
 
 	void setLinearVelocity( const btVector3* newLinVel );
 
     void setAngularVelocity( const btVector3* newAngVel );
 
-    btRigidBody* getRigidBody() { return physicsMeshBody; };
+    btRigidBody* getRigidBody() { return m_body; };
 
     void addContactToFilter(Entity*newContact);
     
-	std::shared_ptr<EntityManager> _manager;	// UGLY but right now its needed for the contact sensor callback
+	EntityManager& _manager;	// UGLY but right now its needed for the contact sensor callback
+
 private:
-	std::shared_ptr<Physics> _physics;
-	std::shared_ptr<VoxelFactory> _voxels;
+	Physics& m_physics;
+	VoxelFactory& m_voxels;
 
-    btTriangleMesh* physicsMeshTris;                        // Physics triangles array
-    btBvhTriangleMeshShape* physicsMeshShape;               // Physics mesh shape
-    btRigidBody* physicsMeshBody;                           // Physics mesh body
-    btCompoundShape* physicsCompShape;                      // Physics cubes compound shape
-    btConvexHullShape* physicsHullShape;                    // Physics cubes hull shape
-    
- //   Cubeject* object;
-    double timeAccumulator;
+    uint32_t m_shapeID;
+    btCollisionShape* m_shape;
+    uint32_t m_bodyID;
+    btRigidBody* m_body;
+
+    bool m_isStatic;
+    bool m_isSensor;
+    double m_timeAccumulator;
+
+    void createShape(const PhysicsMode mode);
+    void createBody(const bool isStatic);
+    static bool requiresVoxelFile(PhysicsMode mode);
 };
-
-#endif /* PHYSICS_COMPONENT_H */

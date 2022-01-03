@@ -1,4 +1,6 @@
 #include "VoxelLoader.h"
+
+#include "Allocator.h"
 #include "VoxelData.h"
 #include "FileUtil.h"
 #include "PathUtil.h"
@@ -32,19 +34,19 @@ static inline glm::ivec3 getOldIndexPos(int index, const int width_bits, const i
     return glm::ivec3(x,y,z);
 };
 
-std::shared_ptr<VoxelData> VoxelLoader::load(const std::string fileName)
+VoxelData* VoxelLoader::load(const std::string& fileName, Allocator& allocator)
 {
 	const std::string absolutePath = PathUtil::getObjectPath(fileName);
 
-	std::shared_ptr<VoxelData> data;
+	VoxelData* data = nullptr;
 	std::ifstream::int_type fileSize;
-	unsigned char * buffer = NULL;
+	unsigned char* buffer = NULL;
 	std::ifstream file(absolutePath.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
 	if (file && file.is_open())
 	{
 		fileSize = (int)file.tellg();
-		buffer = new unsigned char[fileSize];
+		buffer = CUSTOM_NEW_ARRAY(unsigned char, fileSize, allocator);
 		file.seekg(0, std::ios::beg);
 		file.read((char*)buffer, fileSize);
 		file.close();
@@ -66,7 +68,7 @@ std::shared_ptr<VoxelData> VoxelLoader::load(const std::string fileName)
 			readBytes += SERIALISED_INT_SIZE;
 
 			// Prepare block storage
-			data = std::make_shared<VoxelData>(sizeX, sizeY, sizeZ);
+			data = CUSTOM_NEW(VoxelData, allocator)(sizeX, sizeY, sizeZ, allocator);
 			// Load number of cubes
 			unsigned int numCubes = sizeX*sizeY*sizeZ;
 
@@ -95,10 +97,11 @@ std::shared_ptr<VoxelData> VoxelLoader::load(const std::string fileName)
 			unsigned int numCubes = Serialise::deserialiseInt(buffer + readBytes);
 			readBytes += SERIALISED_INT_SIZE;
 			// Prepare block storage
-			data = std::make_shared<VoxelData>(pow(2.0,width_bits), pow(2.0, height_bits), pow(2.0, width_bits));
+			data = CUSTOM_NEW(VoxelData, allocator)(pow(2.0,width_bits), pow(2.0, height_bits), pow(2.0, width_bits), allocator);
 
 			// Load block data
-			for (unsigned int i = 0; i<numCubes; i++) {
+			for (unsigned int i = 0; i<numCubes; i++) 
+			{
 				const glm::ivec3 oldCoord = getOldIndexPos(i, width_bits, height_bits);
 				unsigned int block = Serialise::deserialiseInt(buffer + readBytes);
 				(*data)(oldCoord.x, oldCoord.y, oldCoord.z) = block;
@@ -114,7 +117,7 @@ std::shared_ptr<VoxelData> VoxelLoader::load(const std::string fileName)
 		{
 			Log::Error("[VoxelLoader] Object header fail!");
 		}
-		delete[] buffer;
+		CUSTOM_DELETE_ARRAY(buffer, allocator);
 	}
 	else
 	{
@@ -123,16 +126,14 @@ std::shared_ptr<VoxelData> VoxelLoader::load(const std::string fileName)
 	return data;
 }
 
-void VoxelLoader::save(
-	const std::string fileName,
-	std::shared_ptr<VoxelData> data)
+void VoxelLoader::save(const std::string& fileName, const VoxelData* data, Allocator& allocator)
 {
 	const std::string absolutePath = PathUtil::getObjectPath(fileName);
 
 	const int headerSize = 8 + (SERIALISED_INT_SIZE * 3);
 	const int requiredSize = data->getSizeX()*data->getSizeY()*data->getSizeZ() + headerSize;
 	int dataSize = 0;
-	unsigned char* buffer = new unsigned char[requiredSize];
+	unsigned char* buffer = CUSTOM_NEW_ARRAY(unsigned char, requiredSize, allocator);
 
 	// Save 5 byte header and 3 byte version
 	memcpy(buffer, VOXELDATA_HEADER, 5);
@@ -145,7 +146,7 @@ void VoxelLoader::save(
 	dataSize += Serialise::serialise((unsigned int)data->getSizeZ(), buffer + dataSize);
 
 	// Save cube data
-	const int voxelDataSize = data->getSizeX()*data->getSizeY()*data->getSizeZ();
+	const size_t voxelDataSize = data->getSizeX()*data->getSizeY()*data->getSizeZ();
 	memcpy(buffer + dataSize, data->getData(), voxelDataSize);
 	dataSize += voxelDataSize;
 	Log::Debug("[VoxelLoader] Saved data %i, predicted: %i", dataSize, requiredSize);
@@ -155,9 +156,12 @@ void VoxelLoader::save(
 	{
 		Log::Error("[VoxelLoader] Error saving to file %s", absolutePath.c_str());
 	}
-	else if (file.is_open()) {
+	else if (file.is_open()) 
+	{
 		file.write((char*)buffer, dataSize);
 		file.close();
 		Log::Debug("[VoxelLoader] voxel content saved, size: %i", dataSize);
 	}
+
+	CUSTOM_DELETE_ARRAY(buffer, allocator);
 }

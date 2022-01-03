@@ -16,7 +16,7 @@ class OSWindow;
 class Input
 {
 public:
-    Input(std::shared_ptr<OSWindow> window);
+    Input(OSWindow& window);
     
     bool Initialize();
     bool Terminate();
@@ -32,8 +32,7 @@ public:
     void StopTextInput(TextInputEventListener* observer);
     
     /// Bind an input (Keyboard/Mouse/Joystick) to an Event
-    void Bind(std::string input,
-              std::string event);
+    void Bind(std::string input, InputEvent event);
     
     bool ProcessInput(const SDL_Event& event);
     
@@ -42,11 +41,11 @@ public:
     void MoveCursor(const glm::ivec2 coord);
 
 private:    
-	std::shared_ptr<OSWindow> _window;
+	OSWindow& _window;
 
     bool ProcessTextInput(const SDL_Event& event);
     // Map of inputs to events
-    std::map<std::string, std::string> _inputBindings;
+    std::map<std::string, InputEvent> _inputBindings;
     // Observers of input events
     
     std::vector<InputEventListener*> _inputEventListeners;

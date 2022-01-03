@@ -10,7 +10,6 @@ MaterialData::MaterialData()
 	}
 }
 
-
 void MaterialData::load(const std::string& fileName)
 {
 	Dictionary dict;

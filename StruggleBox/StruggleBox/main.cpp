@@ -1,28 +1,27 @@
-#include "HyperVisor.h"
+#include "CoreDefines.h"
 #include "Game/MainMenu.h"
+#include "Renderer.h"
+#include "Options.h"
 #include "Injector.h"
-#include <iostream>
-#include <memory>
+#include "SceneManager.h"
 
-int main(int argc, const char * argv[])
+#include "EngineCore.h"
+#include "FreeListAllocator.h"
+
+int main(int argc, const char* argv[])
 {
-#ifdef WIN32
-	// Remove command prompt console
-	// FreeConsole();
-#endif
+	 unsigned char* heap = (unsigned char*)malloc(HEAP_SIZE); // This is the heap memory for the entire application
 
-	HyperVisor hv;
-	hv.Initialize("StruggleBox", argc, argv);
+	 EngineCore& core = EngineCore::create(argc, argv, heap);
+	 core.setTitle("StruggleBox");
+	 core.initialize();
+	 MainMenu& mainMenu = core.getGlobalInjector().instantiateUnmapped<MainMenu, Injector, Allocator, Renderer, SceneManager, Options>();
+	 core.runScene(mainMenu);
+	 int result = core.terminate();
 
-    //SceneManager* sceneMan = hv.GetLocator().Get<SceneManager>();
-	//MainMenu * mainMenu = new MainMenu(hv.GetLocator());
-    //sceneMan->AddActiveScene(mainMenu);
+	 CUSTOM_DELETE(&mainMenu, core.getGlobalAllocator());
+	 free(heap);
 
-	auto mainMenu = hv.getInjector()->instantiateUnmapped<MainMenu,
-	Injector, Renderer, Particles, Text, SceneManager, TBGUI, Options>();
-    hv.Run(mainMenu);
-    hv.Terminate();
-    
-    return 0;
+	 return result;
 }
 

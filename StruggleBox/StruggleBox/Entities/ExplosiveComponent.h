@@ -5,7 +5,6 @@
 #include <memory>
 
 class EntityManager;
-class World3D;
 class Particles;
 
 class ExplosiveComponent : public EntityComponent
@@ -13,9 +12,8 @@ class ExplosiveComponent : public EntityComponent
 public:
     ExplosiveComponent(
 		const int ownerID,
-		std::shared_ptr<EntityManager> manager,
-		std::shared_ptr<World3D> world,
-		std::shared_ptr<Particles> particles);
+		EntityManager& manager,
+		Particles& particles);
     ~ExplosiveComponent();
     
     void update(const double delta);
@@ -23,9 +21,8 @@ public:
     void activate();
     
 private:
-	std::shared_ptr<EntityManager> _manager;
-	std::shared_ptr<World3D> _world;
-	std::shared_ptr<Particles> _particles;
+	EntityManager& _manager;
+	Particles& _particles;
     double _timer;
     double _duration;
 };

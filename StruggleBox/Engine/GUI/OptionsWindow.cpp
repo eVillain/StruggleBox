@@ -1,110 +1,105 @@
 #include "OptionsWindow.h"
+
 #include "Options.h"
-#include "PathUtil.h"
-#include "StringUtil.h"
-#include "Log.h"
-#include "tb_tab_container.h"
-#include "tb_inline_select.h"
 
-OptionsWindow::OptionsWindow(
-	tb::TBWidget * root,
-	std::shared_ptr<Options> options) :
-	Window(root),
-	_options(options)
+#include "GUI.h"
+#include "WindowNode.h"
+#include "ScrollerNode.h"
+#include "ValueEditNode.h"
+
+const glm::vec2 OptionsWindow::OPTIONS_WINDOW_SIZE = glm::vec2(560.f, 600.f);
+const glm::vec2 OptionsWindow::OPTIONS_TAB_SIZE = glm::vec2(90.f, 30.f);
+
+OptionsWindow::OptionsWindow(const GUI& gui, Options& options)
+	: TabWindow(gui, OPTIONS_WINDOW_SIZE, GUI::WINDOW_HEADER, GUI::WINDOW_CONTENT, "Options")
+	, m_options(options)
+	, m_scrollerNode(gui.createScrollerNode(GUI::RECT_DEFAULT))
 {
-	std::string path = PathUtil::GUIPath() + "ui_optionswindow.txt";
+	m_scrollerNode->setContentSize(glm::vec2(m_contentNode->getContentSize().x, m_contentNode->getContentSize().y - 32.f));
+	addChild(m_scrollerNode);
 
-	LoadResourceFile(path.c_str());
+	refreshTabs();
 
-	// Get all the options and add them in to our menu
-	std::map<const std::string, Attribute*>& allOptions = options->getAllOptions();
-	std::map<const std::string, Attribute*>::iterator it;
-	for (it = allOptions.begin(); it != allOptions.end(); it++) {
-		std::string category = "tab-general";
-		if (it->first.substr(0, 2) == "a_") { category = "tab-audio"; }
-		else if (it->first.substr(0, 2) == "d_") { category = "tab-debug"; }
-		else if (it->first.substr(0, 2) == "e_") { category = "tab-editor"; }
-		else if (it->first.substr(0, 2) == "i_") { category = "tab-input"; }
-		else if (it->first.substr(0, 2) == "r_") { category = "tab-renderer"; }
-		tb::TBLayout* node = GetWidgetByIDAndType<tb::TBLayout>(TBIDC(category.c_str()));
-		if (!node)
-		{
-			Log::Error("[OptionsWindow] No % category node!", category.c_str());
-			return;
-		}
-		tb::TBClickLabel* label = new tb::TBClickLabel();
-		label->SetText(it->first.c_str());
-		if (it->second->IsType<bool>())
-		{
-			tb::TBRadioButton* button = new tb::TBRadioButton();
-			button->SetValue(it->second->as<bool>());
-			button->SetID(TBIDC(it->first.c_str()));
-			label->GetContentRoot()->AddChild(button);
-		}
-		else if (it->second->IsType<int>())
-		{
-			tb::TBInlineSelect* select = new tb::TBInlineSelect();
-			select->SetValue(it->second->as<int>());
-			select->SetID(TBIDC(it->first.c_str()));
-			label->GetContentRoot()->AddChild(select);
-		}
-		else if (it->second->IsType<float>())
-		{
-			tb::TBEditField* editField = new tb::TBEditField();
-			editField->SetText(StringUtil::FloatToString(it->second->as<float>()).c_str());
-			editField->SetID(TBIDC(it->first.c_str()));
-			label->GetContentRoot()->AddChild(editField);
-		}
-		else if (it->second->IsType<std::string>())
-		{
-			tb::TBEditField* editField = new tb::TBEditField();
-			editField->SetText(it->second->as<std::string>().c_str());
-			editField->SetID(TBIDC(it->first.c_str()));
-			label->GetContentRoot()->AddChild(editField);
-		}
-		node->AddChild(label);
-	}
+	setTab(0);
 }
 
-bool OptionsWindow::OnEvent(const tb::TBWidgetEvent & ev)
+void OptionsWindow::setContentSize(const glm::vec2& size)
 {
-	if (ev.type == tb::EVENT_TYPE_CLICK)
+	TabWindow::setContentSize(size);
+	m_scrollerNode->setContentSize(glm::vec2(m_contentNode->getContentSize().x, m_contentNode->getContentSize().y - 32.f));
+}
+
+const std::vector<std::string>& OptionsWindow::getTabTitles()
+{
+	static const std::vector<std::string> OPTIONS_TABS = {
+		"General", "Audio", "Debug", "Editor", "Input", "Rendering"
+	};
+
+	return OPTIONS_TABS;
+}
+
+void OptionsWindow::setTabContent(const uint32_t tab)
+{
+	std::vector<Node*> nodes;
+
+	const glm::vec2 OPTION_SIZE = glm::vec2(m_contentNode->getContentSize().x, 32.f);
+	const std::map<const std::string, Attribute*>& allOptions = m_options.getAllOptions();
+	for (auto it = allOptions.begin(); it != allOptions.end(); it++)
 	{
-		// Check all the options for the corresponding one
-		std::map<const std::string, Attribute*>& allOptions = _options->getAllOptions();
-		std::map<const std::string, Attribute*>::iterator it;
-		for (it = allOptions.begin(); it != allOptions.end(); it++)
+		const std::string& name = it->first;
+		if (getTabForOption(name) != (OptionsWindow::Tab)m_currentTab)
 		{
-			if (ev.target->GetID() == TBIDC(it->first.c_str()))
-			{
-				if (it->second->IsType<bool>())
-				{
-					tb::TBRadioButton *button = GetWidgetByIDAndType<tb::TBRadioButton>(TBIDC(it->first.c_str()));
-					if (!button) return false;
-					it->second->as<bool>() = button->GetValue();
-				}
-				else if (it->second->IsType<int>())
-				{
-					tb::TBInlineSelect *select = GetWidgetByIDAndType<tb::TBInlineSelect>(TBIDC(it->first.c_str()));
-					if (!select) return false;
-					it->second->as<int>() = select->GetValue();
-				}
-				else if (it->second->IsType<float>())
-				{
-					tb::TBEditField *select = GetWidgetByIDAndType<tb::TBEditField>(TBIDC(it->first.c_str()));
-					if (!select) return false;
-					float value = std::stof(std::string(select->GetText()));
-					it->second->as<float>() = value;
-				}
-				else if (it->second->IsType<std::string>())
-				{
-					tb::TBEditField *editField = GetWidgetByIDAndType<tb::TBEditField>(TBIDC(it->first.c_str()));
-					if (!editField) return false;
-					it->second->as<std::string>() = editField->GetText();
-				}
-				return true;
-			}
+			continue;
+		}
+
+		Attribute* attribute = it->second;
+		if (attribute->IsType<bool>())
+		{
+			ValueEditNode<bool>* editNode = m_gui.createCustomNode<ValueEditNode<bool>>(m_gui);
+			editNode->setContentSize(OPTION_SIZE);
+			editNode->setValue(name, attribute->as<bool>(), false, true);
+			nodes.push_back(editNode);
+		}
+		else if (attribute->IsType<int>())
+		{
+			ValueEditNode<int>* editNode = m_gui.createCustomNode<ValueEditNode<int>>(m_gui);
+			editNode->setContentSize(OPTION_SIZE);
+			editNode->setValue(name, attribute->as<int>(), 0, 255);
+			nodes.push_back(editNode);
+		}
+		else if (attribute->IsType<float>())
+		{
+			ValueEditNode<float>* editNode = m_gui.createCustomNode<ValueEditNode<float>>(m_gui);
+			editNode->setContentSize(OPTION_SIZE);
+			editNode->setValue(name, attribute->as<float>(), 0.f, 100.f);
+			nodes.push_back(editNode);
+		}
+		else if (attribute->IsType<std::string>())
+		{
+			ValueEditNode<std::string>* editNode = m_gui.createCustomNode<ValueEditNode<std::string>>(m_gui);
+			editNode->setContentSize(OPTION_SIZE);
+			editNode->setValue(name, attribute->as<std::string>(), "", "");
+			nodes.push_back(editNode);
 		}
 	}
-	return Window::OnEvent(ev);
+
+	m_scrollerNode->setContent(nodes, ScrollStrategy::SCROLL_TO_TOP);
+}
+
+OptionsWindow::Tab OptionsWindow::getTabForOption(const std::string& name) const
+{
+	static std::map<std::string, Tab> TAB_NAME_MAP = {
+		{"a_", Tab::Audio},
+		{"d_", Tab::Debug},
+		{"e_", Tab::Editor},
+		{"i_", Tab::Input},
+		{"r_", Tab::Rendering},
+	};
+
+	const std::string namePrefix = name.substr(0, 2);
+	if (TAB_NAME_MAP.find(namePrefix) != TAB_NAME_MAP.end())
+	{
+		return TAB_NAME_MAP.at(namePrefix);
+	}
+	return Tab::General;
 }

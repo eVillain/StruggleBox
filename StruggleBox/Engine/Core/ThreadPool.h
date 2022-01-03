@@ -1,5 +1,4 @@
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
+#pragma once
 
 #include <vector>
 #include <map>
@@ -15,6 +14,29 @@
 ///  These threads can then be given jobs to execute
 class ThreadPool
 {
+public:
+    ThreadPool(size_t);
+    ~ThreadPool();
+
+    template<class F, class... Args>
+    auto addJob(int priority, F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>
+    {
+        typedef typename std::result_of<F(Args...)>::type return_type;
+        // Don't allow new jobs after stopping the pool
+        if (!isRunning) { throw "[ThreadPool] Was stopped, shouldn't be adding new jobs\n"; }
+        auto job = std::make_shared< std::packaged_task<return_type()> >(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        // Add task to list
+        std::future<return_type> res = job->get_future();
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        jobs[priority].push_back([job]() { (*job)(); });
+        // Notify a worker thread if any are idle
+        condition.notify_one();
+        return res;
+    }
+
+    inline size_t numJobs() { std::lock_guard<std::mutex> lock(queue_mutex); return jobs.size(); };
+    inline size_t numWorkers() { return workers.size(); };
+
 private:
     // Vector of worker threads
     std::vector< std::thread > workers;
@@ -25,17 +47,6 @@ private:
     std::condition_variable condition;
     // Shutdown toggle
     bool isRunning;
-public:
-    // Forward declare constructor and destructor
-    ThreadPool(size_t);
-    ~ThreadPool();
-    // Forward declare function to add jobs to pool
-    template<class F, class... Args>
-    auto AddJob(int priority, F&& f, Args&&... args)
-    -> std::future<typename std::result_of<F(Args...)>::type>;
-    // Get current number of jobs
-    inline size_t NumJobs() { std::lock_guard<std::mutex> lock(queue_mutex); return jobs.size(); };
-    inline size_t NumWorkers() { return workers.size(); };
 };
 
 // The constructor just launches some amount of workers
@@ -59,7 +70,7 @@ inline ThreadPool::ThreadPool(size_t threads) : isRunning(true)
             }
         } );
     }
-    printf("[ThreadPool] Started with %i threads, hardware threads: %i\n", threads, std::thread::hardware_concurrency());
+    printf("[ThreadPool] Started with %zi threads, hardware threads: %i\n", threads, std::thread::hardware_concurrency());
 };
 
 // The destructor just notifies all threads and waits for them to join before shutting down
@@ -80,24 +91,3 @@ inline ThreadPool::~ThreadPool()
     }
     printf("[ThreadPool] Shut down complete, threads released\n");
 };
-
-// Function to add a job to the pool
-template<class F, class... Args>
-auto ThreadPool::AddJob(int priority, F&& f, Args&&... args)
--> std::future<typename std::result_of<F(Args...)>::type>
-{
-    typedef typename std::result_of<F(Args...)>::type return_type;
-    // Don't allow new jobs after stopping the pool
-    if(!isRunning) { throw "[ThreadPool] Was stopped, shouldn't be adding new jobs\n"; }
-    auto job = std::make_shared< std::packaged_task<return_type()> >( std::bind(std::forward<F>(f), std::forward<Args>(args)...) );
-    // Add task to list
-    std::future<return_type> res = job->get_future();
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    jobs[priority].push_back([job](){ (*job)(); });
-    // Notify a worker thread if any are idle
-    condition.notify_one();
-    return res;
-};
-
-
-#endif /* THREAD_POOL_H */

@@ -1,6 +1,9 @@
 #ifndef MATH_UTILS_H
 #define MATH_UTILS_H
 
+#include <climits>
+#include <type_traits>
+
 namespace MathUtils
 {
     // Function to convert degrees to radians
@@ -88,6 +91,18 @@ namespace MathUtils
     }
     static inline int Max( const int a, const int b ) {
         return (a > b ? a : b);
+    }
+
+
+    template <typename UnsignedType>
+    UnsignedType round_up_to_power_of_2(UnsignedType v) {
+        static_assert(std::is_unsigned<UnsignedType>::value, "Only works for unsigned types");
+        v--;
+        for (size_t i = 1; i < sizeof(v) * CHAR_BIT; i *= 2) //Prefer size_t "Warning comparison between signed and unsigned integer"
+        {
+            v |= v >> i;
+        }
+        return ++v;
     }
 }
 

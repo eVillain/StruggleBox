@@ -1,14 +1,27 @@
 #include "Particles.h"
+
+#include "ParticleSys.h"
+#include "ParticleSystemLoader.h"
+#include "ParticleRenderer.h"
+
+#include "ArenaOperators.h"
+#include "Allocator.h"
 #include "Renderer.h"
+#include "VertBuffer.h"
 #include "Log.h"
 
-int Particles::_nextParticleSysID = 0;
+#include "Random.h"
+#include "Timer.h"
 
-Particles::Particles(std::shared_ptr<Renderer> renderer) :
-	_renderer(renderer),
-	_paused(false)
+const size_t PARTICLE_POOL_SIZE = 16 * 1024 * 1024;
+
+Particles::Particles(Allocator& allocator, Renderer& renderer)
+	: m_allocator(allocator)
+	, m_renderer(renderer)
+	, m_nextParticleSysID(0)
 {
 	Log::Info("[Particles] constructor, instance at %p", this);
+	Random::RandomSeed((int)Timer::Microseconds());
 }
 
 Particles::~Particles()
@@ -16,87 +29,87 @@ Particles::~Particles()
 	Log::Info("[Particles] destructor, instance at %p", this);
 }
 
-void Particles::Update(double deltaTime)
+void Particles::update(double deltaTime)
 {
-	if (_paused) return;
-	for (auto pair : _systems)
+	for (const auto& pair : m_systems)
 	{
-		pair.second->Update(deltaTime);
-	}
-}
-
-std::shared_ptr<ParticleSys> Particles::create(const std::string filePath,
-	const std::string fileName)
-{
-	std::shared_ptr<ParticleSys> sys = std::make_shared<ParticleSys>(
-		_renderer,
-		filePath,
-		fileName);
-	int sysID = _nextParticleSysID++;
-	_systems[sysID] = sys;
-	return sys;
-}
-
-int Particles::getSystemID(std::shared_ptr<ParticleSys> system)
-{
-	for (auto pair : _systems)
-	{
-		if (pair.second == system)
+		const ParticleSystemID systemID = pair.first;
+		ParticleSystem* system = pair.second;
+		system->Update(deltaTime);
+		if (!system->getIsDirty())
 		{
-			return pair.first;
+			continue;
 		}
-	}
-	return -1;
-}
-
-void Particles::destroy(std::shared_ptr<ParticleSys> system)
-{
-	std::map<int, std::shared_ptr<ParticleSys>>::iterator it;
-	for (it = _systems.begin(); it != _systems.end(); it++)
-	{
-		if (it->second == system)
+		system->setIsDirty(false);
+		auto it = m_renderers.find(systemID);
+		if (it != m_renderers.end())
 		{
-			// Found system to delete
-			_systems.erase(it);
-			return;
+			ParticleRenderer* renderer = it->second;
+			renderer->Update(system->getPosition(), system->getParticles(), system->getParticleCount());
 		}
 	}
 }
 
-void Particles::destroy(const int sysID)
+ParticleSystemID Particles::create(const std::string filePath, const std::string fileName)
 {
-	if (_systems.find(sysID) != _systems.end())
+	ParticleSystemConfig config = ParticleSystemLoader::load(filePath + fileName);
+	if (config.maxParticles == 0)
 	{
-		_systems.erase(sysID);
+		return 0;
+	}
+	Particle* particleData = CUSTOM_NEW_ARRAY(Particle, config.maxParticles, m_allocator);
+	ParticleSystem* system = CUSTOM_NEW(ParticleSystem, m_allocator)(config, particleData);
+	ParticleSystemID systemID = m_nextParticleSysID++;
+	m_systems[systemID] = system;
+
+	ParticleRenderer* renderer = CUSTOM_NEW(ParticleRenderer, m_allocator)(config.maxParticles, m_renderer, m_allocator);
+	renderer->setTextureID(m_renderer.getTextureID(config.texFileName, true));
+	m_renderers[systemID] = renderer;
+
+	return systemID;
+}
+
+ParticleSystem* Particles::getSystemByID(const ParticleSystemID systemID)
+{
+	const auto it = m_systems.find(systemID);
+	if (it == m_systems.end())
+	{
+		return nullptr;
+	}
+	return it->second;
+}
+
+void Particles::destroy(const ParticleSystemID systemID)
+{
+	const auto it = m_systems.find(systemID);
+	if (it != m_systems.end())
+	{
+		ParticleSystem* system = it->second;
+		m_systems.erase(it);
+		CUSTOM_DELETE_ARRAY(system->getParticles(), m_allocator);
+		CUSTOM_DELETE(system, m_allocator);
+	}
+
+	const auto it2 = m_renderers.find(systemID);
+	if (it2 != m_renderers.end())
+	{
+		ParticleRenderer* renderer = it2->second;
+		m_renderers.erase(it2);
+		CUSTOM_DELETE(renderer, m_allocator);
 	}
 }
 
-void Particles::Draw()
+void Particles::draw()
 {
-	for (auto pair : _systems)
+	for (const auto& pair : m_systems)
 	{
-		pair.second->Draw();
-	}
-}
-
-void Particles::drawUnlit()
-{
-	for (auto pair : _systems)
-	{
-		if (pair.second->lighting == ParticleSysLightOff)
+		const ParticleSystemID systemID = pair.first;
+		auto it = m_renderers.find(systemID);
+		if (it != m_renderers.end())
 		{
-			pair.second->Draw();
-		}
-	}
-}
-
-void Particles::drawLit()
-{
-	for (auto pair : _systems)
-	{
-		if (pair.second->lighting == ParticleSysLightOn)
-		{
-			pair.second->Draw();
+			ParticleSystem* system = pair.second;
+			ParticleRenderer* renderer = it->second;
+			renderer->Draw(system->getBlendMode(), system->getDepthMode(), system->getLighting());
 		}
 	}
 }

@@ -1,45 +1,45 @@
 #include "Scene.h"
 
 Scene::Scene(const std::string sceneID) :
-_sceneID(sceneID),
-_init(false),
-_paused(false)
+m_sceneID(sceneID),
+m_init(false),
+m_paused(false)
 { }
 
 const std::string Scene::GetID() const
 {
-    return _sceneID;
+    return m_sceneID;
 }
 
 void Scene::Initialize()
 {
-    if(_init == false)
+    if(m_init == false)
     {
-        _init = true;
-        _paused = false;
+        m_init = true;
+        m_paused = false;
     }
 }
 
 void Scene::Release(void)
 {
-    if(_init == true)
+    if(m_init == true)
     {
-        _init = false;
+        m_init = false;
     }
 }
 
 void Scene::Pause(void)
 {
-    if (_paused == false)
+    if (m_paused == false)
     {
-        _paused = true;
+        m_paused = true;
     }
 }
 
 void Scene::Resume(void)
 {
-    if (_paused == true)
+    if (m_paused == true)
     {
-        _paused = false;
+        m_paused = false;
     }
 }

@@ -1,14 +1,15 @@
 #include "Log.h"
+
 #include "LogOutput.h"
+#include "LogOutputSTD.h"
 #include "StringUtil.h"
 #include <sstream>
 #include <iostream>
 #include <memory>
 #include <cstdarg>
 
-// All messages are shown by default, override in application as needed
-LogLevel Log::_level = Log_Debug;
-std::vector<std::shared_ptr<LogOutput>> Log::_outputs;
+LogLevel Log::_level = LogLevel::Log_Debug;
+std::vector<LogOutput*> Log::_outputs = {};
 
 void Log::SetLogLevel(const LogLevel level)
 {
@@ -17,11 +18,11 @@ void Log::SetLogLevel(const LogLevel level)
 
 void Log::Debug(const char * format, ...)
 {
-    if ( _level < Log_Debug ) return;
+    if ( _level < LogLevel::Log_Debug ) return;
     // Grab arguments
     va_list args;
     va_start (args, format);
-    std::string debugMessage = StringUtil::Format(format, args);
+    const std::string debugMessage = StringUtil::Format(format, args);
     va_end (args);
     for (auto output : _outputs)
     {
@@ -31,47 +32,43 @@ void Log::Debug(const char * format, ...)
 
 void Log::Info(const char * format, ...)
 {
-    if ( _level < Log_Info ) return;
+    if ( _level < LogLevel::Log_Info ) return;
     // Grab arguments
     va_list args;
     va_start (args, format);
-    std::string infoMessage = StringUtil::Format(format, args);
+    const std::string infoMessage = StringUtil::Format(format, args);
     va_end (args);
     for (auto output : _outputs)
     {
-        output->Debug(infoMessage);
+        output->Info(infoMessage);
     }
 }
 
 void Log::Warn(const char * format, ...)
 {
-    if ( _level < Log_Warn ) return;
+    if ( _level < LogLevel::Log_Warn ) return;
     // Grab arguments
     va_list args;
     va_start (args, format);
-    std::string warnMessage = StringUtil::Format(format, args);
+    const std::string warnMessage = StringUtil::Format(format, args);
     va_end (args);
     for (auto output : _outputs)
     {
-        output->Debug(warnMessage);
+        output->Warn(warnMessage);
     }
 }
 
 void Log::Error(const char * format, ...)
 {
-    if ( _level < Log_Error ) return;
+    if ( _level < LogLevel::Log_Error ) return;
     // Grab arguments
     va_list args;
     va_start (args, format);
-    std::string errorMessage = StringUtil::Format(format, args);
+    const std::string errorMessage = StringUtil::Format(format, args);
     va_end (args);
     for (auto output : _outputs)
     {
-        output->Debug(errorMessage);
+        output->Error(errorMessage);
     }
 }
 
-void Log::AttachOutput(const std::shared_ptr<LogOutput> output)
-{
-    _outputs.push_back(output);
-}

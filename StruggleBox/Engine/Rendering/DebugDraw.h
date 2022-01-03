@@ -1,13 +1,12 @@
 #ifndef DEBUG_DRAW_H
 #define DEBUG_DRAW_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 #include "GFXDefines.h"
 #include "Color.h"
 #include <memory>
 
 class Renderer;
-class ShaderManager;
 
 class Shader;
 class VertBuffer;
@@ -15,9 +14,7 @@ class VertBuffer;
 class DebugDraw
 {
 public:
-	DebugDraw(
-		std::shared_ptr<Renderer> renderer,
-		std::shared_ptr<ShaderManager> shaders);
+	DebugDraw(Renderer& renderer);
 	~DebugDraw();
 
 	// 2D Lines
@@ -48,12 +45,11 @@ public:
 	void flush();
 
 private:
-	std::shared_ptr<Renderer> _renderer;
-	std::shared_ptr<ShaderManager> _shaders;
+	Renderer& _renderer;
 
-	std::shared_ptr<Shader> _lineShader;
+	Shader* _lineShader;
 
-	std::shared_ptr<VertBuffer> _lineVB;
+	VertBuffer* _lineVB;
 	unsigned int _vbo, _vao;
 	ColorVertexData* _lineBuffer2D;
 	ColorVertexData* _lineBuffer3D;

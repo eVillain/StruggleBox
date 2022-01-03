@@ -85,7 +85,7 @@ bool StringUtil::IsNumber( const std::string& string)
 }
 
 std::string StringUtil::BoolToString( bool number ) {
-    return number == true ? "TRUE" : "FALSE";   //return a string with the contents of the stream
+    return number == true ? "true" : "false";   //return a string with the contents of the stream
 }
 
 std::string StringUtil::IntToString( int number ) {

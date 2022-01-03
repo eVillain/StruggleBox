@@ -11,6 +11,7 @@
 // TODO: Needs better commenting in case more custom allocators are needed.
 
 #include "PointerMath.h"
+#include "Log.h"
 #include <cstdint>
 #include <cassert>
 #include <new>
@@ -36,7 +37,6 @@ public:
 	}
 
 	virtual void* allocate(size_t size, uint8_t alignment = 4) = 0;
-
 	virtual void deallocate(void* p) = 0;
 
 	void* getStart() const
@@ -58,6 +58,20 @@ public:
 	{
 		return _num_allocations;
 	}
+
+#ifdef _DEBUG
+	void* allocateDebug(size_t size, const char* file, int line, uint8_t alignment = 4)
+	{
+		void* result = allocate(size, alignment);
+		//Log::Info("[%s, line %i] Allocated %zub at: %p", file, line, size, result);
+		return result;
+	}
+	void deallocateDebug(void* p, const char* file, int line)
+	{
+		//Log::Info("[%s, line %i] Dellocated object at %p", file, line, p);
+		deallocate(p);
+	}
+#endif
 
 protected:
 	void*         _start;

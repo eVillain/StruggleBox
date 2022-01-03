@@ -1,87 +1,119 @@
-#ifndef VERTEX_DATA_H
-#define VERTEX_DATA_H
+#pragma once
+
+#include "Allocator.h"
+#include "ArenaOperators.h"
+#include "RendererDefines.h"
 #include <memory>
 
-template <typename T>
-class VertexData
+class BaseVertexData
 {
 public:
-	VertexData(const unsigned int size) :
-		_size(size),
-		_count(0),
-		_data(nullptr)
+	BaseVertexData(const size_t size, const VertexDataType type)
+		: m_size(size)
+		, m_count(0)
+		, m_type(type)
+	{}
+
+	virtual bool isAccessible() const { return false; }
+
+	void clear() { m_count = 0; }
+	const size_t getSize() const { return m_size; }
+	const size_t getCount() const { return m_count; }
+	const VertexDataType getType() const { return m_type; }
+protected:
+	size_t m_size;
+	size_t m_count;
+	VertexDataType m_type;
+};
+
+template <typename T>
+class VertexData : public BaseVertexData
+{
+public:
+	VertexData(const size_t size, const VertexDataType type, Allocator& allocator)
+		: BaseVertexData(size, type)
+		, m_allocator(allocator)
+		, m_data(nullptr)
 	{ 
 		if (size > 0)
-			_data = new T[size];
+		{
+			m_data = CUSTOM_NEW_ARRAY(T, size, m_allocator);
+		}
 	}
 
-	~VertexData()
+	virtual ~VertexData()
 	{
-		delete [] _data;
-		_data = nullptr;
+		if (m_data)
+		{
+			CUSTOM_DELETE_ARRAY(m_data, m_allocator);
+		}
 	}
 
-	void buffer(
-		const T* data,
-		const unsigned int count)
+	bool isAccessible() const override { return true; }
+
+	void buffer(const T* data, const size_t count)
 	{
-		if (_count + count > _size)
+		assert(data && count);
+		if (count == 0 || data == nullptr)
 			return;
-		memcpy(&_data[_count], data, sizeof(T)*count);
-		_count += count;
+		if (m_count + count > m_size)
+		{
+			Log::Warn("VertexData tried to buffer data which does not fit");
+			return;
+		}
+		memcpy(&m_data[m_count], data, sizeof(T)*count);
+		m_count += count;
 	}
 
-	void resize(const unsigned int size, const bool retainData=false)
+	void resize(const size_t size, const bool retainData = false)
 	{
-		T* oldData = _data;
+		T* oldData = m_data;
 
-		if (size > 0)
-			_data = new T[size];
+		if (size == 0)
+		{
+			m_data = nullptr;
+
+		}
 		else
-			_data = nullptr;
-
+		{
+			m_data = CUSTOM_NEW_ARRAY(T, size, m_allocator);
+		}
 		if (oldData != nullptr)
 		{
-			if (retainData && _count > 0)
+			if (retainData && m_count > 0)
 			{
-				unsigned int retainCount = size >= _count ? _count : size;
-				memcpy(_data, oldData, sizeof(T)*retainCount);
-				_count = retainCount;
+				size_t retainCount = size >= m_count ? m_count : size;
+				memcpy(m_data, oldData, sizeof(T)*retainCount);
+				m_count = retainCount;
 			}
 			else
 			{
-				_count = 0;
+				m_count = 0;
 			}
-			delete[] oldData;
+			CUSTOM_DELETE_ARRAY(oldData, m_allocator);
 		}
 		else
 		{
-			_count = 0;
+			m_count = 0;
 		}
 		 
-		_size = size;
+		m_size = size;
 	}
 
-	void remove(const unsigned int removeIndex)
+	void remove(const size_t removeIndex)
 	{
-		if (removeIndex != _count - 1)
+		if (removeIndex != m_count - 1)
 		{
-			T* oldData = &_data[removeIndex];
-			T* lastData = &_data[_count - 1];
+			T* oldData = &m_data[removeIndex];
+			T* lastData = &m_data[m_count - 1];
 			memcpy(oldData, lastData, sizeof(T));
 		}
-		_count--;
+		m_count--;
 	}
 
-	void clear() { _count = 0; }
-	const unsigned int getSize() const { return _size; }
-	const unsigned int getCount() const { return _count; }
-	T* getData() { return _data; }
+	T* getData() { return m_data; }
 
 private:
-	unsigned int _size;
-	unsigned int _count;
-	T* _data;
+	Allocator& m_allocator;
+	T* m_data;
 };
-
-#endif // !VERTEX_DATA_H

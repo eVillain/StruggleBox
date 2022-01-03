@@ -45,7 +45,7 @@ bool CollisionDispatcher::needsResponse(
     //here you can do filtering
 	bool hasResponse = (body0->hasContactResponse() && body1->hasContactResponse());
 	//no response between two static/kinematic bodies:
-	hasResponse = hasResponse && ((!body0->isStaticOrKinematicObject()) ||(! body1->isStaticOrKinematicObject()));
+	hasResponse = hasResponse && ((!body0->isStaticOrKinematicObject()) ||(!body1->isStaticOrKinematicObject()));
 	if ( hasResponse == false ) return false;
     
     Entity* ownerA = (Entity*)body0->getUserPointer();

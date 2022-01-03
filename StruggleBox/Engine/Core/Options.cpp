@@ -127,7 +127,7 @@ bool Options::load(const char *fileName)
 void Options::setDefaults()
 {
     // Clear out old options
-    m_Attributes.empty();
+    m_Attributes.clear();
     
     addOption<std::string>("version", "0");
     addOption("h_multiThreading", true);

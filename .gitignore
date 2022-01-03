@@ -42,3 +42,11 @@ ipch/
 *.cachefile
 *.VC.db
 *.VC.VC.opendb
+/StruggleBox/StruggleBox/x64/Release
+/StruggleBox/.vs/StruggleBox/v16
+/StruggleBox/Runtime/StruggleBox_debug.pdb
+/StruggleBox/Runtime/StruggleBox_debug.exe
+/StruggleBox/Runtime/StruggleBox.pdb
+/StruggleBox/Runtime/StruggleBox.exe
+/StruggleBox/Runtime/SDL2.dll
+/StruggleBox/Runtime/Options.plist

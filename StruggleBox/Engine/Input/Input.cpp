@@ -8,7 +8,7 @@
 #include "OSWindow.h"
 #include <SDL2/SDL.h>
 
-Input::Input(std::shared_ptr<OSWindow> window) :
+Input::Input(OSWindow& window) :
 	_window(window),
 	_inputText(""),
 	_textInputListener(nullptr)
@@ -21,11 +21,11 @@ bool Input::Initialize()
     Log::Debug("[Input] Initializing...");
     // Add our binding mechanic to our console commands
     CommandProcessor::AddCommand("bind",
-                                 Command<const std::string&, const std::string&>([=](
+                                 Command<const std::string&, const int&>([=](
 									 const std::string& input,
-									 const std::string& event)
+									 const int& event)
     {
-        this->Bind(input, event);
+        this->Bind(input, (InputEvent)event);
     } ));
 
     SetDefaultBindings();
@@ -65,7 +65,6 @@ void Input::RegisterMouseObserver(MouseEventListener* observer)
     _mouseEventListeners.push_back(observer);
 }
 
-
 void Input::UnRegisterMouseObserver(MouseEventListener* observer)
 {
     std::vector<MouseEventListener*>::iterator it = std::find(_mouseEventListeners.begin(),
@@ -79,8 +78,7 @@ void Input::UnRegisterMouseObserver(MouseEventListener* observer)
     }
 }
 
-void Input::Bind(std::string input,
-                 std::string event)
+void Input::Bind(std::string input, InputEvent event)
 {
     _inputBindings[input] = event;
 }
@@ -88,49 +86,52 @@ void Input::Bind(std::string input,
 /* Print modifier info */
 void PrintModifiers( Uint32 mod )
 {
-    printf( "Modifers: " );
+    Log::Info( "Modifers: " );
     
     /* If there are none then say so and return */
     if( mod == KMOD_NONE ){
-        printf( "None\n" );
+        Log::Info( "None\n" );
         return;
     }
     
     /* Check for the presence of each SDLMod value */
     /* This looks messy, but there really isn't    */
     /* a clearer way.                              */
-    if( mod & KMOD_NUM ) printf( "NUMLOCK " );
-    if( mod & KMOD_CAPS ) printf( "CAPSLOCK " );
-    if( mod & KMOD_LCTRL ) printf( "LCTRL " );
-    if( mod & KMOD_RCTRL ) printf( "RCTRL " );
-    if( mod & KMOD_RSHIFT ) printf( "RSHIFT " );
-    if( mod & KMOD_LSHIFT ) printf( "LSHIFT " );
-    if( mod & KMOD_RALT ) printf( "RALT " );
-    if( mod & KMOD_LALT ) printf( "LALT " );
-    if( mod & KMOD_CTRL ) printf( "CTRL " );
-    if( mod & KMOD_SHIFT ) printf( "SHIFT " );
-    if( mod & KMOD_ALT ) printf( "ALT " );
-    if( mod & KMOD_LGUI ) printf( "LGUI " );
-    if( mod & KMOD_RGUI ) printf( "RGUI " );
-    if( mod & KMOD_MODE ) printf( "MODE " );
-    if( mod & KMOD_RESERVED ) printf( "RESERVED " );
-    printf( "\n" );
+    if( mod & KMOD_NUM ) Log::Info( "NUMLOCK " );
+    if( mod & KMOD_CAPS ) Log::Info( "CAPSLOCK " );
+    if( mod & KMOD_LCTRL ) Log::Info( "LCTRL " );
+    if( mod & KMOD_RCTRL ) Log::Info( "RCTRL " );
+    if( mod & KMOD_RSHIFT ) Log::Info( "RSHIFT " );
+    if( mod & KMOD_LSHIFT ) Log::Info( "LSHIFT " );
+    if( mod & KMOD_RALT ) Log::Info( "RALT " );
+    if( mod & KMOD_LALT ) Log::Info( "LALT " );
+    if( mod & KMOD_CTRL ) Log::Info( "CTRL " );
+    if( mod & KMOD_SHIFT ) Log::Info( "SHIFT " );
+    if( mod & KMOD_ALT ) Log::Info( "ALT " );
+    if( mod & KMOD_LGUI ) Log::Info( "LGUI " );
+    if( mod & KMOD_RGUI ) Log::Info( "RGUI " );
+    if( mod & KMOD_MODE ) Log::Info( "MODE " );
+    if( mod & KMOD_RESERVED ) Log::Info( "RESERVED " );
 }
 
 /* Print all information about a key event */
 void PrintKeyInfo( SDL_KeyboardEvent *key )
 {
     /* Is it a release or a press? */
-    if( key->type == SDL_KEYUP )
-        printf( "Release:- " );
+    if (key->type == SDL_KEYUP)
+    {
+        Log::Info("Release:- ");
+    }
     else
-        printf( "Press:- " );
+    {
+        Log::Info("Press:- ");
+    }
     
     /* Print the hardware scancode first */
-    printf( "Scancode: 0x%02X", key->keysym.scancode );
+    Log::Info( "Scancode: 0x%02X", key->keysym.scancode );
     /* Print the name of the key */
-    printf( ", Name: %s", SDL_GetKeyName( key->keysym.sym ) );
-    printf( "\n" );
+    Log::Info( ", Name: %s", SDL_GetKeyName( key->keysym.sym ) );
+    Log::Info( "\n" );
     /* Print modifier info */
     PrintModifiers( key->keysym.mod );
 }
@@ -149,6 +150,9 @@ bool Input::ProcessInput(const SDL_Event& event)
 		{
 			amount = 1.0f;
 			input = SDL_GetKeyName(event.key.keysym.sym);
+#if 0
+            Log::Debug("Input::ProcessInput key name: %s", input.c_str());
+#endif
 		}
 	}
 	else if (event.type == SDL_KEYUP)
@@ -184,11 +188,11 @@ bool Input::ProcessInput(const SDL_Event& event)
 	else if (event.type == SDL_MOUSEWHEEL)
 	{
 		if (event.wheel.y != 0) {
-			amount = event.wheel.y;
+			amount = (float)event.wheel.y;
 			input = MOUSE_WHEEL_Y;
 		}
 		else if (event.wheel.x != 0) {
-			amount = event.wheel.x;
+			amount = (float)event.wheel.x;
 			input = MOUSE_WHEEL_X;
 		}
 	}
@@ -198,16 +202,16 @@ bool Input::ProcessInput(const SDL_Event& event)
 	{
 		// Call the registered observer
 		(*_textInputListener).OnTextInput(_inputText);
+        return true;
 	}
+    else if (_textInputListener && input != "Escape" && input != "Return")
+    {
+        return false;
+    }
 	else if (input.length())   // Regular events
 	{
 		if (_inputBindings.find(input) != _inputBindings.end())
 		{
-			if (_textInputListener && input != "Escape" && input != "Return")
-			{
-				return false;
-			}
-
 			// Reversed because latest added listener should get the event first
 			for (InputEventListener* listener : reverse_adapt_container(_inputEventListeners))
 			{
@@ -267,33 +271,34 @@ bool Input::ProcessTextInput(const SDL_Event &event)
 
 void Input::SetDefaultBindings()
 {
-    Bind(KEY_RETURN, INPUT_START);
-    Bind(KEY_ESCAPE, INPUT_BACK);
-    Bind(KEY_P, INPUT_PAUSE);
-    Bind(KEY_C, INPUT_CONSOLE);
+    Bind(KEY_RETURN, InputEvent::Start);
+    Bind(KEY_ESCAPE, InputEvent::Back);
+    Bind(KEY_P, InputEvent::Pause);
+    Bind(KEY_C, InputEvent::Console);
+    Bind(KEY_TILDE, InputEvent::Stats);
 
-    Bind(KEY_DELETE, INPUT_ERASE_RIGHT);
-    Bind(KEY_BACKSPACE, INPUT_ERASE_LEFT);
-    Bind(KEY_UP, INPUT_LOOK_UP);
-    Bind(KEY_DOWN, INPUT_LOOK_DOWN);
-    Bind(KEY_LEFT, INPUT_LOOK_LEFT);
-    Bind(KEY_RIGHT, INPUT_LOOK_RIGHT);
-    Bind(KEY_W, INPUT_MOVE_FORWARD);
-    Bind(KEY_S, INPUT_MOVE_BACK);
-    Bind(KEY_A, INPUT_MOVE_LEFT);
-    Bind(KEY_D, INPUT_MOVE_RIGHT);
-    Bind(KEY_SPACE, INPUT_JUMP);
-    Bind(KEY_LEFT_SHIFT, INPUT_RUN);
-    Bind(KEY_RIGHT_SHIFT, INPUT_SNEAK);
-    Bind(KEY_G, INPUT_GRAB);
-    Bind(KEY_I, INPUT_INVENTORY);
-    Bind(MOUSE_BUTTON_1, INPUT_SHOOT);
-    Bind(MOUSE_BUTTON_3, INPUT_SHOOT2);
-    Bind(MOUSE_WHEEL_Y, INPUT_SCROLL_Y);
-    Bind(KEY_R, INPUT_BLOCKS_REPLACE);
-    Bind(KEY_E, INPUT_EDIT_BLOCKS);
-    Bind(KEY_TAB, INPUT_EDIT_OBJECT);
-    Bind(KEY_M, INPUT_GRAB_CURSOR);
+    Bind(KEY_DELETE, InputEvent::Erase_Right);
+    Bind(KEY_BACKSPACE, InputEvent::Erase_Left);
+    Bind(KEY_UP, InputEvent::Look_Up);
+    Bind(KEY_DOWN, InputEvent::Look_Down);
+    Bind(KEY_LEFT, InputEvent::Look_Left);
+    Bind(KEY_RIGHT, InputEvent::Look_Right);
+    Bind(KEY_W, InputEvent::Move_Forward);
+    Bind(KEY_S, InputEvent::Move_Backward);
+    Bind(KEY_A, InputEvent::Move_Left);
+    Bind(KEY_D, InputEvent::Move_Right);
+    Bind(KEY_SPACE, InputEvent::Jump);
+    Bind(KEY_LEFT_SHIFT, InputEvent::Run);
+    Bind(KEY_LEFT_ALT, InputEvent::Sneak);
+    Bind(KEY_G, InputEvent::Grab);
+    Bind(KEY_I, InputEvent::Inventory);
+    Bind(MOUSE_BUTTON_1, InputEvent::Shoot);
+    Bind(MOUSE_BUTTON_3, InputEvent::Aim);
+    Bind(MOUSE_WHEEL_Y, InputEvent::Scroll_Y);
+    Bind(KEY_R, InputEvent::Edit_Blocks_Replace);
+    Bind(KEY_E, InputEvent::Edit_Mode_Blocks);
+    Bind(KEY_TAB, InputEvent::Edit_Mode_Object);
+    Bind(KEY_M, InputEvent::Edit_Grab_Cursor);
 }
 
 // Text input
@@ -314,7 +319,7 @@ void Input::StopTextInput(TextInputEventListener* observer)
 
 void Input::MoveCursor(const glm::ivec2 coord)
 {
-    SDL_WarpMouseInWindow(_window->GetSDLWindow(),
+    SDL_WarpMouseInWindow(_window.GetSDLWindow(),
                           coord.x,
                           coord.y);
 }

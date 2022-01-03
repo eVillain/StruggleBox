@@ -1,279 +1,251 @@
 #include "Shader.h"
+
 #include "Log.h"
 #include "glm/gtc/type_ptr.hpp"
 
 Shader::Shader()
+	: m_program(0)
+	, m_vertexShader(0)
+	, m_geometryShader(0)
+	, m_fragmentShader(0)
 {
-    geometry_shader = 0;
-    vertex_shader = 0;
-    fragment_shader = 0;
-    prog = 0;
 }
 
 Shader::~Shader()
 {
-    if (geometry_shader) glDeleteShader(geometry_shader);
-    geometry_shader = 0;
-    if (vertex_shader) glDeleteShader(vertex_shader);
-    vertex_shader = 0;
-    if (fragment_shader) glDeleteShader(fragment_shader);
-    fragment_shader = 0;
-
-	if (prog) glDeleteProgram(prog);
-    prog = 0;
 }
 
-void Shader::initialize(
-	const std::string vshSource,
-	const std::string fshSource)
+void Shader::initialize(const std::string& vshSource, const std::string& fshSource)
 {
 	const GLchar* vs = vshSource.c_str();
 	const GLchar* fs = fshSource.c_str();
 
-	prog = glCreateProgram();
-
-	vertex_shader = attach( prog, GL_VERTEX_SHADER, &vs );
-	fragment_shader = attach( prog, GL_FRAGMENT_SHADER, &fs );
+	m_program = glCreateProgram();
+	m_vertexShader = attach(m_program, GL_VERTEX_SHADER, &vs);
+	m_fragmentShader = attach(m_program, GL_FRAGMENT_SHADER, &fs);
 
     linkProgram();
 }
 
-void Shader::initialize(
-	const std::string gshSource,
-	const std::string vshSource,
-	const std::string fshSource)
+void Shader::initialize(const std::string& gshSource, const std::string& vshSource, const std::string& fshSource)
 {
 	const GLchar* gs = gshSource.c_str();
 	const GLchar* vs = vshSource.c_str();
 	const GLchar* fs = fshSource.c_str();
 
-	prog = glCreateProgram();
-
-	//Log::Debug("geom: %s", gs);
-	geometry_shader = attach(prog, GL_GEOMETRY_SHADER, &gs);
-	//Log::Debug("vert: %s", vs);
-	vertex_shader = attach(prog, GL_VERTEX_SHADER, &vs);
-	//Log::Debug("frag: %s", fs);
-	fragment_shader = attach(prog, GL_FRAGMENT_SHADER, &fs);
+	m_program = glCreateProgram();
+	m_geometryShader = attach(m_program, GL_GEOMETRY_SHADER, &gs);
+	m_vertexShader = attach(m_program, GL_VERTEX_SHADER, &vs);
+	m_fragmentShader = attach(m_program, GL_FRAGMENT_SHADER, &fs);
 
 	linkProgram();
 }
 
+void Shader::terminate()
+{
+	if (m_fragmentShader)
+		glDeleteShader(m_fragmentShader);
+	if (m_geometryShader)
+		glDeleteShader(m_geometryShader);
+	if (m_vertexShader)
+		glDeleteShader(m_vertexShader);
+	if (m_program)
+		glDeleteProgram(m_program);
+}
+
 void Shader::linkProgram()
 {
-	glLinkProgram(prog);
+	glLinkProgram(m_program);
 
 	GLint result;
-	glGetProgramiv(prog, GL_LINK_STATUS, &result);
+	glGetProgramiv(m_program, GL_LINK_STATUS, &result);
 	if(result == GL_FALSE)
 	{
 		GLint length;
 		char *log;
-		glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &length);
+		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
 		log = (char*)malloc(length);
-		glGetProgramInfoLog(prog, length, &result, log);
+		glGetProgramInfoLog(m_program, length, &result, log);
 		Log::Error("[Shader] Program linking failed: %s\n", log);
 		free(log);
-        prog = 0;
+		m_program = 0;
 	}
 }
 
-GLuint Shader::compile(
-	GLenum type,
-	const GLchar **source)
-{
-	GLuint shader;
-    GLint length;
-    GLint result;
-    
-	/* create shader object, set the source, and compile */
-	shader = glCreateShader(type);
-	length = (GLint)strlen((char*)*source);
+GLuint Shader::compile(GLenum type, const GLchar** source)
+{    
+	GLuint shader = glCreateShader(type);
+	GLint length = (GLint)strlen((char*)*source);
 	glShaderSource(shader, 1, source, &length);
 	glCompileShader(shader);
     
-	/* make sure the compilation was successful */
+	GLint result = 0;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-	if(result == GL_FALSE) {
-		char *log;
-        
-		/* get the shader info log */
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-		log = (char*)malloc(length);
-		glGetShaderInfoLog(shader, length, &result, log);
-        
-		/* print an error message and the info log */
-		Log::Error("[Shader] Unable to compile: %s\n", log);
-        
-		free(log);
-        
-		glDeleteShader(shader);
-		return 0;
+	if(result == GL_TRUE)
+	{
+		return shader;
 	}
-	return shader;
+	char* log;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+	log = (char*)malloc(length);
+	glGetShaderInfoLog(shader, length, &result, log);
+	Log::Error("[Shader] Unable to compile: %s\n", log);
+	free(log);
+	glDeleteShader(shader);
+	return 0;
 }
 
-GLuint Shader::attach(
-	GLuint program,
-	GLenum type,
-	const GLchar **source)
+GLuint Shader::attach(GLuint program, GLenum type, const GLchar** source)
 {
-	/* compile the shader */
 	GLuint shader = compile(type, source);
-    
-	if(shader != 0) {
-		/* attach the shader to the program */
+	if(shader != 0 && shader != GL_INVALID_ENUM)
+	{
 		glAttachShader(program, shader);
 	}
     return shader;
 }
 
-GLint Shader::getAttribute(const std::string name) const
+GLint Shader::getAttribute(const std::string& name) const
 {
-	return glGetAttribLocation(prog, name.c_str());
+	return glGetAttribLocation(m_program, name.c_str());
 }
 
-GLint Shader::getUniform(const std::string name) const
+GLint Shader::getUniform(const std::string& name) const
 {
-	return glGetUniformLocation(prog, name.c_str());
+	return glGetUniformLocation(m_program, name.c_str());
 }
 
-void Shader::setUniform2fv(
-	const char *name,
-	float x,
-	float y) const
+void Shader::setUniform2fv(const char* name, float x, float y) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
         GLfloat vec[2] = {x, y};
         glUniform2fv( uniform, 1, vec);
-    }
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform2fv(
-	const char *name,
-	const glm::vec2 & v) const
+void Shader::setUniform2fv(const char* name, const glm::vec2& v) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        GLfloat vec[2] = {v.x, v.y};
-        glUniform2fv(uniform, 1, vec);
-    }
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniform2fv(uniform, 1, (GLfloat*)&v);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform3fv(
-	const char *name,
-	float x,
-	float y,
-	float z) const
+void Shader::setUniform3fv(const char* name, float x, float y, float z) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
         GLfloat vec[3] = {x,y,z};
-        glUniform3fv( uniform, 1, vec);
-    }
+        glUniform3fv(uniform, 1, vec);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform3fv(
-	const char *name,
-	const glm::vec3 & v) const
+void Shader::setUniform3fv(const char* name, const glm::vec3& v) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        GLfloat vec[3] = {v.x,v.y,v.z};
-        glUniform3fv( uniform, 1, vec);
-    }
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniform3fv(uniform, 1, (GLfloat*)&v);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform4fv(
-	const char *name,
-	float x,
-	float y,
-	float z,
-	float w) const
+void Shader::setUniform4fv(const char *name, float x,float y, float z, float w) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
         GLfloat vec[4] = {x,y,z,w};
-        glUniform4fv( uniform, 1, vec);
-    }
+        glUniform4fv(uniform, 1, vec);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform4fv(
-	const char *name,
-	const glm::vec4 & v) const
+void Shader::setUniform4fv(const char* name, const glm::vec4& v) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        GLfloat vec[4] = {v.x,v.y,v.z,v.w};
-        glUniform4fv( uniform, 1, vec);
-    } else {
-        printf("no such uniform: %s\n", name);
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniform4fv(uniform, 1, (GLfloat*)&v);
+		return;
     }
+    Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform4fv(
-	const char *name,
-	const Color & c) const
+void Shader::setUniform4fv(const char* name, const Color& c) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        glUniform4fv( uniform, 1, &c.r);
-    } else {
-        printf("no such uniform: %s\n", name);
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniform4fv(uniform, 1, &c.r);
+		return;
     }
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniformM4fv(
-	const char *name,
-	const glm::mat4 & m) const
+void Shader::setUniformM4fv(const char* name, const glm::mat4& m) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        glUniformMatrix4fv( uniform, 1, GL_FALSE, glm::value_ptr( m ));
-    } else {
-        printf("no such uniform: %s\n", name);
+    GLint uniform = getUniform(name);
+    if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniformMatrix4fv( uniform, 1, GL_FALSE, glm::value_ptr(m));
+		return;
     }
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniformM3fv(
-	const char *name,
-	const glm::mat3 & m) const
+void Shader::setUniformM3fv(const char* name, const glm::mat3& m) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        glUniformMatrix3fv( uniform, 1, GL_FALSE, glm::value_ptr( m ));
-    } else {
-        printf("no such uniform: %s\n", name);
-    }
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+        glUniformMatrix3fv( uniform, 1, GL_FALSE, glm::value_ptr(m));
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform1fv(
-	const char *name,
-	float val ) const
+void Shader::setUniform1fv(const char *name, float val) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
         glUniform1fv( uniform, 1, &val);
-    }
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform1iv(
-	const char *name,
-	int val ) const
+void Shader::setUniform1iv(const char *name, int val) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        glUniform1iv( uniform, 1, &val);
-    }
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+		glUniform1iv( uniform, 1, &val);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }
 
-void Shader::setUniform1bv(
-	const char *name,
-	bool val ) const
+void Shader::setUniform1bv(const char *name, bool val) const
 {
-    GLuint uniform = getUniform(name);
-    if ( uniform != -1 ) {
-        glUniform1iv( uniform, 1, (GLint*)&val);
-    }
+    GLint uniform = getUniform(name);
+	if (uniform != GL_INVALID_VALUE && uniform != GL_INVALID_OPERATION)
+	{
+		glUniform1iv( uniform, 1, (GLint*)&val);
+		return;
+	}
+	Log::Error("[Shader] no such uniform: %s", name);
 }

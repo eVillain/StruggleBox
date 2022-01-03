@@ -1,15 +1,12 @@
 #include "Particle3DEditor.h"
-#include "HyperVisor.h"
 #include "FileUtil.h"
 #include "Console.h"
 
-#include "TextureManager.h"
 #include "Options.h"
 #include "Renderer.h"
 #include "RendererGLProg.h"
 #include "LightSystem3D.h"
 
-#include "Text.h"
 #include "Camera.h"
 #include "Physics.h"
 
@@ -18,91 +15,46 @@
 
 #include "Particles.h"
 #include "Log.h"
-#include "TBGUI.h"
 #include "FileWindow.h"
 #include "OptionsWindow.h"
-#include "PathUtil.h"
-#include "tb_menu_window.h"
+#include "FileUtil.h"
 
 Particle3DEditor::Particle3DEditor(
-	std::shared_ptr<TBGUI> gui,
-	std::shared_ptr<Camera> camera,
-	std::shared_ptr<Renderer> renderer,
-	std::shared_ptr<Options> options,
-	std::shared_ptr<Input> input,
-	std::shared_ptr<LightSystem3D> lights,
-	std::shared_ptr<Particles> particles) :
-EditorScene(gui, camera, renderer, options, input),
-_lights(lights),
-_particles(particles),
-_editorMenu(nullptr),
-_particleMenu(nullptr),
-_fileSelectMenu(nullptr)
+	Camera& camera,
+    Allocator& allocator,
+	Renderer& renderer,
+	Options& options,
+	Input& input,
+    StatTracker& statTracker)
+    : EditorScene(camera, allocator, renderer, options, input, statTracker)
+    , _editorMenu(nullptr)
+    , _particleMenu(nullptr)
+    , _fileSelectMenu(nullptr)
+    , _particles(allocator, renderer)
+    , m_particleSystemID(0)
+    , _particleSys(nullptr)
 {
 	Log::Info("[Particle3DEditor] constructor, instance at %p", this);
 
-    _particleSys = NULL;
     timeScaler = 1.0f;
 
-	_camera->position = glm::vec3(16, 16, 16);
-	_camera->targetPosition = glm::vec3(16, 16, 16);
-	_camera->targetRotation = glm::vec3(-M_PI_4, M_PI_4, 0);
-	_camera->rotation = glm::vec3(-M_PI_4, M_PI_4, 0);
-
-	// Setup GUI
-	_root.SetLayoutDistributionPosition(tb::LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP);
-	_root.SetAxis(tb::AXIS_Y);
-
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("New Object", TBIDC("open-new")));
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("Load Object", TBIDC("open-load")));
-	_file_menu_source.AddItem(new tb::TBGenericStringItem("Save Object", TBIDC("open-save")));
-
-	_root.AddListener("file-button", [&](const tb::TBWidgetEvent& ev) {
-		tb::TBButton *button = tb::TBSafeCast<tb::TBButton>(ev.target);
-		tb::TBMenuWindow* filePopup = new tb::TBMenuWindow(button, TBIDC("file-menu"));
-		filePopup->Show(&_file_menu_source, tb::TBPopupAlignment());
-	});
-
-	_root.AddListener("file-menu", [&](const tb::TBWidgetEvent& ev) {
-		if (ev.ref_id == TBIDC("open-new"))
-		{
-
-		}
-		else if (ev.ref_id == TBIDC("open-load"))
-		{
-			FileWindow* window = new FileWindow(_gui->getRoot(), PathUtil::ParticlesPath(), "plist", Mode_Load);
-			window->SetCallback(new CallbackLambda<std::string>([&](std::string file) {
-				if (file.length() > 0)
-					LoadSystem(file);
-			}));
-		}
-		else if (ev.ref_id == TBIDC("open-save"))
-		{
-			FileWindow* window = new FileWindow(_gui->getRoot(), PathUtil::ParticlesPath(), "plist", Mode_Save);
-			window->SetCallback(new CallbackLambda<std::string>([&](std::string file) {
-				if (file.length() > 0)
-					SaveSystem(file);
-			}));
-		}
-	});
-
-	_root.AddListener("options-button", [&](const tb::TBWidgetEvent& ev) {
-		new OptionsWindow(&_root, _options);
-	});
+	m_camera.position = glm::vec3(16, 16, 16);
+	m_camera.targetPosition = glm::vec3(16, 16, 16);
+	m_camera.targetRotation = glm::vec3(-M_PI_4, M_PI_4, 0);
+	m_camera.rotation = glm::vec3(-M_PI_4, M_PI_4, 0);
 }
 
 Particle3DEditor::~Particle3DEditor()
 {
-    _particles->destroy(_particleSys);
+    _particles.destroy(m_particleSystemID);
 }
 
 void Particle3DEditor::Initialize()
 {
     EditorScene::Initialize();
 
-	_room.buildRoom(128.0f, 32);
-	_renderer->setRoomSize(128.0f);
-
+	m_room.buildRoom(32.0f, 32);
+    
     ShowEditor();
 }
 
@@ -123,15 +75,10 @@ void Particle3DEditor::Resume()
     ShowEditor();
 }
 
-void Particle3DEditor::Release()
-{
-    EditorScene::Release();
-}
-
 void Particle3DEditor::ShowEditor()
 {    
-	std::string path = PathUtil::GUIPath() + "ui_particleeditor.txt";
-	_root.LoadResourceFile(path.c_str());
+	//std::string path = PathUtil::GUIPath() + "ui_particleeditor.txt";
+	//_root.LoadResourceFile(path.c_str());
 
 //    itemPos.x += _particleMenu->getSize().x/2;
 //
@@ -233,7 +180,7 @@ void Particle3DEditor::RemoveEditor()
 void Particle3DEditor::Update(double deltaTime)
 {
     EditorScene::Update(deltaTime);
-	_particles->Update(deltaTime);
+	_particles.update(deltaTime);
 }
 
 void Particle3DEditor::Draw()
@@ -241,31 +188,28 @@ void Particle3DEditor::Draw()
     EditorScene::Draw(); 
 	
 	// Draw editing object and floor
-    float objectHeight = 5.0f;
-    float objectWidth = 5.0f;
+    float objectHeight = 2.0f;
+    float objectWidth = 2.0f;
     // Render editing table
     float tableSize = objectHeight > objectWidth ? objectHeight : objectWidth;
     CubeInstance tableCube = {
         0.0f,-(tableSize*2.0f)+0.005f,0.0f,objectHeight,
 		0.0f,0.0f,0.0f,1.0f,
-		MaterialData::texOffset(50)
-    };
-    // Render editing floor
-    float floorSize = 50.0f;
-    CubeInstance floorCube = {
-        0.0f,-(floorSize+tableSize*3.0f),0.0f,floorSize,
-		0.0f,0.0f,0.0f,1.0f,
-		MaterialData::texOffset(50)
+		MaterialData::texOffsetX(255), MaterialData::texOffsetY(255)
     };
 
-    _renderer->bufferCubes(&floorCube, 1);
-    _renderer->bufferCubes(&tableCube, 1);
+    m_renderer.bufferCubes(&tableCube, 1);
+    _particles.draw();
 }
 
-bool Particle3DEditor::OnEvent(const std::string& theEvent,
-                               const float& amount)
+const std::string Particle3DEditor::getFilePath() const
 {
-    if (EditorScene::OnEvent(theEvent, amount)) { return true; }
+    return FileUtil::GetPath() + "Data/Particles/";
+}
+
+bool Particle3DEditor::OnEvent(const InputEvent event, const float amount)
+{
+    if (EditorScene::OnEvent(event, amount)) { return true; }
 
     return false;
 }
@@ -552,10 +496,12 @@ void Particle3DEditor::LoadSystem(const std::string& fileName)
 
 		if (_particleSys)
 		{
-			_particles->destroy(_particleSys);
+			_particles.destroy(m_particleSystemID);
 			_particleSys = nullptr;
 		}
-		_particleSys = _particles->create(particlePath, shortFileName);
+		m_particleSystemID = _particles.create(particlePath, shortFileName);
+        _particleSys = _particles.getSystemByID(m_particleSystemID);
+        _particleSys->setActive(true);
 		RefreshParticleMenu();
 	}
 }
@@ -568,6 +514,6 @@ void Particle3DEditor::SaveSystem(const std::string& fileName)
 		size_t fileNPos = fileName.find_last_of("/");
 		std::string shortFileName = fileName;
 		if (fileNPos) shortFileName = fileName.substr(fileNPos + 1);
-		_particleSys->SaveToFile(particlePath, shortFileName);
+		//_particleSys->SaveToFile(particlePath, shortFileName);
 	}
 }

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Components</key>
+	<dict>
+		<key>Cube</key> <string>Cube</string>
+		<key>Item</key> <string>Item</string>
+		<key>Light3D</key>
+			<dict>
+				<key>v3offsetX</key>
+					<real>0</real>
+				<key>v3offsetY</key>
+					<real>0.375</real>
+				<key>v3offsetZ</key>
+					<real>0</real>
+			</dict>
+		<key>Particle</key> <string>Particle</string>
+		<key>Physics</key> <string>Physics</string>
+	</dict>
+	<key>Attributes</key>
+	<dict>
+		<key>ialignment</key>
+		<integer>0</integer>
+		<key>v3bbX</key>
+		<real>2</real>
+		<key>v3bbY</key>
+		<real>4</real>
+		<key>v3bbZ</key>
+		<real>2</real>
+		<key>idamage</key>
+		<integer>5</integer>
+		<key>ihealing</key>
+		<integer>0</integer>
+		<key>iitemType</key>
+		<integer>14</integer>
+		<key>sname</key>
+		<string>Torch</string>
+		<key>sobjectFile</key>
+		<string>Torch.bwo</string>
+		<key>sparticleFile</key>
+		<string>HellFire3D.plist</string>
+		<key>v3particleOffsetX</key>
+		<real>0</real>
+		<key>v3particleOffsetY</key>
+		<real>0.375</real>
+		<key>v3particleOffsetZ</key>
+		<real>0</real>
+		<key>iphysics</key>
+		<integer>4</integer>
+		<key>v3positionX</key>
+		<real>0</real>
+		<key>v3positionY</key>
+		<real>0</real>
+		<key>v3positionZ</key>
+		<real>0</real>
+		<key>q4rotationX</key>
+		<real>0</real>
+		<key>q4rotationY</key>
+		<real>0</real>
+		<key>q4rotationZ</key>
+		<real>0</real>
+		<key>q4rotationW</key>
+		<real>1</real>
+		<key>v3scaleX</key>
+		<real>0.1</real>
+		<key>v3scaleY</key>
+		<real>0.1</real>
+		<key>v3scaleZ</key>
+		<real>0.1</real>
+		<key>itype</key>
+		<integer>4</integer>
+		<key>v3gripOffsetX</key>
+		<real>0</real>
+		<key>v3gripOffsetY</key>
+		<real>0</real>
+		<key>v3gripOffsetZ</key>
+		<real>-0.25</real>
+	</dict>
+</dict>
+</plist>

@@ -232,9 +232,9 @@ namespace Frustum
         return (c2 == 6) ? 2 : 1;
     }
     //========================================================================
-    // CubeInFrustumDist() - Test if cube is in frustum, return 2 if fully in
+    // BoxInFrustumDist() - Test if cube is in frustum, return 2 if fully in
     //========================================================================
-    GLfloat CubeInFrustumDist( GLfloat x, GLfloat y, GLfloat z, GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ ) {
+    GLfloat BoxInFrustumDist( GLfloat x, GLfloat y, GLfloat z, GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ ) {
         int p;
         int c;
         int c2 = 0;

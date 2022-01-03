@@ -1,17 +1,6 @@
-//
-//  Rect2D.cpp
-//  NeverEngine
-//
-//  Created by The Drudgerist on 1/19/13.
-//  Copyright (c) 2013 The Drudgerist. All rights reserved.
-//
-
 #include "Rect2D.h"
 #include <stdlib.h>
 
-//-----------------------------------------------------------------------------
-// Purpose: Constructor
-//-----------------------------------------------------------------------------
 Rect2D::Rect2D( float x, float y, float w, float h )
 {
     this->x = x;
@@ -20,10 +9,8 @@ Rect2D::Rect2D( float x, float y, float w, float h )
     this->h = h;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Check if rectangle contains a 2D vector
-//-----------------------------------------------------------------------------
-bool Rect2D::Contains( glm::vec2& vVec ) const
+// Check if rectangle contains a 2D vector
+bool Rect2D::Contains( const glm::vec2& vVec ) const
 {
     if ( ( vVec.x >= x )&&
         ( vVec.x <= x + w ) &&
@@ -34,9 +21,7 @@ bool Rect2D::Contains( glm::vec2& vVec ) const
     { return false; }
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Check if rectangle contains a set of coords
-//-----------------------------------------------------------------------------
+// Check if rectangle contains a set of coords
 bool Rect2D::Contains( float x, float y ) const
 {
     if ( ( x >= this->x )&&
@@ -50,9 +35,7 @@ bool Rect2D::Contains( float x, float y ) const
         return false;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Check if rectangle intersects (or contains) another rectangle
-//-----------------------------------------------------------------------------
+// Check if rectangle intersects (or contains) another rectangle
 bool Rect2D::Intersects( Rect2D r ) const
 {
     if ( ( r.x + r.w < this->x ) ||
@@ -66,17 +49,13 @@ bool Rect2D::Intersects( Rect2D r ) const
         return true;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Return an empty rectangle
-//-----------------------------------------------------------------------------
+// Return an empty rectangle
 Rect2D Rect2D::Empty()
 {
     return Rect2D();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Get intersection depth between two rectangles
-//-----------------------------------------------------------------------------
+// Get intersection depth between two rectangles
 glm::vec2 Rect2D::GetIntersectionDepth( const Rect2D& rectA, const Rect2D& rectB )
 {
     // Calculate half sizes.
@@ -106,37 +85,28 @@ glm::vec2 Rect2D::GetIntersectionDepth( const Rect2D& rectA, const Rect2D& rectB
     return glm::vec2(depthX, depthY);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Gets the position of the center of the bottom edge of the rectangle.
-//-----------------------------------------------------------------------------
+// Get the position of the center of the bottom edge of the rectangle.
 glm::vec2 Rect2D::GetBottomCenter(const Rect2D& rect) {
     return glm::vec2( (float)(rect.x + rect.w / 2.0f), (float)(rect.y + rect.h) );
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Gets the position of the center point of a rectangle
-//-----------------------------------------------------------------------------
+// Get the position of the center point of a rectangle
 glm::vec2 Rect2D::GetCenter(const Rect2D& rect) {
     return glm::vec2( (float)(rect.x + rect.w / 2.0f), (float)(rect.y + rect.h / 2.0f) );
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Gets the floating point distance between the center point
-//          of one rectangle and the center point of another.
-//-----------------------------------------------------------------------------
+// Get the floating point distance between the center point
+// of one rectangle and the center point of another.
 float Rect2D::GetDistance( const Rect2D& rectA, const Rect2D& rectB )
 {
     return glm::distance(GetCenter(rectA), GetCenter(rectB));
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Gets the unit vector from one rectangle to another
-//-----------------------------------------------------------------------------
+// Get the unit vector from one rectangle to another
 glm::vec2 Rect2D::GetDirection( const Rect2D& rectA, const Rect2D& rectB )
 {
     glm::vec2 direction = GetCenter(rectA) - GetCenter(rectB);
     glm::normalize(direction);
-//    direction.Normalize();
     return direction;
 }
 

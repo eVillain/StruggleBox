@@ -1,26 +1,28 @@
-#ifndef SKELETON_WINDOW_H
-#define SKELETON_WINDOW_H
+#pragma once
 
-#include "Window.h"
+#include "WindowNode.h"
+#include "ValueEditNode.h"
 #include "Skeleton.h"
 #include <memory>
 
-class SkeletonWindow : public Window
+class LayoutNode;
+
+class SkeletonWindow : public WindowNode
 {
 public:
 	SkeletonWindow(
-		tb::TBWidget* root,
-		Skeleton* skeleton);
+		GUI& gui,
+		Skeleton& skeleton);
 	~SkeletonWindow();
 
-	bool OnEvent(const tb::TBWidgetEvent & ev);
+	//bool OnEvent(const tb::TBWidgetEvent & ev);
 
 	void refresh();
 
-	void refreshJointList(
-		tb::TBLayout* node,
-		JointID bone,
-		int depth);
+	//void refreshJointList(
+	//	tb::TBLayout* node,
+	//	JointID bone,
+	//	int depth);
 
 	void setCurrentJoint(JointID joint) { _currentJoint = joint; refresh(); }
 	JointID getCurrentJoint() { return _currentJoint; }
@@ -31,11 +33,16 @@ public:
 	void setCurrentTime(float time) { _currentTime = time; refresh(); }
 	float getCurrentTime() { return _currentTime; }
 private:
-	Skeleton* _skeleton;
+
+	static const glm::vec2 WINDOW_SIZE;
+
+	Skeleton& _skeleton;
 	std::string _currentAnimation;
 	JointID _currentJoint;
 	uint16_t _currentFrame;
 	float _currentTime;
+
+	LayoutNode* m_layoutNode;
+	ValueEditNode<float>* m_timeEditNode;
 };
 
-#endif

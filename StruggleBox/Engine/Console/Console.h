@@ -16,17 +16,16 @@ public:
     static void Initialize();
     //static void Terminate();
     static void Print(const char * format, ... );
-    static void PrintString(std::string text, Color col = COLOR_WHITE);
-    static void AddMessage(std::string text, Color col);
+    static void PrintString(const std::string& text, Color col = COLOR_WHITE);
+    static void AddMessage(const std::string& text, Color col);
     
     static void SaveLog();
-    static void Process(std::string input);
+    static void Process(const std::string& input);
     
-    static void AddVar(ConsoleVar* newCVar,
-                std::string varName);
-    static void RemoveVar(std::string varName);
+    static void AddVar(ConsoleVar* newCVar, const std::string& varName);
+    static void RemoveVar(const std::string& varName);
 
-    template<typename T> static void AddVar( T& newVar, std::string varName ) {
+    template<typename T> static void AddVar( T& newVar, const std::string& varName ) {
         ConsoleVar* newCVar = new ConsoleVar( newVar );
         AddVar(newCVar, varName);
     };
@@ -36,8 +35,7 @@ private:
     static std::vector<ConsoleLine> _textLines;
 
     
-    static void Tokenize(const std::string& input,
-                  std::vector<std::string>& tokens);
+    static void Tokenize(const std::string& input, std::vector<std::string>& tokens);
 };
 
 #endif /* CONSOLE_H */

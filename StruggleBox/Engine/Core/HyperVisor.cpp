@@ -36,10 +36,6 @@
 #include <math.h>
 #include <memory>
 
-#define KILO 1024
-#define MEGA KILO*KILO
-#define HEAPSIZE 256*MEGA
-
 HyperVisor::HyperVisor() :
 	_injector(std::make_shared<Injector>()),
 	_quit(false),
@@ -48,7 +44,8 @@ HyperVisor::HyperVisor() :
 	startTime(0.0),
 	lastFrameTime(0.0),
 	lastUpdateTime(0.0),
-	frames(0)
+	frames(0),
+	_heap(nullptr)
 {
     Timer::StartRunTime();
 }
@@ -58,7 +55,6 @@ void HyperVisor::Initialize(const std::string title,
                             const char * arg[])
 {
 	// Logging
-	Log::AttachOutput(std::make_shared<LogOutputSTD>());
     Log::Debug("HyperVisor initializing engine...");
 
 	// Command processor
@@ -116,8 +112,6 @@ void HyperVisor::Initialize(const std::string title,
 
 	_injector->mapSingleton<TBGUI>();
 
-	_injector->mapSingleton<Text,
-		Renderer>();
 	_injector->mapSingleton<Text,
 		Renderer>();
 	_injector->mapSingleton<Particles,

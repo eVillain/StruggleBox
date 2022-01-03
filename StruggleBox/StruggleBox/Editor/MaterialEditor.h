@@ -4,12 +4,9 @@
 #include "EditorScene.h"
 #include "Color.h"
 #include "GFXDefines.h"
-#include "Light3D.h"
-#include "tb_select_item.h"
 #include <memory>
 
-class LightSystem3D;
-class TBGUI;
+class Allocator;
 class SceneManager;
 class MaterialsWindow;
 class Mesh;
@@ -18,13 +15,13 @@ class MaterialEditor : public EditorScene
 {
 public:
 	MaterialEditor(
-		std::shared_ptr<TBGUI> gui,
-		std::shared_ptr<Camera> camera,
-		std::shared_ptr<Renderer> renderer,
-		std::shared_ptr<Options> options,
-		std::shared_ptr<Input> input,
-		std::shared_ptr<LightSystem3D> lights,
-		std::shared_ptr<SceneManager> sceneManager);
+		Camera& camera,
+		Allocator& allocator,
+		Renderer& renderer,
+		Options& options,
+		Input& input,
+		SceneManager& sceneManager,
+		StatTracker& statTracker);
 
 	void Initialize();
 	void ReInitialize();
@@ -38,18 +35,14 @@ public:
 	void Draw();
 
 private:
-	std::shared_ptr<LightSystem3D> _lighting;
-	std::shared_ptr<SceneManager> _sceneManager;
+	SceneManager& m_sceneManager;
 
-	tb::TBGenericStringItemSource _file_menu_source;
-
-	MaterialsWindow* _materialsWindow;
+	MaterialsWindow* m_materialsWindow;
 
 	void loadMaterials(const std::string& fileName);
 	void saveMaterials(const std::string& fileName);
 
-	bool OnEvent(const std::string& theEvent,
-		const float& amount);
+	bool OnEvent(const InputEvent event, const float amount);
 	bool OnMouse(const glm::ivec2& coord);
 };
 

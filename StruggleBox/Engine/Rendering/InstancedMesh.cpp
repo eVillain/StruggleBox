@@ -3,15 +3,14 @@
 #include "VertBuffer.h"
 #include "Log.h"
 
-InstancedMesh::InstancedMesh(std::shared_ptr<Renderer> renderer) :
-	Mesh(renderer),
-	_instanceBuffer(nullptr),
-	_dirtyInstances(false),
-	_instanceData(0)
+InstancedMesh::InstancedMesh(Renderer& renderer, Allocator& allocator)
+	: Mesh(renderer, allocator)
+	, _instanceBuffer(renderer.addVertBuffer(VertexDataType::InstanceVerts))
+	, _dirtyInstances(false)
+	, _instanceData(0, VertexDataType::InstanceVerts, allocator)
+	, _nextInstanceID(1)
 {
 	Log::Debug("[InstancedMesh] Constructor, instance at: %p", this);
-	_vertBuffer = _renderer->addVertBuffer(MeshVerts);
-	_instanceBuffer = _renderer->addVertBuffer(InstanceVerts);
 }
 
 InstancedMesh::~InstancedMesh()
@@ -19,9 +18,9 @@ InstancedMesh::~InstancedMesh()
 }
 
 const unsigned int InstancedMesh::addInstance(
-	const glm::vec3 & position,
-	const glm::quat & rotation,
-	const glm::vec3 & scale)
+	const glm::vec3& position,
+	const glm::quat& rotation,
+	const glm::vec3& scale)
 {
 	// Prepare storage
 	if (_instanceData.getSize() == _instanceData.getCount())
@@ -32,12 +31,12 @@ const unsigned int InstancedMesh::addInstance(
 		Log::Debug("[InstancedMesh] resizing storage from %i to %i instances", previousStorageSize, newStorageSize);
 	}
 	InstanceIDType instanceID = _nextInstanceID++;
-	InstanceData instance = {
+	InstanceTransformData instance = {
 		position, rotation, scale
 	};
 	_instanceData.buffer(&instance, 1);
 	_instanceMap[instanceID] = _instanceData.getCount()-1;
-	Log::Error("[InstancedMesh] added instance %i mapped to %i",
+	Log::Debug("[InstancedMesh] added instance %i mapped to %i",
 		instanceID, _instanceMap[instanceID]);
 	_dirtyInstances = true;
 	return instanceID;
@@ -98,7 +97,7 @@ void InstancedMesh::setScale(const glm::vec3 & scale, const InstanceIDType insta
 	_dirtyInstances = true;
 }
 
-void InstancedMesh::setInstance(const InstanceData & data, const InstanceIDType instanceID)
+void InstancedMesh::setInstance(const InstanceTransformData & data, const InstanceIDType instanceID)
 {
 	_instanceData.getData()[_instanceMap[instanceID]] = data;
 	_dirtyInstances = true;
@@ -147,14 +146,18 @@ void InstancedMesh::draw()
 		_instanceBuffer->bind();
 		_instanceBuffer->upload(
 			_instanceData.getData(),
-			_instanceMap.size() * sizeof(InstanceData));
+			_instanceMap.size() * sizeof(InstanceTransformData));
 		_dirtyInstances = false;
 	}
 
-	_renderer->queueDeferredInstances(
+	_renderer.queueDeferredInstances(
 		_instanceBuffer->getVBO(),
 		_instanceMap.size(),
 		_vertBuffer->getType(),
 		_vertBuffer->getVBO(),
-		_vertData.getCount());
+		0,
+		_vertData.getCount(),
+		0,
+		BlendMode{ 0, 0, false },
+		DepthMode{ true, true });
 }

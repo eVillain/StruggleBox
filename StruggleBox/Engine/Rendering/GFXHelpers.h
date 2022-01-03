@@ -1,7 +1,7 @@
 #ifndef GFX_HELPERS_H
 #define GFX_HELPERS_H
 
-#include "GFXIncludes.h"
+#include "CoreIncludes.h"
 #include <sstream>
 #include <cmath>
 #include "glm/glm.hpp"

@@ -1,4 +1,5 @@
 #include "Console.h"
+
 #include "CommandProcessor.h"
 #include "Options.h"
 #include "FileUtil.h"
@@ -36,7 +37,7 @@ void Console::Initialize()
     }));
 }
 
-void Console::Process(std::string command)
+void Console::Process(const std::string& command)
 {
     // Try to tokenize input text
     std::vector<std::string> tokens;
@@ -175,8 +176,8 @@ void Console::Print( const char * str, ... ) {
     PrintString( output.str() );
 }
 
-void Console::PrintString(std::string text,
-                          Color col)
+
+void Console::PrintString(const std::string& text, Color col)
 {
     // No parsing necessary just add timestamp
     std::string timeS = Timer::TimeStamp();
@@ -185,12 +186,10 @@ void Console::PrintString(std::string text,
     AddMessage( timeS , col );
 }
 
-void Console::AddMessage(std::string text,
-                         Color col)
+void Console::AddMessage(const std::string& text, Color col)
 {
     ConsoleLine newLine = { text, col, 0.0 };
     _textLines.push_back(newLine);
-    //Refresh();
 }
 
 void Console::SaveLog()
@@ -203,21 +202,19 @@ void Console::SaveLog()
     file.close();
 }
 
-void Console::AddVar(ConsoleVar* newVar,
-                     std::string varName)
+void Console::AddVar(ConsoleVar* newVar, const std::string& varName)
 {
     _cvars[varName] = newVar;
 }
 
-void Console::RemoveVar(std::string varName)
+void Console::RemoveVar(const std::string& varName)
 {
     if (_cvars.find(varName) != _cvars.end()) {
         _cvars.erase(varName);
     }
 }
 
-void Console::Tokenize(const std::string& input,
-                       std::vector<std::string>& tokens)
+void Console::Tokenize(const std::string& input, std::vector<std::string>& tokens)
 {
     std::string::size_type last_pos = 0;
     std::string::size_type pos = 0;

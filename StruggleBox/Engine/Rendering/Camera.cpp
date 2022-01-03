@@ -7,7 +7,7 @@
 
 Camera::Camera() :
 _followTarget(false),
-physicsFunc(nullptr)
+m_collisionCallback(nullptr)
 {
 	Log::Info("[Camera] constructor, instance at %p", this);
 
@@ -47,8 +47,8 @@ void Camera::Update(const double deltaTime)
         else if ( targetRotation.y - rotation.y > 180.0f ) targetRotation.y -= 360.0f;
 
         // Dampen rotation
-        float new_ratio = elasticity*0.02f * deltaTime;
-        float old_ratio = 1.0 - new_ratio;
+        float new_ratio = elasticity * 0.02f * deltaTime;
+        float old_ratio = 1.f - new_ratio;
         glm::vec3 new_dir = (rotation * old_ratio) + (targetRotation * new_ratio);
         rotation = new_dir;
         
@@ -67,8 +67,8 @@ void Camera::Update(const double deltaTime)
             glm::vec3 behindTarget = targetPosition + zPos;
             behindTarget.y += height;
             
-            if ( physicsClip && physicsFunc ) {
-                position = physicsFunc(targetPosition, behindTarget);
+            if ( physicsClip && m_collisionCallback ) {
+                position = m_collisionCallback(targetPosition, behindTarget);
             } else {
                 position = behindTarget;
             }
@@ -88,12 +88,12 @@ void Camera::Update(const double deltaTime)
             zPos = glm::rotateZ(zPos, -rotation.z);
             glm::vec3 behindTarget = targetPosition + zPos;
             behindTarget.y += height;
-            float dist = glm::distance(position, behindTarget);
+            float dist = glm::distance(targetPosition, behindTarget);
             
             if (physicsClip &&
-                physicsFunc &&
+                m_collisionCallback &&
                 dist > 0.001f) {
-                position = physicsFunc(targetPosition, behindTarget);
+                position = m_collisionCallback(targetPosition, behindTarget);
             } else {
                 position = behindTarget;
             }

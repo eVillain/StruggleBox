@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string>
 #include "GLErrorUtil.h"
 
 #if defined	(_WIN32) || defined (_WIN64)
@@ -10,10 +8,15 @@
 #  include <GL3/gl3.h>
 #endif
 
-void _check_gl_error(const char *file, int line) {
+#include "Log.h"
+#include <string>
+
+void _check_gl_error(const char *file, int line)
+{
     GLenum err (glGetError());
     
-    while(err!=GL_NO_ERROR) {
+    while(err!=GL_NO_ERROR)
+    {
         std::string error;
         
         switch(err) {
@@ -34,7 +37,7 @@ void _check_gl_error(const char *file, int line) {
                 break;
         }
         
-        std::cerr << "GL_" << error.c_str() <<" - "<<file<<":"<<line<<std::endl;
+        Log::Error("GL_%s - %s:%i", error.c_str(), file, line);
         err=glGetError();
     }
 }

@@ -20,7 +20,7 @@ void LightSystem2D::HookRenderer( Renderer* renderer ) {
         // Hook up new renderer pointer
         m_renderer = renderer;
         if ( renderer ) {
-            m_lightRenderer = renderer->GetLightRenderer();
+            //m_lightRenderer = renderer->GetLightRenderer();
         } else {
             m_lightRenderer = NULL;
         }
@@ -92,7 +92,7 @@ void LightSystem2D::Remove(Light2D* oldLight) {
     for (unsigned int i = 0; i < _lights.size(); ++i) {
         if (_lights.at(i) == oldLight) {
             _lights.erase(_lights.begin() + i);
-            Console::Print("[LightSystem] Erased light at:%i\n", i);
+            Log::Debug("[LightSystem] Erased light at:%i", i);
             break;
         }
     }
@@ -138,13 +138,17 @@ const int LightSystem2D::find(Light2D* theLight) {
 //        }
 //        return -1;
 //    }
-const unsigned long LightSystem2D::NumLights() {
+const unsigned long LightSystem2D::NumLights() 
+{
     return (int)_lights.size();
 }
-void LightSystem2D::Clear() {
-    for (unsigned int i = 0; i < _lights.size(); ++i) {
+
+void LightSystem2D::Clear()
+{
+    for (unsigned int i = 0; i < _lights.size(); ++i) 
+    {
         delete _lights.at(i);
     }
-    printf("cleared %i lights\n", _lights.size());
+    Log::Debug("cleared %lu 2d lights", _lights.size());
     _lights.clear();
 }

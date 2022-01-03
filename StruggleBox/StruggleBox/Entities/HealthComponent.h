@@ -9,7 +9,7 @@ class HealthComponent : public EntityComponent
 public:
 	HealthComponent(
 		const int ownerID,
-		std::shared_ptr<EntityManager> manager);
+		EntityManager& manager);
 	~HealthComponent();
 
 	void update(const double delta);
@@ -21,7 +21,7 @@ public:
 		int damage,
 		Entity* damager = NULL);
 private:
-	std::shared_ptr<EntityManager> _manager;
+	EntityManager& _manager;
 	int* health;
 	int* maxHealth;
 	double damageTimer;
