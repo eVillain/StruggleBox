@@ -1,0 +1,41 @@
+#ifndef STRING_UTIL_H
+#define STRING_UTIL_H
+
+#include <string>
+#include <deque>
+
+class StringUtil
+{
+public:
+    static std::string Format(const char *fmt, ...);
+    static std::string FormatVA(const char *fmt, va_list ap);
+    static void SplitIntoLines(const std::string &input,
+                               std::deque <std::string> &lines);
+    static void Tokenize(const std::string &input,
+                         std::deque<std::string> &tokens);
+    static bool IsNumber(const std::string& string);
+    static std::string BoolToString(bool number);
+    static std::string IntToString(int number);
+    static std::string LongToString(long number );
+    static std::string FloatToString(float number,
+                                     int precision = 3);
+    static std::string DoubleToString(double number,
+                                      int precision = 3);
+    static std::string SizeToString(size_t number);
+
+    static std::string TimeFormatMinutesSeconds(const float time);
+    static std::string TimeFormatMinutesSecondsMS(const float time);
+#if defined(_WIN32)
+    // Convert a wide Unicode string to an UTF8 string
+    static std::string utf8_encode(const std::wstring &wstr);
+    // Convert an UTF8 string to a wide Unicode String
+    static std::wstring utf8_decode(const std::string &str);
+    // Convert widechars to string
+    static std::string wchar_t2string(const wchar_t *wchar);
+    // Convert string to widechars
+    static void string2wchar_t(const std::string &str,
+                               wchar_t* wchar);
+#endif
+};
+
+#endif /* STRING_UTIL_H */

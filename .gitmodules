@@ -16,6 +16,7 @@
 [submodule "StruggleBox/thirdparty/pugixml"]
 	path = StruggleBox/thirdparty/pugixml
 	url = https://github.com/zeux/pugixml
-[submodule "StruggleBox/thirdparty/sdl"]
-	path = StruggleBox/thirdparty/sdl
-	url = https://github.com/spurious/SDL-mirror
+
+[submodule "StruggleBox/thirdparty/SDL"]
+	path = StruggleBox/thirdparty/SDL
+	url = https://github.com/libsdl-org/SDL

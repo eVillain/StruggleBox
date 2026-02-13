@@ -1,0 +1,301 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{7db5d7bb-b482-4866-9d09-b40410ff9598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Game">
+      <UniqueIdentifier>{ae09ce72-1991-427f-95da-b05bf0382996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Editor">
+      <UniqueIdentifier>{53313a48-c54f-4fab-99cd-39d85bb135f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Physics">
+      <UniqueIdentifier>{d506ae98-49ab-46e6-93c2-1f41a50c105f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\World">
+      <UniqueIdentifier>{f12e11c7-1196-41ab-a9c2-f79b66b1d489}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Entities">
+      <UniqueIdentifier>{c8a1bb8c-753d-4e25-8ce8-cb75829efaf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Editor\Widgets">
+      <UniqueIdentifier>{de10161b-8d79-4e99-b0c3-d876db311f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Voxels">
+      <UniqueIdentifier>{2e6c5525-f43a-4e96-99f5-56ae4d9ba042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Renderer">
+      <UniqueIdentifier>{5b8fd3ca-9352-42c1-9a66-b34f3fb3bf7f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game\MainMenu.h">
+      <Filter>Game\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\LocalGame.h">
+      <Filter>Game\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\AnimationEditor.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorCursor3D.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorRoom.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorScene.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\MaterialEditor.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\MaterialsWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\MeshWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Object3DEditor.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\ObjectWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Particle3DEditor.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\SkeletonWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\AABB3D.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\HumanoidComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\InventoryComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\ItemComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\Light3DComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\ParticleComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\PhysicsComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\ActorComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\VoxelComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\EntityManager.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\ExplosiveComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\HealthComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsDebug.h">
+      <Filter>Game\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\CollisionDispatcher.h">
+      <Filter>Game\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsCube.h">
+      <Filter>Game\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Physics.h">
+      <Filter>Game\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="World\World3D.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="World\Coord.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="World\VoxelAABB.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\MaterialPicker.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EntityEditor.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EntityWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\SelfDestructComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entities\RenderComponent.h">
+      <Filter>Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\CameraWindow.h">
+      <Filter>Game\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Widgets\Widget3DPosition.h">
+      <Filter>Game\Editor\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\VoxelCache.h">
+      <Filter>Game\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\VoxelData.h">
+      <Filter>Game\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxels\VoxelLoader.h">
+      <Filter>Game\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\MaterialTexture.h">
+      <Filter>Game\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\MaterialData.h">
+      <Filter>Game\Renderer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game\LocalGame.cpp">
+      <Filter>Game\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\MainMenu.cpp">
+      <Filter>Game\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorCursor3D.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorRoom.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorScene.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\MaterialEditor.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\MaterialsWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\MeshWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Object3DEditor.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ObjectWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Particle3DEditor.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\SkeletonWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\AABB3D.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\AnimationEditor.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\HumanoidComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\InventoryComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\ItemComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\Light3DComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\ParticleComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\PhysicsComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\ActorComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\VoxelComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\EntityManager.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\ExplosiveComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\HealthComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\CollisionDispatcher.cpp">
+      <Filter>Game\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsCube.cpp">
+      <Filter>Game\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Physics.cpp">
+      <Filter>Game\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsDebug.cpp">
+      <Filter>Game\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="World\World3D.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\MaterialPicker.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EntityEditor.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EntityWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\SelfDestructComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Entities\RenderComponent.cpp">
+      <Filter>Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\CameraWindow.cpp">
+      <Filter>Game\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Widgets\Widget3DPosition.cpp">
+      <Filter>Game\Editor\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\VoxelCache.cpp">
+      <Filter>Game\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\VoxelData.cpp">
+      <Filter>Game\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Voxels\VoxelLoader.cpp">
+      <Filter>Game\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\MaterialData.cpp">
+      <Filter>Game\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\MaterialTexture.cpp">
+      <Filter>Game\Renderer</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
