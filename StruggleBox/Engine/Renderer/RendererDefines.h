@@ -115,6 +115,7 @@ enum class DepthFunc {
 enum class DrawMode {
 	Points,
 	Lines,
+	LineLoop,
 	Triangles,
 	TriangleStrip,
 	TriangleFan
@@ -139,7 +140,7 @@ struct BlendMode
 
 static BlendMode BLEND_MODE_DEFAULT = { BlendFunc::Source_Alpha, BlendFunc::One_Minus_Source_Alpha, true };
 static BlendMode BLEND_MODE_DISABLED = { BlendFunc::One, BlendFunc::One, false };
-static BlendMode BLEND_MODE_ADDITIVE = { BlendFunc::One, BlendFunc::One, true };
+static BlendMode BLEND_MODE_ADDITIVE = { BlendFunc::Source_Alpha, BlendFunc::One, true };
 static BlendMode BLEND_MODE_SCREEN = { BlendFunc::One_Minus_Dest_Color, BlendFunc::One, true };
 
 struct DepthMode

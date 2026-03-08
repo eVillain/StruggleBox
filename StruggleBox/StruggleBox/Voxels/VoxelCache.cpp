@@ -12,20 +12,15 @@ VoxelCache::VoxelCache(VoxelRenderer& renderer, Allocator& allocator)
 
 void VoxelCache::draw()
 {
-	for (const auto pair : m_data)
+	for (const auto& pair : m_data)
 	{
-		DrawParameters drawParams;
-		drawParams.textureCount = 0;
-		//drawParams.shaderID = m_voxelInstancesShaderID;
-		drawParams.blendMode = BLEND_MODE_DISABLED;
-		drawParams.depthMode = DEPTH_MODE_DEFAULT;
 		const VoxelCacheData& data = pair.second;
-		//ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstances(data.instances.size(), data.drawDataID);
-		//uint32_t instanceID = 0;
-		for (auto it = data.instances.begin(); it != data.instances.end(); it++)
+		ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstances(data.instances.size(), data.drawDataID);
+		for (const auto& instancePair : data.instances)
 		{
-			//const InstanceTransformData3D& instance = it->second;
-			//memcpy(&instances[instanceID], &instance, sizeof(InstanceTransformData3D));
+			const VoxelInstanceID instanceID = instancePair.first;
+			const ColoredInstanceTransform3DData& instance = instancePair.second;
+			memcpy(&instances[instanceID], &instance, sizeof(InstanceTransformData3D));
 		}
 	}
 }
@@ -39,7 +34,20 @@ const VoxelInstanceID VoxelCache::addInstance(const std::string& fileName)
 	}
 	VoxelCacheData& data = m_data[fileName];
 	data.nextInstanceID++;
-	data.instances[data.nextInstanceID] = {};
+	data.instances[data.nextInstanceID] = { glm::vec3(), glm::vec3(1,1,1), glm::quat(), COLOR_WHITE };
+	return data.nextInstanceID;
+}
+
+const VoxelInstanceID VoxelCache::addInstance(const std::string& fileName, const glm::vec3& pos, const glm::vec3& scale, const glm::quat& rot, const Color& color)
+{
+	auto it = m_data.find(fileName);
+	if (it == m_data.end())
+	{
+		load(fileName);
+	}
+	VoxelCacheData& data = m_data[fileName];
+	data.nextInstanceID++;
+	data.instances[data.nextInstanceID] = { pos, scale, rot, color };
 	return data.nextInstanceID;
 }
 
@@ -85,6 +93,12 @@ void VoxelCache::load(const std::string& fileName)
 {
 	DrawDataID drawDataID = m_renderer.createVoxelMeshDrawData();
 	VoxelData* voxelData = VoxelLoader::load(fileName, m_allocator);
-	voxelData->createTriangleMesh(m_renderer, drawDataID, DEFAULT_VOXEL_MESHING_WIDTH);
+	const size_t numVoxels = voxelData->getSizeX() * voxelData->getSizeY() * voxelData->getSizeZ();
+	VoxelMeshPBRVertexData* tempVerts = (VoxelMeshPBRVertexData*)m_allocator.allocate(sizeof(VoxelMeshPBRVertexData) * numVoxels * 36);
+	size_t vertexCount = 0;
+	voxelData->createTriangleMeshReduced(tempVerts, vertexCount, DEFAULT_VOXEL_MESHING_WIDTH, glm::vec3());
+	VoxelMeshPBRVertexData* verts = m_renderer.bufferVoxelMeshVerts(vertexCount, drawDataID);
+	memcpy(verts, tempVerts, sizeof(VoxelMeshPBRVertexData) * vertexCount);
+	m_allocator.deallocate(tempVerts);
 	m_data[fileName] = {drawDataID, voxelData, 0, {}};
 }

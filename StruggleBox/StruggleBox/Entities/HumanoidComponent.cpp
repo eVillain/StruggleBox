@@ -4,7 +4,6 @@
 #include "ArenaOperators.h"
 #include "VoxelCache.h"
 #include "EntityManager.h"
-//#include "Renderer.h"
 #include "PhysicsComponent.h"
 #include "ParticleComponent.h"
 #include "ItemComponent.h"
@@ -60,7 +59,7 @@ HumanoidComponent::HumanoidComponent(
     ghostObject = _physics.createGhostObject();
 	ghostObject->setWorldTransform(startTransform);
     ghostObject->setUserPointer(m_owner);
-    if ( useCapsuleShape )
+    if (useCapsuleShape)
     {
         uint32_t capsuleID = _physics.createCapsule(characterRadius, characterHeight);
         btCapsuleShape* capsule = (btCapsuleShape*)_physics.getShapeForID(capsuleID);
@@ -151,12 +150,12 @@ void HumanoidComponent::setCharacterType( const int newType )
     const std::string& rightArmObject = m_owner->GetAttributeDataPtr<std::string>("rightArmObject");
 
 	// Load the object instances
-	//torsoID = _voxels.addInstance(torsoObject, torsoPos, glm::quat(), scale);
-	//headID = _voxels.getMesh(headObject)->addInstance(headPos, glm::quat(), scale);
-	//leftFootID = _voxels.getMesh(leftFootObject)->addInstance(footLPos, glm::quat(), scale);
-	//rightFootID = _voxels.getMesh(rightFootObject)->addInstance(footRPos, glm::quat(), scale);
-	//leftArmID = _voxels.getMesh(leftArmObject)->addInstance(handLPos, glm::quat(), scale);
-	//rightArmID = _voxels.getMesh(rightArmObject)->addInstance(handRPos, glm::quat(), scale);
+	torsoID = _voxels.addInstance(torsoObject, torsoPos, scale, glm::quat(), COLOR_WHITE);
+    headID = _voxels.addInstance(headObject, headPos, scale, glm::quat(), COLOR_WHITE);
+    leftFootID = _voxels.addInstance(leftFootObject, footLPos, scale, glm::quat(), COLOR_WHITE);
+    rightFootID = _voxels.addInstance(rightFootObject, footRPos, scale, glm::quat(), COLOR_WHITE);
+    leftArmID = _voxels.addInstance(leftArmObject, handLPos, scale, glm::quat(), COLOR_WHITE);
+    rightArmID = _voxels.addInstance(rightArmObject, handRPos, scale, glm::quat(), COLOR_WHITE);
 }
 
 /// The update funtion takes input data and picks wanted animation states
@@ -171,12 +170,12 @@ void HumanoidComponent::update(const double delta)
     const glm::vec3& direction = m_owner->GetAttributeDataPtr<glm::vec3>("direction");        // Third person movement input
  
     btScalar walkFactor = 1.0f;
-    if ( running && sneaking ) walkFactor *= 0.25f;
-    else if ( running ) walkFactor *= 2.0f;
-    else if ( sneaking ) walkFactor *= 0.5f;
+    if (running && sneaking) walkFactor *= 0.25f;
+    else if (running) walkFactor *= 2.0f;
+    else if (sneaking) walkFactor *= 0.5f;
 
     // Update object positions and rotations based on physics transform
-    if ( moveInput.x || moveInput.z )
+    if (moveInput.x || moveInput.z)
     {
         // First person controls !!!UNTESTED!!!
         const btQuaternion playerRotation = ghostObject->getWorldTransform().getRotation();
@@ -239,15 +238,19 @@ void HumanoidComponent::update(const double delta)
                     torsoLeanAngle = -(difference.y * difference.w)*torsoLeanFactor;
                     
                     legsAnimState = Legs_Running;
-                } else if (sneaking) {
+                }
+                else if (sneaking)
+                {
                     legsAnimState = Legs_Sneaking;
-                } else {
+                }
+                else
+                {
                     legsAnimState = Legs_Walking;
                 }
             }
         }
         
-        if ( delta != 0.0 ) 
+        if (delta != 0.0) 
 		{        
             // Update movement and rotation
             btQuaternion newRotation = btQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
@@ -285,7 +288,7 @@ void HumanoidComponent::update(const double delta)
 
     leftArmAnimState = blocking ? ArmState::Arm_Blocking : ArmState::Arm_Idle;
     
-    //updateAnimations(delta);
+    updateAnimations(delta);
 }
 
 void HumanoidComponent::updateAnimations(double delta)
@@ -320,31 +323,40 @@ void HumanoidComponent::updateAnimations(double delta)
     torsoTiltAngle = 0.0f;
 
     // Look at general body motion first ( = what the legs are doing )
-    if (legsAnimState == Legs_Idle) {
+    if (legsAnimState == Legs_Idle)
+    {
         torsoBobAmount = std::sin(lifeTime *10.0f)*0.01f;
         float newF_ratio = 1.0f*delta*10.0f;
         float oldF_ratio = 1.0f - newF_ratio;
 
-        leftFootAngle = _voxels.getInstance(leftFootObject, leftFootID)->rotation.x*oldF_ratio;
-        rightFootAngle = _voxels.getInstance(rightFootObject, rightFootID)->rotation.x*oldF_ratio;
-    } else if ( legsAnimState == Legs_Sneaking ) {
+        leftFootAngle = _voxels.getInstance(leftFootObject, leftFootID)->rotation.x * oldF_ratio;
+        rightFootAngle = _voxels.getInstance(rightFootObject, rightFootID)->rotation.x * oldF_ratio;
+    }
+    else if (legsAnimState == Legs_Sneaking)
+    {
         leftFootAngle *= toRads(15.0f);
         rightFootAngle *= toRads(15.0f);
         hipRotationAngle = std::sin(lifeTime *animationSpeed*0.25f)*toRads(5.0f);
         torsoBobAmount += std::sin(lifeTime *animationSpeed)*0.01f;
-    } else if ( legsAnimState == Legs_Walking ) {
+    }
+    else if (legsAnimState == Legs_Walking)
+    {
         torsoTiltAngle = toRads(2.5f);
         leftFootAngle *= toRads(45.0f);
         rightFootAngle *= toRads(45.0f);
         hipRotationAngle = std::sin(lifeTime *animationSpeed*0.5f)*toRads(5.0f);
         torsoBobAmount += std::sin(lifeTime *animationSpeed)*0.02f;
-    } else if ( legsAnimState == Legs_Running ) {
+    }
+    else if (legsAnimState == Legs_Running)
+    {
         torsoTiltAngle = toRads(10.0f);
         leftFootAngle *= toRads(60.0f);
         rightFootAngle *= toRads(60.0f);
         hipRotationAngle = std::sin(lifeTime *animationSpeed)*toRads(5.0f);
         torsoBobAmount += std::sin(lifeTime *animationSpeed)*0.03f;
-    } else if ( legsAnimState == Legs_Jumping ) {
+    }
+    else if (legsAnimState == Legs_Jumping)
+    {
         float newF_ratio = 0.9f *delta*10.0f;
         float oldF_ratio = 1.0f - newF_ratio;
         leftFootAngle = (_voxels.getInstance(leftFootObject, leftFootID)->rotation.x*oldF_ratio)+(toRads(60.0f)*newF_ratio);
@@ -360,38 +372,57 @@ void HumanoidComponent::updateAnimations(double delta)
     float leftHandSlerp = 1.0f;
     float rightHandSlerp = 1.0f;
     // Now find parameters for the arms
-    if ( leftArmAnimState == ArmState::Arm_Idle ) {
-        bool& running = m_owner->GetAttributeDataPtr<bool>("running");
-        if ( running ) {
+    if (leftArmAnimState == ArmState::Arm_Idle)
+    {
+        const bool& running = m_owner->GetAttributeDataPtr<bool>("running");
+        if (running)
+        {
             leftHandSlerp = 0.3f;
             glm::quat leftHandLift = glm::angleAxis(toRads(35.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             leftHandRot = leftHandRot*leftHandLift;
-        } else { // Regular slerp of rotation
+        }
+        else
+        { // Regular slerp of rotation
             leftHandSlerp = 0.5f;
         }
-    } else if ( leftArmAnimState == ArmState::Arm_Holding ) {
+    }
+    else if (leftArmAnimState == ArmState::Arm_Holding)
+    {
         
-    } else if ( leftArmAnimState == ArmState::Arm_Blocking ) {
+    }
+    else if (leftArmAnimState == ArmState::Arm_Blocking)
+    {
         const glm::quat leftHandSwing = glm::angleAxis(-90.f, glm::vec3(1.0f, 0.0f, 0.0f));
         leftHandRot = leftHandRot * leftHandSwing;
-    } else if ( leftArmAnimState == ArmState::Arm_Swinging ) {
+    }
+    else if (leftArmAnimState == ArmState::Arm_Swinging)
+    {
         
-    } else if ( leftArmAnimState == ArmState::Arm_Throwing ) {
+    }
+    else if (leftArmAnimState == ArmState::Arm_Throwing)
+    {
         
     }
     
-    if ( rightArmAnimState == ArmState::Arm_Idle ) {
-        bool& running = m_owner->GetAttributeDataPtr<bool>("running");
-        if ( running ) {
+    if (rightArmAnimState == ArmState::Arm_Idle)
+    {
+        const bool& running = m_owner->GetAttributeDataPtr<bool>("running");
+        if (running)
+        {
             rightHandSlerp = 0.3f;
             glm::quat rightHandLift = glm::angleAxis(toRads(-35.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             rightHandRot = rightHandRot*rightHandLift;
-        } else { // Regular slerp of rotation
+        }
+        else 
+        { // Regular slerp of rotation
             rightHandSlerp = 0.5f;
         }
-    } else if ( rightArmAnimState == ArmState::Arm_Holding ) {
+    }
+    else if (rightArmAnimState == ArmState::Arm_Holding)
+    {
         float swingTime = fminf(1.0f, (rHandTimer)*5.0f);
-        if ( swingTime == 1.0f ) {
+        if (swingTime == 1.0f)
+        {
             rightArmAnimState = ArmState::Arm_Idle;
             rHandTimer = 0.0f;
             if (m_rightHandItem)
@@ -407,29 +438,41 @@ void HumanoidComponent::updateAnimations(double delta)
                     m_rightHandItem = NULL;
                 }
             }
-        } else {
+        }
+        else
+        {
             float swingAngle = toRads(135.0f)+std::sin(1.0-swingTime)*toRads(225.0f);
             glm::quat rightHandSwing = glm::angleAxis(swingAngle, glm::vec3(1.0f, 0.0f, 0.0f));
             rightHandRot = rightHandRot*rightHandSwing;
         }
-    } else if ( rightArmAnimState == ArmState::Arm_Blocking ) {
+    }
+    else if (rightArmAnimState == ArmState::Arm_Blocking)
+    {
         
-    } else if ( rightArmAnimState == ArmState::Arm_Swinging ) {
+    }
+    else if (rightArmAnimState == ArmState::Arm_Swinging)
+    {
         float swingTime = fminf(1.0f, (rHandTimer)*4.0f);
 //        swingTime *= swingTime;
-        if ( swingTime == 1.0f ) {
+        if (swingTime == 1.0f)
+        {
             rightArmAnimState = ArmState::Arm_Idle;
             rHandTimer = 0.0f;
-            if ( m_rightHandItem ) {
+            if (m_rightHandItem)
+            {
                 m_rightHandItem->GetAttributeDataPtr<glm::vec3>("velocity") = glm::vec3(0.0f,0.0f,0.0f);
                 m_rightHandItem->GetAttributeDataPtr<bool>("generateCollisions") = false;
             }
-        } else {
+        }
+        else
+        {
             float swingAngle = toRads(135.0f)+std::sin(swingTime)*toRads(225.0f);
             glm::quat rightHandSwing = glm::angleAxis(swingAngle, glm::vec3(1.0f, 0.0f, 0.0f));
             rightHandRot = rightHandRot*rightHandSwing;
         }
-    } else if ( rightArmAnimState == ArmState::Arm_Throwing ) {
+    }
+    else if (rightArmAnimState == ArmState::Arm_Throwing)
+    {
         float swingTime = fminf(1.0f, (lifeTime -rHandTimer)*8.0f);
         float swingAngle = toRads(135.0f)+std::sin(1.0-swingTime)*toRads(225.0f);
         glm::quat rightHandSwing = glm::angleAxis(swingAngle, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -506,9 +549,7 @@ void HumanoidComponent::updateAnimations(double delta)
     }
 }
 
-const void HumanoidComponent::Rotate(
-	const float rotX,
-	const float rotY )
+const void HumanoidComponent::Rotate(const float rotX, const float rotY)
 {
     Entity* m_owner = _entityManager.getEntity(_ownerID);
     glm::quat& rotation = m_owner->GetAttributeDataPtr<glm::quat>("rotation");
@@ -519,7 +560,7 @@ const void HumanoidComponent::Rotate(
     Rotate(rotation);
 }
 
-void HumanoidComponent::Rotate( glm::quat orientation )
+void HumanoidComponent::Rotate(glm::quat orientation)
 {
     btQuaternion rotation = btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w);
     ghostObject->getWorldTransform().setRotation(rotation);

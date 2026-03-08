@@ -64,7 +64,7 @@ public:
     void Explosion( const glm::vec3 position, const float radius, const float force );
     
     Physics& getPhysics() { return m_physics; }
-    VoxelCache& getVoxelFactory() { return m_voxels; }
+    VoxelCache& getVoxelFactory() { return m_voxelCache; }
     EntityManager& getEntityManager() { return m_entityMan; }
 
     static bool paused;                         // Used to switch off physics updates and freeze world
@@ -80,7 +80,7 @@ public:
     std::vector<glm::vec3> wantedTrees;         // Positions for wanted trees
     
     // Entities
-    EntityID playerID;
+    EntityID m_playerID;
 
 private:
     Allocator& m_allocator;
@@ -89,7 +89,7 @@ private:
 
 	Particles m_particles;
     Physics m_physics;
-    VoxelCache m_voxels;
+    VoxelCache m_voxelCache;
     EntityManager m_entityMan;
 
     ShaderID m_voxelInstancesShaderID;

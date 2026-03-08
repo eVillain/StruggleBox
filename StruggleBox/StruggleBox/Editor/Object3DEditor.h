@@ -5,13 +5,11 @@
 #include "EditorCursor3D.h"
 
 class Allocator;
-class ObjectWindow;
 class MeshWindow;
-
-//class InstancedMesh;
+class ObjectWindow;
 class VoxelData;
 
-///  Provides voxel object editing facilities
+//  Provides voxel object editing facilities
 class Object3DEditor : public EditorScene
 {
 public:
@@ -49,20 +47,18 @@ public:
     void RemoveEditor();
 
 private:	
-	//InstancedMesh* _mesh;
-	VoxelData* _voxels;
-    //TriangleMesh* m_triangleMesh;
-    //InstancedTriangleMesh* m_triangleMesh;
+	VoxelData* m_voxelData;
+	ObjectWindow* m_objectWindow;
+	MeshWindow* m_meshWindow;
 
-	ObjectWindow* _objectWindow;
-	MeshWindow* _meshWindow;
+    DrawDataID m_objectDrawDataID;
 
     // Cursor coordinates
 	glm::ivec3 _cursorObjectCoord;
     AABB3D selectionAABB;
 
     // Block editing - move to objectwindow
-    int columnHeight;                   // Height of column to be created
+    int columnHeight; // Height of column to be created
 
     // Labels
     std::vector<int> editorLabels;

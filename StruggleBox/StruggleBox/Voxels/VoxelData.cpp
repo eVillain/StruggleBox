@@ -345,22 +345,21 @@ void VoxelData::generateTowerChunk(const Coord3D& coord)
 	}
 }
 
+void VoxelData::generateFlatLand(const Coord3D& coord)
+{
+	const size_t dataSize = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
+	const uint8_t value = coord.y > 0 ? 0 : 1;
+	memset(_data, value, dataSize);
+}
 
-void VoxelData::createTriangleMesh(VoxelRenderer& renderer, const DrawDataID drawDataID, const float radius) const
+void VoxelData::createTriangleMesh(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius, const glm::vec3& offset) const
 {
 	const float voxelWidth = radius * 2.0f;
 	const glm::vec3 size = glm::vec3(_sizeX, _sizeY, _sizeZ);
 	const glm::vec3 voxelOffset = glm::vec3(radius) - (size * radius);
 	const size_t numVoxels = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
 
-	// Worst case is every other voxel filled
-	// This results in 36 vertices per each voxel, but only for half of the grid
-	const size_t worst_case = numVoxels * 18;
-	//MeshVertexData* newVerts = (MeshVertexData*)m_allocator.allocate(sizeof(MeshVertexData) * worst_case);
-	VoxelMeshPBRVertexData* newVerts = (VoxelMeshPBRVertexData*)m_allocator.allocate(sizeof(VoxelMeshPBRVertexData) * worst_case);
-	uint32_t vertexCount = 0;
-
-	for (int i = 0; i < numVoxels; i++)
+	for (size_t i = 0; i < numVoxels; i++)
 	{
 		const uint8_t& b = _data[i];
 		if (b == EMPTY_VOXEL)
@@ -371,14 +370,13 @@ void VoxelData::createTriangleMesh(VoxelRenderer& renderer, const DrawDataID dra
 		const glm::vec3 pos = (glm::vec3(coord.x, coord.y, coord.z) * voxelWidth) + voxelOffset;
 
 		// Check visibility of each side
-		bool visibility_x_neg = !blocksVisibility(coord.x - 1, coord.y, coord.z);
-		bool visibility_x_pos = !blocksVisibility(coord.x + 1, coord.y, coord.z);
-		bool visibility_y_neg = !blocksVisibility(coord.x, coord.y - 1, coord.z);
-		bool visibility_y_pos = !blocksVisibility(coord.x, coord.y + 1, coord.z);
-		bool visibility_z_neg = !blocksVisibility(coord.x, coord.y, coord.z - 1);
-		bool visibility_z_pos = !blocksVisibility(coord.x, coord.y, coord.z + 1);
-		bool visibility[6] = { visibility_x_neg, visibility_x_pos, visibility_y_neg, visibility_y_pos, visibility_z_neg, visibility_z_pos };
-
+		const bool visibility_x_neg = !blocksVisibility(coord.x - 1, coord.y, coord.z);
+		const bool visibility_x_pos = !blocksVisibility(coord.x + 1, coord.y, coord.z);
+		const bool visibility_y_neg = !blocksVisibility(coord.x, coord.y - 1, coord.z);
+		const bool visibility_y_pos = !blocksVisibility(coord.x, coord.y + 1, coord.z);
+		const bool visibility_z_neg = !blocksVisibility(coord.x, coord.y, coord.z - 1);
+		const bool visibility_z_pos = !blocksVisibility(coord.x, coord.y, coord.z + 1);
+		const bool visibility[6] = { visibility_x_neg, visibility_x_pos, visibility_y_neg, visibility_y_pos, visibility_z_neg, visibility_z_pos };
 		if (!visibility_x_neg && !visibility_x_pos &&
 			!visibility_y_neg && !visibility_y_pos &&
 			!visibility_z_neg && !visibility_z_pos)
@@ -386,16 +384,6 @@ void VoxelData::createTriangleMesh(VoxelRenderer& renderer, const DrawDataID dra
 			continue;
 		}
 
-		//const glm::vec4 positions[8] = {
-		//	glm::vec4(pos.x - radius, pos.y - radius, pos.z - radius, 1.f), // 0 left-bottom-rear
-		//	glm::vec4(pos.x + radius, pos.y - radius, pos.z - radius, 1.f), // 1 right-bottom-rear
-		//	glm::vec4(pos.x - radius, pos.y + radius, pos.z - radius, 1.f), // 2 left-top-rear
-		//	glm::vec4(pos.x + radius, pos.y + radius, pos.z - radius, 1.f), // 3 right-top-rear
-		//	glm::vec4(pos.x - radius, pos.y - radius, pos.z + radius, 1.f), // 4 left-bottom-front
-		//	glm::vec4(pos.x + radius, pos.y - radius, pos.z + radius, 1.f), // 5 right-bottom-front
-		//	glm::vec4(pos.x - radius, pos.y + radius, pos.z + radius, 1.f), // 6 left-top-front
-		//	glm::vec4(pos.x + radius, pos.y + radius, pos.z + radius, 1.f), // 7 right-top-front
-		//};
 		const glm::vec3 positions[8] = {
 			glm::vec3(pos.x - radius, pos.y - radius, pos.z - radius), // 0 left-bottom-rear
 			glm::vec3(pos.x + radius, pos.y - radius, pos.z - radius), // 1 right-bottom-rear
@@ -407,9 +395,7 @@ void VoxelData::createTriangleMesh(VoxelRenderer& renderer, const DrawDataID dra
 			glm::vec3(pos.x + radius, pos.y + radius, pos.z + radius), // 7 right-top-front
 		};
 
-		//const glm::vec2 materialOffset = MaterialData::texOffset(b);
-		const glm::vec3 voxelUV3D = glm::vec3(coord.x / (float)_sizeX, coord.y / (float)_sizeY, coord.z / (float)_sizeZ);
-		for (int index = 0; index < 36; index++)
+		for (size_t index = 0; index < 36; index++)
 		{
 			const int index_side = index / 6;
 			if (!visibility[index_side])
@@ -417,73 +403,26 @@ void VoxelData::createTriangleMesh(VoxelRenderer& renderer, const DrawDataID dra
 				continue;
 			}
 
-			glm::vec2 uvOffset;
-			if (index_side < 2)
-			{
-				uvOffset = glm::vec2(voxelUV3D.z, voxelUV3D.y);
-				if (index_side % 2)
-				{
-					uvOffset.x = 1.f - (uvOffset.x + (1.f / (std::max)(_sizeX, _sizeZ)));
-				}
-			}
-			else if (index_side < 4)
-			{
-				uvOffset = glm::vec2(voxelUV3D.x, voxelUV3D.z);
-				if (index_side % 2)
-				{
-					uvOffset.x = 1.f - (uvOffset.x + (1.f / (std::max)(_sizeX, _sizeZ)));
-				}
-			}
-			else
-			{
-				uvOffset = glm::vec2(voxelUV3D.x, voxelUV3D.y);
-				if (index_side % 2 == 0)
-				{
-					uvOffset.x = 1.f - (uvOffset.x + (1.f / (std::max)(_sizeX, _sizeZ)));
-				}
-			}
+			const size_t index_vertex = CubeConstants::cube_indices[index];
 
-			const float uvScale = 1.f / (std::min)((std::min)(_sizeX, _sizeY), _sizeZ);
-			const glm::vec2 uv = (CubeConstants::cube_uvs[index] * uvScale) + uvOffset;
-			const int index_vertex = CubeConstants::cube_indices[index];
-			//newVerts[vertexCount++] = {
-			//	positions[index_vertex].x, positions[index_vertex].y, positions[index_vertex].z, positions[index_vertex].w,
-			//	CubeConstants::cube_normals[index_side].x, CubeConstants::cube_normals[index_side].y, CubeConstants::cube_normals[index_side].z,
-			//	CubeConstants::cube_tangents[index_side].x, CubeConstants::cube_tangents[index_side].y, CubeConstants::cube_tangents[index_side].z,
-			//	uv.x * _scale, uv.y * _scale,
-			//	materialOffset.x, materialOffset.y
-			//};
-			newVerts[vertexCount++] = {
+			verts[vertexCount++] = {
 				positions[index_vertex],
 				glm::vec3(CubeConstants::cube_normals[index_side].x, CubeConstants::cube_normals[index_side].y, CubeConstants::cube_normals[index_side].z),
-				COLOR_WHITE,
-				glm::vec3(0,0,0)
-				//glm::vec3(CubeConstants::cube_tangents[index_side].x, CubeConstants::cube_tangents[index_side].y, CubeConstants::cube_tangents[index_side].z),
-				//glm::vec2(uv.x * _scale, uv.y * _scale),
+				HSVColor(index * 10.f, 1.f, (float)index / 35.f),
+				//RGBAColor(1.f, 1.f, 1.f, 0.25f),
+				glm::vec3(0, 0, 0)
 			};
-			/*
-			const glm::vec3 v = glm::vec3(CubeConstants::raw_cube_vertices[i * 4], CubeConstants::raw_cube_vertices[i * 4 + 1], CubeConstants::raw_cube_vertices[i * 4 + 2]);
-			const glm::vec3 n = glm::vec3(CubeConstants::raw_cube_normals[i * 3], CubeConstants::raw_cube_normals[i * 3 + 1], CubeConstants::raw_cube_normals[i * 3 + 2]);
-			const glm::vec3 t = glm::vec3(CubeConstants::raw_cube_tangents[i * 3], CubeConstants::raw_cube_tangents[i * 3 + 1], CubeConstants::raw_cube_tangents[i * 3 + 2]);
-			const glm::vec2 uv = glm::vec2(CubeConstants::raw_cube_texcoords[i * 2], CubeConstants::raw_cube_texcoords[i * 2 + 1]);
-			cubeVerts[i] = { v, n, t, uv };
-			*/
 		}
 	}
-
-	VoxelMeshPBRVertexData* cubeVerts = renderer.bufferVoxelMeshVerts(vertexCount, drawDataID);
-	memcpy(cubeVerts, newVerts, sizeof(VoxelMeshPBRVertexData) * vertexCount);
-
-	m_allocator.deallocate(newVerts);
 }
-
 
 void VoxelData::extractFaceRect(
 	const glm::ivec3 coord,
 	const glm::ivec3 blockerCoord,
 	uint8_t& previousVoxel,
 	bool& previousFaceVisible,
-	std::vector<SurfaceRect>& rects) const
+	std::vector<SurfaceRect>& rects,
+	const Axis axis) const
 {
 	const int voxelIndex = linearIndexFromCoordinate(coord.x, coord.y, coord.z, _sizeX, _sizeY);
 	const uint8_t voxel = _data[voxelIndex];
@@ -500,14 +439,29 @@ void VoxelData::extractFaceRect(
 		{
 			SurfaceRect& previousRect = rects.back();
 			previousRect.size.x += 1;
+			//Log::Debug("Extract: %i (%i,%i,%i) extended (%i, %i) to (%i, %i)", voxelIndex, coord.x, coord.y, coord.z, previousRect.origin.x, previousRect.origin.y, previousRect.size.x, previousRect.size.y);
 		}
 		else
 		{
+			glm::ivec2 rectCoord;
+			if (axis == Axis::Z)
+			{
+				rectCoord = glm::ivec2(coord.z, coord.y);
+			}
+			else if (axis == Axis::Y)
+			{
+				rectCoord = glm::ivec2(coord.x, coord.z);
+			}
+			else if (axis == Axis::X)
+			{
+				rectCoord = glm::ivec2(coord.x, coord.y);
+			}
 			SurfaceRect voxelRect = {
 				voxel,
-				glm::ivec2(coord.z, coord.y),
+				rectCoord,
 				glm::ivec2(1, 1)
 			};
+			//Log::Debug("Extract: %i (%i,%i,%i) created %i, %i to %i, %i", voxelIndex, coord.x, coord.y, coord.z, voxelRect.origin.x, voxelRect.origin.y, voxelRect.size.x, voxelRect.size.y);
 			rects.push_back(voxelRect);
 			previousVoxel = voxel;
 		}
@@ -533,10 +487,13 @@ void VoxelData::mergeRects(
 		if (it != rectsForSlice.end()) // Merge with previous row from current slice
 		{
 			(*it).size.y += 1;
+			const SurfaceRect& previousRect = *it;
+			//Log::Debug("Merge: merged %i, %i to %i, %i", previousRect.origin.x, previousRect.origin.y, previousRect.size.x, previousRect.size.y);
 		}
 		else
 		{
 			rectsForSlice.push_back(rowRect); // No merge possible, add new rect to slice
+			//Log::Debug("Merge: added %i, %i to %i, %i", rowRect.origin.x, rowRect.origin.y, rowRect.size.x, rowRect.size.y);
 		}
 	}
 }
@@ -572,19 +529,19 @@ void VoxelData::createFaceVerts(
 	const int slice,
 	const int axis,
 	const float radius,
+	const glm::vec3& offset,
 	VoxelMeshPBRVertexData* verts,
 	size_t& vertCount) const
 {
 	const glm::vec3 voxelCoord = voxelCoordForAxis(rect, axis, slice);
 	const float voxelWidth = radius * 2.0f;
 	const glm::vec3 size = glm::vec3(_sizeX, _sizeY, _sizeZ);
-	//const glm::vec2 materialOffset = MaterialData::texOffset(rect.voxel);
-	const glm::vec3 voxelUV3D = voxelCoord / size;
+	//const glm::vec3 voxelUV3D = voxelCoord / size;
 	const glm::vec3 voxelOffset = glm::vec3(radius) - (size * radius);
-	const glm::vec3 voxelPos = (voxelCoord * voxelWidth) + voxelOffset;
+	const glm::vec3 voxelPos = (voxelCoord * voxelWidth) + voxelOffset + offset;
 	const glm::vec3 voxelLBR = voxelPos - radius;
 	const glm::vec3 voxelRTF = voxelPos + (voxelCornerForAxis(rect, axis) * voxelWidth) - radius;
-	const float uvScale = 1.f / (std::min)((std::min)(_sizeX, _sizeY), _sizeZ);
+	//const float uvScale = 1.f / (std::min)((std::min)(_sizeX, _sizeY), _sizeZ);
 
 	const glm::vec3 positions[8] = {
 		glm::vec3(voxelLBR.x, voxelLBR.y, voxelLBR.z), // 0 left-bottom-rear
@@ -602,41 +559,19 @@ void VoxelData::createFaceVerts(
 	for (int index = startIndex; index < endIndex; index++)
 	{
 		const int index_side = index / 6;
-		glm::vec2 uvOffset = glm::vec2(voxelUV3D.x, voxelUV3D.y);
-		if (index_side % 2 == 0)
-		{
-			uvOffset.x = 1.f - (uvOffset.x + (1.f / (std::max)(_sizeX, _sizeZ)));
-		}
-		//const glm::vec2 uv = (CubeConstants::cube_uvs[index] * uvScale) + uvOffset;
 		const int index_vertex = CubeConstants::cube_indices[index];
 		verts[vertCount++] = {
 			positions[index_vertex],
 			CubeConstants::cube_normals[index_side],
-			COLOR_WHITE,
-			glm::vec3(1, 0, 0)
-			//CubeConstants::cube_tangents[index_side],
-			//uv * _scale,
-			//materialOffset.x, materialOffset.y
+			//COLOR_WHITE,
+			HSVColor(index * 10.f, 1.f, (float)index / 35.f),
+			glm::vec3(1, 1, 1)
 		};
 	}
 }
 
-//TexturedPBRVertexData* VoxelData::createTriangleMeshReduced(Renderer3DDeferred& renderer, uint32_t& vertexCount, const float radius) const
-void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius) const
+void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius, const glm::vec3& offset) const
 {
-	const float voxelWidth = radius * 2.0f;
-	const glm::vec3 size = glm::vec3(_sizeX, _sizeY, _sizeZ);
-	const glm::vec3 voxelOffset = glm::vec3(radius) - (size * radius);
-	const size_t numVoxels = (size_t)_sizeX * (size_t)_sizeY * (size_t)_sizeZ;
-
-	// Worst case is every other voxel filled
-	// This results in 36 vertices per each voxel, but only for half of the grid
-	const size_t worst_case = numVoxels * 18;
-	//MeshVertexData* newVerts = (MeshVertexData*)renderer.allocFrameData(sizeof(MeshVertexData) * worst_case);
-	//TexturedPBRVertexData* newVerts = (TexturedPBRVertexData*)m_allocator.allocate(sizeof(TexturedPBRVertexData) * worst_case);
-
-	vertexCount = 0;
-
 	// Z-Faces
 	for (int x = 0; x < _sizeX; x++)
 	{
@@ -653,19 +588,21 @@ void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t&
 			for (int z = 0; z < _sizeZ; z++)
 			{
 				const glm::ivec3 voxelCoord = glm::ivec3(x, y, z);
-				extractFaceRect(voxelCoord, glm::ivec3(x - 1, y, z), previousVoxelB, previousBackFaceVisible, rectsForRowBack);
-				extractFaceRect(voxelCoord, glm::ivec3(x + 1, y, z), previousVoxelF, previousFrontFaceVisible, rectsForRowFront);
+				//Log::Debug("Z: (%i, %i, %i) rects: %i, %i", x, y, z, rectsForRowBack.size(), rectsForRowFront.size());
+				extractFaceRect(voxelCoord, glm::ivec3(x - 1, y, z), previousVoxelB, previousBackFaceVisible, rectsForRowBack, Axis::Z);
+				extractFaceRect(voxelCoord, glm::ivec3(x + 1, y, z), previousVoxelF, previousFrontFaceVisible, rectsForRowFront, Axis::Z);
 			}
 			mergeRects(rectsForRowBack, rectsForSliceBack);
 			mergeRects(rectsForRowFront, rectsForSliceFront);
+			//Log::Debug("Y: (%i, %i) rects: %i, %i", x, y, rectsForRowBack.size(), rectsForRowFront.size());
 		}
 		for (const SurfaceRect& rect : rectsForSliceBack)
 		{
-			createFaceVerts(rect, x, 0, radius, verts, vertexCount);
+			createFaceVerts(rect, x, 0, radius, offset, verts, vertexCount);
 		}
 		for (const SurfaceRect& rect : rectsForSliceFront)
 		{
-			createFaceVerts(rect, x, 1, radius, verts, vertexCount);
+			createFaceVerts(rect, x, 1, radius, offset, verts, vertexCount);
 		}
 	}
 	// Y Faces
@@ -673,7 +610,7 @@ void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t&
 	{
 		std::vector<SurfaceRect> rectsForSliceBack;
 		std::vector<SurfaceRect> rectsForSliceFront;
-		for (int x = 0; x < _sizeX; x++)
+		for (int z = 0; z < _sizeZ; z++)
 		{
 			uint8_t previousVoxelB = EMPTY_VOXEL;
 			uint8_t previousVoxelF = EMPTY_VOXEL;
@@ -681,22 +618,24 @@ void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t&
 			bool previousFrontFaceVisible = false;
 			std::vector<SurfaceRect> rectsForRowBack;
 			std::vector<SurfaceRect> rectsForRowFront;
-			for (int z = 0; z < _sizeZ; z++)
+			for (int x = 0; x < _sizeX; x++)
 			{
 				const glm::ivec3 voxelCoord = glm::ivec3(x, y, z);
-				extractFaceRect(voxelCoord, glm::ivec3(x, y - 1, z), previousVoxelB, previousBackFaceVisible, rectsForRowBack);
-				extractFaceRect(voxelCoord, glm::ivec3(x, y + 1, z), previousVoxelF, previousFrontFaceVisible, rectsForRowFront);
+				//Log::Debug("Z: (%i, %i, %i) rects: %i, %i", x, y, z, rectsForRowBack.size(), rectsForRowFront.size());
+				extractFaceRect(voxelCoord, glm::ivec3(x, y - 1, z), previousVoxelB, previousBackFaceVisible, rectsForRowBack, Axis::Y);
+				extractFaceRect(voxelCoord, glm::ivec3(x, y + 1, z), previousVoxelF, previousFrontFaceVisible, rectsForRowFront, Axis::Y);
 			}
 			mergeRects(rectsForRowBack, rectsForSliceBack);
 			mergeRects(rectsForRowFront, rectsForSliceFront);
+			//Log::Debug("X: (%i, %i) rects: %i, %i", x, y, rectsForRowBack.size(), rectsForRowFront.size());
 		}
 		for (const SurfaceRect& rect : rectsForSliceBack)
 		{
-			createFaceVerts(rect, y, 2, radius, verts, vertexCount);
+			createFaceVerts(rect, y, 2, radius, offset, verts, vertexCount);
 		}
 		for (const SurfaceRect& rect : rectsForSliceFront)
 		{
-			createFaceVerts(rect, y, 3, radius, verts, vertexCount);
+			createFaceVerts(rect, y, 3, radius, offset, verts, vertexCount);
 		}
 	}
 	// X Faces
@@ -715,19 +654,19 @@ void VoxelData::createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t&
 			for (int x = 0; x < _sizeX; x++)
 			{
 				const glm::ivec3 voxelCoord = glm::ivec3(x, y, z);
-				extractFaceRect(voxelCoord, glm::ivec3(x, y, z - 1), previousVoxelB, previousBackFaceVisible, rectsForRowBack);
-				extractFaceRect(voxelCoord, glm::ivec3(x, y, z + 1), previousVoxelF, previousFrontFaceVisible, rectsForRowFront);
+				extractFaceRect(voxelCoord, glm::ivec3(x, y, z - 1), previousVoxelB, previousBackFaceVisible, rectsForRowBack, Axis::X);
+				extractFaceRect(voxelCoord, glm::ivec3(x, y, z + 1), previousVoxelF, previousFrontFaceVisible, rectsForRowFront, Axis::X);
 			}
 			mergeRects(rectsForRowBack, rectsForSliceBack);
 			mergeRects(rectsForRowFront, rectsForSliceFront);
 		}
 		for (const SurfaceRect& rect : rectsForSliceBack)
 		{
-			createFaceVerts(rect, z, 4, radius, verts, vertexCount);
+			createFaceVerts(rect, z, 4, radius, offset, verts, vertexCount);
 		}
 		for (const SurfaceRect& rect : rectsForSliceFront)
 		{
-			createFaceVerts(rect, z, 5, radius, verts, vertexCount);
+			createFaceVerts(rect, z, 5, radius, offset, verts, vertexCount);
 		}
 	}
 }
@@ -745,7 +684,7 @@ const uint32_t VoxelData::getPhysicsReduced(Physics& physics, float radius) cons
 	//btVector3* newVerts = CUSTOM_NEW_ARRAY(btVector3, worst_case, m_allocator);
 	//btVector3* newVerts = (btVector3*)m_allocator.allocate(sizeof(btVector3) * worst_case);
 	btVector3* newVerts = new btVector3[worst_case];
-	Log::Debug("new verts at %p", newVerts);
+	//Log::Debug("new verts at %p", newVerts);
 	size_t numVerts = 0;
 
 	int merged = 0;

@@ -42,10 +42,11 @@ public:
 	void generateGrass(const int seed);
 	void generateTree(const glm::vec3 treePos, const int seed);
 	void generateTowerChunk(const Coord3D& coord);
+	void generateFlatLand(const Coord3D& coord);
 
 
-	void createTriangleMesh(VoxelRenderer& renderer, const DrawDataID drawDataID, const float radius) const;
-	void createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius) const;
+	void createTriangleMesh(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius, const glm::vec3& offset) const;
+	void createTriangleMeshReduced(VoxelMeshPBRVertexData* verts, size_t& vertexCount, const float radius, const glm::vec3& offset) const;
 	//TexturedPBRVertexData* createTriangleMeshReduced(Renderer3DDeferred& renderer, uint32_t& vertexCount, const float radius) const;
 	//void getMeshLinear(Mesh& mesh, float radius);
 	//void getMeshLinearWithVertexAO(Mesh& mesh, float radius);
@@ -70,10 +71,13 @@ public:
 	const int getIndex(const glm::ivec3 coord) const { return linearIndexFromCoordinate(coord.x, coord.y, coord.z, _sizeX, _sizeY); }
 	const int getIndex(const int x, const int y, const int z) const { return linearIndexFromCoordinate(x, y, z, _sizeX, _sizeY); }
 
-	const glm::vec3 getVolume(const float radius) const { return glm::vec3(_sizeX, _sizeY, _sizeZ)*radius*2.0f; }
+	const glm::vec3 getVolume(const float radius) const { return glm::vec3(_sizeX, _sizeY, _sizeZ) * radius * 2.0f; }
 
 private:
-
+	enum Axis
+	{
+		X,Y,Z
+	};
 	struct SurfaceRect {
 		uint8_t voxel;
 		glm::ivec2 origin;
@@ -84,7 +88,8 @@ private:
 		const glm::ivec3 blockerCoord,
 		uint8_t& previousVoxel,
 		bool& previousFaceVisible,
-		std::vector<SurfaceRect>& rects) const;
+		std::vector<SurfaceRect>& rects,
+		const Axis axis) const;
 	void mergeRects(
 		const std::vector<SurfaceRect>& rectsForRow,
 		std::vector<SurfaceRect>& rectsForSlice) const;
@@ -95,6 +100,7 @@ private:
 		const int slice,
 		const int axis,
 		const float radius,
+		const glm::vec3& offset,
 		VoxelMeshPBRVertexData* verts,
 		size_t& vertCount) const;
 
@@ -115,8 +121,7 @@ private:
 		int a = 1;
 		int	b = max_x;
 		int	c = max_x * max_y;
-		int	d = 0;
-		return a*x + b*y + c*z + d;
+		return a*x + b*y + c*z;
 	}
 
 	static glm::ivec3 coordinateFromLinearIndex(

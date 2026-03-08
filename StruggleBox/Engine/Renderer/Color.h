@@ -33,7 +33,7 @@ static inline Color LAColor(GLfloat l, GLfloat a){
 	return color;
 }
 
-static inline Color HSVColor(GLfloat h, GLfloat s, GLfloat v)
+static inline Color HSVColor(GLfloat h, GLfloat s, GLfloat v, GLfloat a = 1.f)
 {
     GLfloat H = h, S = s, V = v,
         P, Q, T,
@@ -47,19 +47,19 @@ static inline Color HSVColor(GLfloat h, GLfloat s, GLfloat v)
     T = V * (1.f - S * (1.f - fract));
 
     if (0.f <= H && H < 1.f)
-        return RGBAColor(V, T, P, 1.f);
+        return RGBAColor(V, T, P, a);
     else if (1. <= H && H < 2.)
-        return RGBAColor(Q, V, P, 1.f);
+        return RGBAColor(Q, V, P, a);
     else if (2. <= H && H < 3.)
-        return RGBAColor(P, V, T, 1.f);
+        return RGBAColor(P, V, T, a);
     else if (3. <= H && H < 4.)
-        return RGBAColor(P, Q, V, 1.f);
+        return RGBAColor(P, Q, V, a);
     else if (4. <= H && H < 5.)
-        return RGBAColor(T, P, V, 1.f);
+        return RGBAColor(T, P, V, a);
     else if (5. <= H && H < 6.)
-        return RGBAColor(V, P, Q, 1.f);
+        return RGBAColor(V, P, Q, a);
     else
-        return RGBAColor(0.f, 0.f, 0.f, 1.f);
+        return RGBAColor(0.f, 0.f, 0.f, a);
 }
 
 /* --- PRIMARY COLORS --- */

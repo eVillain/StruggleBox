@@ -15,10 +15,11 @@
 #include "StatTracker.h"
 
 #include "LocalGame.h"
+#include "ChunkTest.h"
 //#include "AnimationEditor.h"
 //#include "EntityEditor.h"
 #include "MaterialEditor.h"
-//#include "Object3DEditor.h"
+#include "Object3DEditor.h"
 #include "Particle3DEditor.h"
 #include "PathUtil.h"
 #include "CommandProcessor.h"
@@ -148,6 +149,16 @@ void MainMenu::ShowMainMenu()
 		m_gui.getRoot().addChild(localGameButton);
 		buttonPosY -= buttonSpacing;
 
+		ButtonNode* testButton = createMainMenuButton("Chunk Test");
+		testButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+		testButton->setCallback([this](bool) {
+			m_injector.mapSingleton<ChunkTest,
+			Allocator, VoxelRenderer, RenderCore, OSWindow, Options, Input, SceneManager, StatTracker>();
+			m_sceneManager.AddActiveScene(&m_injector.getInstance<ChunkTest>());
+			});
+		m_gui.getRoot().addChild(testButton);
+		buttonPosY -= buttonSpacing;
+
 	/*	ButtonNode* animationButton = createMainMenuButton("Animation Editor");
 		animationButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
 		animationButton->setCallback([this](bool) {
@@ -167,17 +178,18 @@ void MainMenu::ShowMainMenu()
 			});
 		m_gui.getRoot().addChild(entityButton);
 		buttonPosY -= buttonSpacing;
+		*/
 
 		ButtonNode* objectButton = createMainMenuButton("Object Editor");
 		objectButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
 		objectButton->setCallback([this](bool) {
 			m_injector.mapSingleton<Object3DEditor,
-				Allocator, Renderer, Options, Input, StatTracker>();
+				Allocator, VoxelRenderer, RenderCore, OSWindow, Options, Input, StatTracker>();
 			m_sceneManager.AddActiveScene(&m_injector.getInstance<Object3DEditor>());
 			});
 		m_gui.getRoot().addChild(objectButton);
 		buttonPosY -= buttonSpacing;
-		*/
+		
 		ButtonNode* materialButton = createMainMenuButton("Materials Editor");
 		materialButton->setPosition(glm::vec3(hW, buttonPosY, 1.f));
 		materialButton->setCallback([this](bool) {

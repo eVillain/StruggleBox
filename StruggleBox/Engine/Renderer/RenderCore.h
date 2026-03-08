@@ -23,8 +23,8 @@ class TextAtlas;
 struct TempVertBuffer
 {
     void* data;
-    uint32_t count;
-    uint32_t capacity;
+    size_t count;
+    size_t capacity;
 };
 
 class RenderCore

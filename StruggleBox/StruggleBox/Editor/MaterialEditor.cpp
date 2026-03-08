@@ -24,13 +24,6 @@
 #include "FileWindow.h"
 #include "MaterialsWindow.h"
 
-//const MaterialDef DEFAULT_MATERIAL = {
-//	COLOR_WHITE,
-//	1.0,
-//	1.0,
-//	1.0,
-//	1.0
-//};
 const float objectY = 0.0f;
 
 MaterialEditor::MaterialEditor(
@@ -62,8 +55,8 @@ void MaterialEditor::Initialize()
 
 	m_room.buildRoom(32.f, 32);
 
-	m_voxelMeshShaderID = m_renderCore.getShaderID("d_cube_instance_color.vsh", "d_cube_instance_color.fsh");
-	m_voxelMeshDrawDataID = m_renderCore.createInstancedDrawData(ColoredInstance3DConfig, VoxelPBRVertexConfig);
+	m_voxelMeshDrawDataID = m_renderer.createVoxelMeshDrawData();
+	m_voxelMeshShaderID = m_renderCore.getShaderID("d_mesh_instance_colored.vsh", "d_mesh_instance_colored.fsh");
 
 	VoxelMeshPBRVertexData* simplerCubeVerts = m_renderer.bufferVoxelMeshVerts(36, m_voxelMeshDrawDataID);
 	for (uint32_t i = 0; i < 36; i++)
@@ -166,7 +159,8 @@ void MaterialEditor::Draw()
 
 	if (m_materialsWindow->getDisplayArray())
 	{
-		ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstances(11*11, drawParams);
+		//ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstancesCustom(11*11, drawParams);
+		ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstances(11*11, m_voxelMeshDrawDataID);
 		for (size_t x = 0; x < 11; x++)
 		{
 			for (size_t z = 0; z < 11; z++)
@@ -213,7 +207,7 @@ void MaterialEditor::Draw()
 		}
 		else
 		{
-			ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstances(1, drawParams);
+			ColoredInstanceTransform3DData* instances = m_renderer.bufferVoxelMeshInstancesCustom(1, drawParams);
 			Color color = m_materialsWindow->getCurrentColor();
 			instances[0] = {
 				glm::vec3(0.f, objectY, 0.f),

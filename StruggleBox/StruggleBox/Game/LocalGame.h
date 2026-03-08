@@ -42,7 +42,9 @@ public:
     void Draw() override;
     // Input callbacks
     void HandleJoyAxis(int axis, float value);
+    void HandleFreeCameraMovement();
     void UpdateMovement();
+
     // Labels and buttons
     void ShowGame( void );
     void RemoveGame( void );
@@ -55,13 +57,13 @@ public:
     
 private:
     SceneManager& m_sceneManager;
-    VoxelRenderer& m_renderer3D;
+    VoxelRenderer& m_renderer;
 
     // World components
-    World3D _world;                     // The game world
-    EntityManager& _entityManager;
+    World3D m_world;                     // The game world
+    EntityManager& m_entityManager;
 
-    int loadLabelID;                    // Label saying we're loading level
+    int m_loadLabelID;                    // Label saying we're loading level
     
     // Cursor coordinates
     glm::vec2 cursorScrnPos;            // Cursor screen XY coords

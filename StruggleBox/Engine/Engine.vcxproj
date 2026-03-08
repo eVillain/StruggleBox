@@ -209,7 +209,8 @@
     <ClInclude Include="Renderer\Lighting2DDeferred.h" />
     <ClInclude Include="Renderer\Material.h" />
     <ClInclude Include="Renderer\ReflectionProbe.h" />
-    <ClInclude Include="Renderer\RenderDataBuffer.h" />
+    <ClInclude Include="Renderer\VertexDataBuffer.h" />
+    <ClInclude Include="Renderer\VertexDataBufferMap.h" />
     <ClInclude Include="Renderer\RendererDefines.h" />
     <ClInclude Include="Renderer\Shape2D.h" />
     <ClInclude Include="Renderer\Lighting3DDeferred.h" />

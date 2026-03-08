@@ -256,31 +256,6 @@ ImpostorVertexData* Renderer3DDeferred::bufferImpostorPoints(const size_t count,
     return nullptr;
 }
 
-void Renderer3DDeferred::prepareFrameBuffer()
-{
-    // Output to final image FBO
-    m_frameBuffer.bindAndClear(COLOR_NONE);
-
-    // Draw sky layer without lighting and opaque layer in black
-    //glEnable(GL_STENCIL_TEST);
-    //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    //glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    //glStencilFunc(GL_EQUAL, Stencil_Sky, 0xFF);             // Only draw sky layer
-    //m_renderCore.draw(m_textured2DVertsShaderID, m_gBuffer.getAlbedoTextureID(), m_textured2DVertsDrawDataID, s_projection2D, DrawMode::Triangles, nullptr, 0, 6, BLEND_MODE_DISABLED, DEPTH_MODE_DISABLED);
-
-    glStencilFunc(GL_EQUAL, Stencil_Solid, 0xFF);           // Only draw solid layer
-    TempVertBuffer buffer;
-    m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(buffer, 4);
-    ColoredVertex3DData* dataPtr = (ColoredVertex3DData*)buffer.data;
-    dataPtr[0] = { glm::vec3(-0.5,-0.5, 0.0), COLOR_BLACK };
-    dataPtr[1] = { glm::vec3( 0.5,-0.5, 0.0), COLOR_BLACK };
-    dataPtr[2] = { glm::vec3( 0.5, 0.5, 0.0), COLOR_BLACK };
-    dataPtr[3] = { glm::vec3(-0.5, 0.5, 0.0), COLOR_BLACK };
-    m_renderCore.draw(m_colored2DVertsShaderID, 0, m_colored2DVertsDrawDataID, s_projection2D, DrawMode::TriangleFan, dataPtr, 0, 6, BLEND_MODE_DISABLED, DEPTH_MODE_DISABLED);
-
-    glDisable(GL_STENCIL_TEST);
-}
-
 const glm::vec3 Renderer3DDeferred::getCursor3DPos(const glm::vec2& cursorPos) const
 {
     const int hw = m_renderSize.x / 2;
@@ -336,4 +311,29 @@ void Renderer3DDeferred::debugGBuffer()
     glReadBuffer(GL_DEPTH_ATTACHMENT);
     glBlitFramebuffer(0, 0, m_renderSize.x, m_renderSize.y,
         HalfWidth, 0, m_renderSize.x, HalfHeight, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+}
+
+void Renderer3DDeferred::prepareFrameBuffer()
+{
+    // Output to final image FBO
+    m_frameBuffer.bindAndClear(COLOR_NONE);
+
+    // Draw sky layer without lighting and opaque layer in black
+    //glEnable(GL_STENCIL_TEST);
+    //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    //glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    //glStencilFunc(GL_EQUAL, Stencil_Sky, 0xFF);             // Only draw sky layer
+    //m_renderCore.draw(m_textured2DVertsShaderID, m_gBuffer.getAlbedoTextureID(), m_textured2DVertsDrawDataID, s_projection2D, DrawMode::Triangles, nullptr, 0, 6, BLEND_MODE_DISABLED, DEPTH_MODE_DISABLED);
+
+    glStencilFunc(GL_EQUAL, Stencil_Solid, 0xFF);           // Only draw solid layer
+    TempVertBuffer buffer;
+    m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(buffer, 4);
+    ColoredVertex3DData* dataPtr = (ColoredVertex3DData*)buffer.data;
+    dataPtr[0] = { glm::vec3(-0.5,-0.5, 0.0), COLOR_BLACK };
+    dataPtr[1] = { glm::vec3( 0.5,-0.5, 0.0), COLOR_BLACK };
+    dataPtr[2] = { glm::vec3( 0.5, 0.5, 0.0), COLOR_BLACK };
+    dataPtr[3] = { glm::vec3(-0.5, 0.5, 0.0), COLOR_BLACK };
+    m_renderCore.draw(m_colored2DVertsShaderID, 0, m_colored2DVertsDrawDataID, s_projection2D, DrawMode::TriangleFan, dataPtr, 0, 6, BLEND_MODE_DISABLED, DEPTH_MODE_DISABLED);
+
+    glDisable(GL_STENCIL_TEST);
 }

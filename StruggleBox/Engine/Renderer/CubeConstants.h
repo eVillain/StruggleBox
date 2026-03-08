@@ -113,7 +113,7 @@ namespace CubeConstants {
         glm::vec2(1.0f, 1.0f),
     };
 
-    static const int cube_indices[] = {
+    static const size_t cube_indices[] = {
     6, 2, 0, 0, 4, 6, // left
     3, 7, 5, 5, 1, 3, // right
     1, 5, 4, 4, 0, 1, // bottom

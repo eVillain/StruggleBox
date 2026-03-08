@@ -49,6 +49,7 @@
     <ClInclude Include="Entities\ParticleComponent.h" />
     <ClInclude Include="Entities\PhysicsComponent.h" />
     <ClInclude Include="Entities\SelfDestructComponent.h" />
+    <ClInclude Include="Game\ChunkTest.h" />
     <ClInclude Include="Game\LocalGame.h" />
     <ClInclude Include="Game\MainMenu.h" />
     <ClInclude Include="Physics\CollisionDispatcher.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="Entities\ParticleComponent.cpp" />
     <ClCompile Include="Entities\PhysicsComponent.cpp" />
     <ClCompile Include="Entities\SelfDestructComponent.cpp" />
+    <ClCompile Include="Game\ChunkTest.cpp" />
     <ClCompile Include="Game\LocalGame.cpp" />
     <ClCompile Include="Game\MainMenu.cpp" />
     <ClCompile Include="main.cpp" />

@@ -4,7 +4,7 @@
 #include "DrawParameters.h"
 #include "Rect2D.h"
 #include "RenderCore.h"
-#include "RenderDataBuffer.h"
+#include "VertexDataBufferMap.h"
 #include <map>
 
 class Allocator;
@@ -62,7 +62,7 @@ protected:
 
 	TempVertBuffer m_coloredTriVertsBuffer;
 	TempVertBuffer m_coloredLineVertsBuffer;
-	RenderDataBuffer<TextureID, TexturedVertex3DData> m_texturedTriVertsBuffers;
-	RenderDataBuffer<TextureID, TexturedVertex3DData> m_textTriVertsBuffers;
-	RenderDataBuffer<DrawParameters, ImpostorVertexData> m_impostorBuffers;
+	VertexDataBufferMap<TextureID, TexturedVertex3DData> m_texturedTriVertsBuffers;
+	VertexDataBufferMap<TextureID, TexturedVertex3DData> m_textTriVertsBuffers;
+	VertexDataBufferMap<DrawParameters, ImpostorVertexData> m_impostorBuffers;
 };

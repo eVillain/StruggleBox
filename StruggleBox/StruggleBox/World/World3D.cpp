@@ -40,7 +40,7 @@
 // World globals
 float World3D::worldTimeScale = 1.0f;
 bool World3D::physicsEnabled = true;
-bool World3D::paused = true;
+bool World3D::paused = false;
 
 World3D::World3D(
     Allocator& allocator,
@@ -52,12 +52,12 @@ World3D::World3D(
     , m_options(options)
     , m_particles(allocator, injector)
     , m_physics(allocator)
-    , m_voxels(renderer, allocator)
-    , m_entityMan(allocator, renderer, m_voxels, m_particles, m_physics)
+    , m_voxelCache(renderer, allocator)
+    , m_entityMan(allocator, renderer, m_voxelCache, m_particles, m_physics)
     , m_refreshPhysics(false)
     , m_gameTime(0.0)
     , m_voxelInstancesShaderID(0)
-    , playerID(0)
+    , m_playerID(0)
 {
 	Log::Info("[World3D] Constructor, instance at %p", this);
 }
@@ -122,8 +122,8 @@ void World3D::Initialize()
     playerLight.shadowCaster = false;
     playerLight.raySize = 0.f;
 
-    playerID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Player.plist");
-    Entity* player = m_entityMan.getEntity(playerID);    // Temporary stuff, we shouldn't hold pointers to entities just int ID
+    m_playerID = Spawn(FileUtil::GetPath().append("Data/Entities/"), "Player.plist");
+    Entity* player = m_entityMan.getEntity(m_playerID);    // Temporary stuff, we shouldn't hold pointers to entities just int ID
     
     glm::vec3& playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
     
@@ -171,10 +171,11 @@ void World3D::Initialize()
 
 World3D::~World3D()
 {
-    if ( playerID ) {
+    if (m_playerID)
+    {
 //        int playerID = player->GetAttributeDataPtr<int>("ID");
 //        entityMan->removeEntity(playerID);
-        playerID = 0;
+        m_playerID = 0;
     }
     
     for (PhysicsCube* cube : dynamicCubes)
@@ -215,7 +216,7 @@ const int World3D::SpawnItem(const ItemType type,
 		newEntID,
 		m_entityMan,
 		m_physics,
-		m_voxels);
+		m_voxelCache);
     m_entityMan.setComponent(newEntID, physComponent);
     physComponent->setPhysicsMode(PhysicsMode::Physics_Cube_AABBs, false, false);
 
@@ -223,7 +224,7 @@ const int World3D::SpawnItem(const ItemType type,
 		newEntID,
 		object,
 		m_entityMan,
-		m_voxels);
+		m_voxelCache);
     m_entityMan.setComponent(newEntID, cubeComponent);
     return newEntID;
 }
@@ -262,10 +263,10 @@ void World3D::AddDecor(const std::string& object, const glm::vec3 pos, const glm
     newEnt->GetAttributeDataPtr<int>("type") = ENTITY_DECOR;
     newEnt->GetAttributeDataPtr<glm::vec3>("position") = pos;
     newEnt->GetAttributeDataPtr<std::string>("objectFile") = object;
-    PhysicsComponent* physComponent = CUSTOM_NEW(PhysicsComponent, m_allocator)(newEntID, m_entityMan, m_physics, m_voxels);
+    PhysicsComponent* physComponent = CUSTOM_NEW(PhysicsComponent, m_allocator)(newEntID, m_entityMan, m_physics, m_voxelCache);
     m_entityMan.setComponent(newEntID, physComponent);
     physComponent->setPhysicsMode(PhysicsMode::Physics_Cube_AABBs, false, false);
-    VoxelComponent* cubeComponent = CUSTOM_NEW(VoxelComponent, m_allocator)(newEntID, object, m_entityMan, m_voxels);
+    VoxelComponent* cubeComponent = CUSTOM_NEW(VoxelComponent, m_allocator)(newEntID, object, m_entityMan, m_voxelCache);
     m_entityMan.setComponent(newEntID, cubeComponent);
 }
 
@@ -333,7 +334,7 @@ void World3D::Update(const double delta)
     const float updateDelta = delta * worldTimeScale;
     m_gameTime += updateDelta;
 
-    if (Entity* player = m_entityMan.getEntity(playerID))
+    if (Entity* player = m_entityMan.getEntity(m_playerID))
     {
         playerLight.position.x = player->GetAttributeDataPtr<glm::vec3>("position").x;
         playerLight.position.y = player->GetAttributeDataPtr<glm::vec3>("position").y + 2.0f;
@@ -388,17 +389,13 @@ void World3D::Update(const double delta)
 void World3D::UpdateLabels()
 {
     // Write labels for nearby objects
-    if (playerID)
+    if (m_playerID)
     {
         int numLabel = 0;
-        Entity* player = m_entityMan.getEntity(playerID);
+        Entity* player = m_entityMan.getEntity(m_playerID);
         glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
-        Entity* nearestEntity = m_entityMan.getNearestEntity(playerPos,
-                                                            playerID,
-                                                            ENTITY_ITEM);
-        std::map<EntityID, Entity*> nearbyEnts = m_entityMan.getNearbyEntities(playerPos,
-                                                                         playerID,
-                                                                         ENTITY_ITEM);
+        Entity* nearestEntity = m_entityMan.getNearestEntity(playerPos, m_playerID, ENTITY_ITEM);
+        std::map<EntityID, Entity*> nearbyEnts = m_entityMan.getNearbyEntities(playerPos, m_playerID, ENTITY_ITEM);
         std::map<EntityID, Entity*>::iterator it = nearbyEnts.begin();
         
         while (it != nearbyEnts.end())
@@ -430,7 +427,9 @@ void World3D::UpdateLabels()
                     //objectLabels.push_back(labelID);
                 }
                 numLabel++;
-            } else {
+            }
+            else
+            {
                 nearbyEnts.erase(it++);
                 continue;
             }
@@ -474,7 +473,6 @@ void World3D::Draw()
     for (uint32_t i = 0; i < 4; i++)
     {
 	    m_renderer.queueLight(m_lights[i]);
-
     }
 	m_renderer.queueLight(playerLight);
 
@@ -483,12 +481,18 @@ void World3D::Draw()
     for (const auto& pair : m_chunks)
     {
         const TerrainChunk& chunk = pair.second;
+        if (chunk.drawDataID == 0)
+        {
+            continue;
+        }
         m_renderer.queueVoxelChunk(chunk.drawDataID);
     }
 }
 
 void World3D::DrawObjects()
 {
+    m_voxelCache.draw();
+
     for (const PhysicsCube* cube : staticCubes)
     {
         //CubeInstance ci = cube->getRenderInstance();
@@ -563,7 +567,7 @@ void World3D::Explosion(const glm::vec3 position,
     pSys->setSpeed(force / 20.0f);
     m_physics.Explosion(btVector3(position.x,position.y,position.z), radius, force);
     
-    float camDist = glm::distance(m_renderer.getDefaultCamera().getPosition(), position);
+    //float camDist = glm::distance(m_renderer.getDefaultCamera().getPosition(), position);
     //if (camDist < radius)
     //{
     //    m_renderer.getPlugin3D().getMainCamera().shakeAmount = force / (camDist / radius) * 10.0f;
@@ -574,7 +578,7 @@ void World3D::updateChunks()
 {
     const int CHUNK_RADIUS = 1;
     glm::vec3 playerPosition;
-    if (Entity* player = m_entityMan.getEntity(playerID))
+    if (Entity* player = m_entityMan.getEntity(m_playerID))
     {
         playerPosition = player->GetAttributeDataPtr<glm::vec3>("position");
     }
@@ -596,16 +600,19 @@ void World3D::updateChunks()
     {
         if (m_chunks.find(coord) == m_chunks.end())
         {
-            TerrainChunk chunk;
+            const glm::vec3 offset = glm::vec3(coord.x * 16, coord.y * 16, coord.z * 16);
+
+            TerrainChunk chunk = { nullptr, 0, 0, 0, 0 };
             chunk.voxels = CUSTOM_NEW(VoxelData, m_allocator)(16, 16, 16, m_allocator);
-            chunk.voxels->generateTowerChunk(coord);
+            //chunk.voxels->generateTowerChunk(coord);
+            chunk.voxels->generateFlatLand(coord);
             if (!chunk.voxels->isEmpty())
             {
                 const size_t numVoxels = 16 * 16 * 16;
                 VoxelMeshPBRVertexData* tempVerts = (VoxelMeshPBRVertexData*)m_allocator.allocate(sizeof(VoxelMeshPBRVertexData) * numVoxels);
                 chunk.vertexCount = 0;
-                chunk.drawDataID = m_renderer.createVoxelMeshDrawData();
-                chunk.voxels->createTriangleMeshReduced(tempVerts, chunk.vertexCount, 0.5f);
+                chunk.drawDataID = m_renderer.createVoxelChunkDrawData();
+                chunk.voxels->createTriangleMeshReduced(tempVerts, chunk.vertexCount, 0.5f, offset);
                 VoxelMeshPBRVertexData* verts = m_renderer.bufferVoxelChunkVerts(chunk.vertexCount, chunk.drawDataID);
                 memcpy(verts, tempVerts, sizeof(VoxelMeshPBRVertexData) * chunk.vertexCount);
                 m_allocator.deallocate(tempVerts);

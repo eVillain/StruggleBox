@@ -166,6 +166,9 @@
     <ClInclude Include="Renderer\MaterialData.h">
       <Filter>Game\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Game\ChunkTest.h">
+      <Filter>Game\Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\LocalGame.cpp">
@@ -296,6 +299,9 @@
     </ClCompile>
     <ClCompile Include="Renderer\MaterialTexture.cpp">
       <Filter>Game\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\ChunkTest.cpp">
+      <Filter>Game\Game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

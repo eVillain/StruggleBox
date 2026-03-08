@@ -2,9 +2,10 @@
 
 #include "RendererDefines.h"
 #include "Lighting3DDeferred.h"
+#include "MaterialData.h"
+#include "VoxelRenderer.h"
 #include <vector>
-
-class VoxelRenderer;
+#include <stdint.h>
 
 class EditorRoom
 {
@@ -23,13 +24,15 @@ public:
 
 private:
 	VoxelRenderer& m_renderer;
-	std::vector<LightInstance> m_lights;
 	DrawDataID m_voxelInstancesDrawDataID;
 	ShaderID m_voxelInstancesShaderID;
 
-	int m_numCubes;
+	size_t m_numCubes;
 
 	float m_roomWidth;
 	int m_tilesPerSide;
 	bool m_rotateLights;
+	CubeInstanceTransform3DData* m_roomCubes;
+	MaterialData m_materialData;
+	std::vector<LightInstance> m_lights;
 };

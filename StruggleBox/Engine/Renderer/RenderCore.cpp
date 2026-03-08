@@ -17,7 +17,7 @@
 
 const size_t FRAME_ALLOCATOR_SIZE = 64 * 1024 * 1024;
 static uint32_t GL_DRAW_MODES[] = {
-    GL_POINTS, GL_LINES, GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN
+    GL_POINTS, GL_LINES, GL_LINE_LOOP, GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN
 };
 
 RenderCore::RenderCore(Allocator& reanderAllocator, ThreadPool& threadPool)

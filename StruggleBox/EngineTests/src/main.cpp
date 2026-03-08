@@ -32,25 +32,25 @@ int main(int argc, char* argv[])
 	core.getGlobalInjector().mapInstance<Renderer3D>(*renderer3D);
 	renderer3D->initialize();
 
-	//Renderer3DDeferred* renderer3DDeferred = CUSTOM_NEW(Renderer3DDeferred, core.getRendererAllocator())(core.getGlobalInjector().getInstance<RenderCore>(),
-	//	core.getRendererAllocator(), core.getGlobalInjector().getInstance<Options>());
-	//core.getGlobalInjector().mapInstance<Renderer3DDeferred>(*renderer3DDeferred);
-	//renderer3DDeferred->initialize();
+	Renderer3DDeferred* renderer3DDeferred = CUSTOM_NEW(Renderer3DDeferred, core.getRendererAllocator())(core.getGlobalInjector().getInstance<RenderCore>(),
+		core.getRendererAllocator(), core.getGlobalInjector().getInstance<Options>());
+	core.getGlobalInjector().mapInstance<Renderer3DDeferred>(*renderer3DDeferred);
+	renderer3DDeferred->initialize();
 
-	ProxyAllocator& rendererAllocator = core.getRendererAllocator();
-	VoxelRenderer* voxelRenderer = CUSTOM_NEW(VoxelRenderer, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(), rendererAllocator, core.getGlobalInjector().getInstance<Options>());
-	core.getGlobalInjector().mapInstance<VoxelRenderer>(*voxelRenderer);
-	core.getGlobalInjector().mapInterfaceToType<Renderer3DDeferred, VoxelRenderer>();
-	voxelRenderer->initialize();
+	//ProxyAllocator& rendererAllocator = core.getRendererAllocator();
+	//VoxelRenderer* voxelRenderer = CUSTOM_NEW(VoxelRenderer, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(), rendererAllocator, core.getGlobalInjector().getInstance<Options>());
+	//core.getGlobalInjector().mapInstance<VoxelRenderer>(*voxelRenderer);
+	//core.getGlobalInjector().mapInterfaceToType<Renderer3DDeferred, VoxelRenderer>();
+	//voxelRenderer->initialize();
 
 	TestsMenu& testsMenu = core.getGlobalInjector().instantiateUnmapped<TestsMenu, Injector, Allocator, Renderer2D, Input, OSWindow, Options, StatTracker>();
 	core.runScene(testsMenu);
 	CUSTOM_DELETE(&testsMenu, core.getGlobalAllocator());
 
-	voxelRenderer->terminate();
-	CUSTOM_DELETE(voxelRenderer, core.getRendererAllocator());
-	//renderer3DDeferred->terminate();
-	//CUSTOM_DELETE(renderer3DDeferred, core.getRendererAllocator());
+	//voxelRenderer->terminate();
+	//CUSTOM_DELETE(voxelRenderer, core.getRendererAllocator());
+	renderer3DDeferred->terminate();
+	CUSTOM_DELETE(renderer3DDeferred, core.getRendererAllocator());
 	renderer3D->terminate();
 	CUSTOM_DELETE(renderer3D, core.getRendererAllocator());
 	renderer2D->terminate();

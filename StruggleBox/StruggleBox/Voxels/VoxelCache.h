@@ -26,6 +26,7 @@ public:
 	void draw();
 
 	const VoxelInstanceID addInstance(const std::string& fileName);
+	const VoxelInstanceID addInstance(const std::string& fileName, const glm::vec3& pos, const glm::vec3& scale, const glm::quat& rot, const Color& color);
 	void removeInstance(const std::string& fileName, const VoxelInstanceID instanceID);
 	ColoredInstanceTransform3DData* getInstance(const std::string& fileName, const VoxelInstanceID instanceID);
 

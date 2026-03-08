@@ -4,11 +4,11 @@
 #include "DrawParameters.h"
 #include "FrameBuffer.h"
 #include "GBuffer.h"
+#include "Lighting3DDeferred.h"
 #include "Material.h"
 #include "ReflectionProbe.h"
 #include "RenderCore.h"
-#include "Lighting3DDeferred.h"
-#include "RenderDataBuffer.h"
+#include "VertexDataBufferMap.h"
 #include <map>
 
 class Allocator;
@@ -24,7 +24,6 @@ public:
 	void terminate();
 	void update(const double deltaTime);
 	void flush();
-
 
 	TexturedPBRVertexData* bufferPBRTexturedTriangles(const size_t count, const TextureID textureID);
 	DrawDataID getInstanceDrawData(const std::string& meshName);
@@ -63,10 +62,10 @@ private:
 	ShaderID m_colored2DVertsShaderID;
 	ShaderID m_instancedPBRMeshShaderID;
 
-	RenderDataBuffer<TextureID, TexturedPBRVertexData> m_pbrTexturedTriVertsBuffers;
+	VertexDataBufferMap<TextureID, TexturedPBRVertexData> m_pbrTexturedTriVertsBuffers;
 	std::map<std::string, DrawDataID> m_instancedMeshCache;
-	RenderDataBuffer<DrawDataID, TexturedPBRVertexData> m_instancedMeshBuffers;
-	RenderDataBuffer<DrawParameters, InstanceTransformData3D> m_instancedMeshInstanceBuffers;
+	VertexDataBufferMap<DrawDataID, TexturedPBRVertexData> m_instancedMeshBuffers;
+	VertexDataBufferMap<DrawParameters, InstanceTransformData3D> m_instancedMeshInstanceBuffers;
 	std::map<ShaderID, std::map<TextureID, TempVertBuffer>> m_impostorBuffers;
 	std::vector<LightInstance> m_lights;
 

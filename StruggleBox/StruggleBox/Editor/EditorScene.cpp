@@ -325,18 +325,18 @@ void EditorScene::drawBoxOutline(glm::vec3 center, glm::vec3 boxSize, Color colo
 	const glm::vec3 bottomLeftFront = center + glm::vec3(-boxSize.x, -boxSize.y, boxSize.z);
 	const glm::vec3 bottomRightFront = center + glm::vec3(-boxSize.x, boxSize.y, boxSize.z);
 	
-	//m_renderer.getPlugin3D().Buffer3DLine(topLeftBack, topLeftFront, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topLeftFront, topRightFront, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topRightFront, topRightBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topRightBack, topLeftBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(bottomLeftBack, bottomLeftFront, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(bottomLeftFront, bottomRightFront, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(bottomRightFront, bottomRightBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(bottomRightBack, bottomLeftBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topLeftBack, bottomLeftBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topLeftFront, bottomLeftFront, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topRightBack, bottomRightBack, color, color);
-	//m_renderer.getPlugin3D().Buffer3DLine(topRightFront, bottomRightFront, color, color);
+	m_renderer.buffer3DLine(topLeftBack, topLeftFront, color, color);
+	m_renderer.buffer3DLine(topLeftFront, topRightFront, color, color);
+	m_renderer.buffer3DLine(topRightFront, topRightBack, color, color);
+	m_renderer.buffer3DLine(topRightBack, topLeftBack, color, color);
+	m_renderer.buffer3DLine(bottomLeftBack, bottomLeftFront, color, color);
+	m_renderer.buffer3DLine(bottomLeftFront, bottomRightFront, color, color);
+	m_renderer.buffer3DLine(bottomRightFront, bottomRightBack, color, color);
+	m_renderer.buffer3DLine(bottomRightBack, bottomLeftBack, color, color);
+	m_renderer.buffer3DLine(topLeftBack, bottomLeftBack, color, color);
+	m_renderer.buffer3DLine(topLeftFront, bottomLeftFront, color, color);
+	m_renderer.buffer3DLine(topRightBack, bottomRightBack, color, color);
+	m_renderer.buffer3DLine(topRightFront, bottomRightFront, color, color);
 }
 
 void EditorScene::HandleMovement()
@@ -347,7 +347,7 @@ void EditorScene::HandleMovement()
 	if (!m_renderer.getDefaultCamera().getThirdPerson())
 	{
 		glm::vec3 movement = m_renderer.getDefaultCamera().getMovement();
-		m_renderer.getDefaultCamera().setMovement(glm::vec3(m_inputMove.x, movement.y, m_inputMove.y));
+		m_renderer.getDefaultCamera().setMovement(glm::vec3(m_inputMove.x, movement.y, m_inputMove.y) * 10.f);
 	}
 	float joySensitivity = 2.0f;
 	float rotationX = -m_inputRotate.x * joySensitivity;

@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ComputeTestScene.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Render3DTestScene.cpp" />
     <ClCompile Include="src\RenderPBRTestScene.cpp" />
@@ -149,11 +150,12 @@
     <ClCompile Include="src\VoxelTestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\VoxelTestScene.h" />
+    <ClInclude Include="src\ComputeTestScene.h" />
     <ClInclude Include="src\Render3DTestScene.h" />
     <ClInclude Include="src\RenderPBRTestScene.h" />
     <ClInclude Include="src\RenderTestScene.h" />
     <ClInclude Include="src\TestsMenu.h" />
+    <ClInclude Include="src\VoxelTestScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

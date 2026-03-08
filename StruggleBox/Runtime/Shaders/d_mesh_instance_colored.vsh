@@ -11,11 +11,12 @@
 // "instance_material" contains roughness and metalness
 layout (location = 0) in vec3 v_vertex;
 layout (location = 1) in vec3 v_normal;
-layout (location = 2) in vec3 instance_position;
-layout (location = 3) in vec3 instance_scale;
-layout (location = 4) in vec4 instance_rotation;
-layout (location = 5) in vec4 instance_color;
-layout (location = 6) in vec3 instance_material;
+layout (location = 2) in vec4 v_color;
+layout (location = 3) in vec3 v_material;
+layout (location = 4) in vec3 instance_position;
+layout (location = 5) in vec3 instance_scale;
+layout (location = 6) in vec4 instance_rotation;
+layout (location = 7) in vec4 instance_color;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -63,8 +64,8 @@ void main(void)
 
     gl_Position = projectionMatrix * viewMatrix * (vec4(vertex, 1.0));
 
-    fragment.color = instance_color;
-    fragment.material = instance_material;
+    fragment.color = instance_color * v_color;
+    fragment.material = v_material;
     fragment.normal = normalize(modelMatrix * v_normal);
     fragment.fragPos = vertex;
     fragment.depth = gl_Position.z;

@@ -13,6 +13,7 @@
 #include "StatTracker.h"
 #include "ButtonNode.h"
 #include "LabelNode.h"
+#include "ComputeTestScene.h"
 #include "RenderTestScene.h"
 #include "Render3DTestScene.h"
 #include "RenderPBRTestScene.h"
@@ -77,6 +78,14 @@ void TestsMenu::Initialize()
 		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
 		});
 	m_gui.getRoot().addChild(buttonVoxel);
+	buttonPosY -= buttonSpacing;
+	ButtonNode* buttonCompute = createMenuButton("Compute Tests");
+	buttonCompute->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+	buttonCompute->setCallback([this](bool) {
+		ComputeTestScene& testScene = m_injector.instantiateUnmapped<ComputeTestScene, Allocator, VoxelRenderer, RenderCore, SceneManager, Input, OSWindow, Options, StatTracker>();
+		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
+		});
+	m_gui.getRoot().addChild(buttonCompute);
 }
 
 void TestsMenu::Update(const double delta)

@@ -40,10 +40,10 @@ LocalGame::LocalGame(
     SceneManager& sceneManager)
     : GUIScene("Game", allocator, renderCore, input, window, options, statTracker)
     , m_sceneManager(sceneManager)
-    , m_renderer3D(renderer3D)
-    , _world(allocator, injector, renderer3D, options)
-    , _entityManager(_world.getEntityManager())
-    , loadLabelID(-1)
+    , m_renderer(renderer3D)
+    , m_world(allocator, injector, renderer3D, options)
+    , m_entityManager(m_world.getEntityManager())
+    , m_loadLabelID(-1)
     , m_aiming(false)
     , m_crosshairSprite(nullptr)
 {
@@ -61,14 +61,17 @@ void LocalGame::Initialize()
     GUIScene::Initialize();
     ShowGame();
 
-    _world.Initialize();
-    _world.getPhysics().setCollisionCB(std::bind(&LocalGame::onCollision, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_renderer3D.getDefaultCamera().setThirdPerson(true);
-    m_renderer3D.getDefaultCamera().setElasticMovement(true);
+    m_world.Initialize();
+    m_world.getPhysics().setCollisionCB(std::bind(&LocalGame::onCollision, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
-    _world.paused = false;
+    m_world.paused = false;
     m_options.getOption<bool>("r_grabCursor") = true;
     SDL_HideCursor();
+
+    //m_renderer.getDefaultCamera().setThirdPerson(true);
+    //m_renderer.getDefaultCamera().setElasticMovement(true);
+    m_renderer.getDefaultCamera().setPosition(glm::vec3(16.f, 16.f, 16.f));
+    m_renderer.getDefaultCamera().setRotation(glm::vec3(5.75f, -5.5f, 0.f));
 }
 
 void LocalGame::ReInitialize()
@@ -118,10 +121,18 @@ void LocalGame::Update(const double delta)
 {
     GUIScene::Update(delta);
 
-    UpdateMovement();
+    if (m_world.paused)
+    {
+        HandleFreeCameraMovement();
+    }
+    else
+    {
+        UpdateMovement();
+    }
 
-    _world.Update(delta);
-    Entity* player = _entityManager.getEntity(_world.playerID);
+    m_renderer.update(delta);
+    m_world.Update(delta);
+    Entity* player = m_entityManager.getEntity(m_world.m_playerID);
     if (player)
     {
         const glm::vec3& pPos = player->GetAttributeDataPtr<glm::vec3>("position");
@@ -130,40 +141,39 @@ void LocalGame::Update(const double delta)
         const bool OVER_THE_SHOULDER_CAMERA = true;
         if (OVER_THE_SHOULDER_CAMERA)
         {
-            const glm::quat camRot = glm::quat(m_renderer3D.getDefaultCamera().getRotation());
+            const glm::quat camRot = glm::quat(m_renderer.getDefaultCamera().getRotation());
             const glm::vec3 rightOfPlayer = camRot * glm::vec3(1.f, 1.f, 0.f);
-            m_renderer3D.getDefaultCamera().setTargetPosition(pPos + rightOfPlayer);
+            m_renderer.getDefaultCamera().setTargetPosition(pPos + rightOfPlayer);
         }
         else
         {
-            m_renderer3D.getDefaultCamera().setTargetPosition(pPos);
+            m_renderer.getDefaultCamera().setTargetPosition(pPos);
         }
-        if (m_renderer3D.getDefaultCamera().getAutoRotate())
+        if (m_renderer.getDefaultCamera().getAutoRotate())
         {
-            m_renderer3D.getDefaultCamera().setTargetRotation(glm::eulerAngles(pRot));
+            m_renderer.getDefaultCamera().setTargetRotation(glm::eulerAngles(pRot));
         }
     }
 }
 
 void LocalGame::Draw()
 {    
-    GUIScene::Draw();
 
-    cursorWorldPos = m_renderer3D.getCursor3DPos(cursorScrnPos);
-    _world.Draw();
-    //_entityManager.draw();
+    cursorWorldPos = m_renderer.getCursor3DPos(cursorScrnPos);
+    m_world.Draw();
+    m_entityManager.draw();
 
     
     // Render game relevant info
-    Entity* player = _entityManager.getEntity(_world.playerID);
-    if (player)
-    {
-        const glm::vec3 pos = player->GetAttributeDataPtr<glm::vec3>("position");
+    //Entity* player = _entityManager.getEntity(_world.playerID);
+    //if (player)
+    //{
+    //    const glm::vec3 pos = player->GetAttributeDataPtr<glm::vec3>("position");
         //m_renderer.getPlugin3D().bufferEmissive3DLine(pos, cursorWorldPos, COLOR_WHITE, COLOR_RED);
 			//glm::quat rot = player->GetAttributeDataPtr<glm::quat>("rotation");
    //         int playerHealth = player->GetAttributeDataPtr<int>("health");
    //         _renderer.Draw2DProgressBar(pos+glm::vec3(0.0f,1.5f,0.0f), 100, 16, playerHealth/100.0f, COLOR_GREY, COLOR_GREEN);
-        }
+   //}
 
 
     if (m_crosshairSprite)
@@ -181,7 +191,8 @@ void LocalGame::Draw()
 
     //_world.getVoxelFactory().draw();
 
-    m_renderer3D.flush();
+    m_renderer.flush();
+    GUIScene::Draw();
 }
 
 bool LocalGame::OnEvent(const InputEvent event, const float amount)
@@ -191,13 +202,13 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
         return true;
     }
 
-    if ( amount == 1.0f )
+    if (amount == 1.0f)
     {
         if (event == InputEvent::Shoot) 
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID))
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID))
             {
-                HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid");
+                HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid");
                 if (human)
                 {
                     human->UseRightHand();
@@ -206,50 +217,50 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
                 {
                     const glm::vec3 playerPos = player->GetAttributeDataPtr<glm::vec3>("position");
                     const glm::vec3 vel = glm::normalize(cursorWorldPos - playerPos);
-                    const uint32_t fireballID = _world.createFireball(playerPos + (vel * 2.f), vel * 60.f, 0.5f);
+                    const uint32_t fireballID = m_world.createFireball(playerPos + (vel * 2.f), vel * 60.f, 0.5f);
                 }
             }
         } 
         else if (event == InputEvent::Aim)
         {
             m_aiming = true;
-            if (HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid"))
+            if (HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid"))
             {
                 human->ThrowStart();
             }
         } 
         else if (event == InputEvent::Block)
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID))
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID))
             {
                 player->GetAttributeDataPtr<bool>("blocking") = true;
             }
         }
         else if (event == InputEvent::Pause)
         {
-            _world.paused = !_world.paused;
+            m_world.paused = !m_world.paused;
         }
         else if (event == InputEvent::Run)
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID)) 
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID)) 
             {
                 player->GetAttributeDataPtr<bool>("running") = true;
             } 
         }
         else if (event == InputEvent::Sneak)
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID))
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID))
             {
                 player->GetAttributeDataPtr<bool>("sneaking") = true;
             }
         }
     }
-    else if ( amount == -1.0f )
+    else if (amount == -1.0f)
     {
         if (event == InputEvent::Aim)
         {
             m_aiming = false;
-            HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid");
+            HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid");
             if (human)
             {
                 human->ThrowItem(cursorWorldPos);
@@ -257,23 +268,23 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
         }
         else if (event == InputEvent::Block)
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID))
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID))
             {
                 player->GetAttributeDataPtr<bool>("blocking") = false;
             }
         }
         else if (event == InputEvent::Run)
         {
-            if (Entity* player = _entityManager.getEntity(_world.playerID))
+            if (Entity* player = m_entityManager.getEntity(m_world.m_playerID))
             {
                 player->GetAttributeDataPtr<bool>("running") = false;
             }
         }
         else if (event == InputEvent::Sneak)
         {
-            if (_world.playerID && !_world.paused )
+            if (m_world.m_playerID && !m_world.paused )
             {
-                Entity* player = _entityManager.getEntity(_world.playerID);
+                Entity* player = m_entityManager.getEntity(m_world.m_playerID);
                 player->GetAttributeDataPtr<bool>("sneaking")  = false;
             }
         }
@@ -283,19 +294,19 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
         }
         else if (event == InputEvent::Edit_Mode_Blocks) 
         {
-            const btVector3 cawp = btVector3(m_renderer3D.getDefaultCamera().getPosition().x, m_renderer3D.getDefaultCamera().getPosition().y, m_renderer3D.getDefaultCamera().getPosition().z);
+            const btVector3 cawp = btVector3(m_renderer.getDefaultCamera().getPosition().x, m_renderer.getDefaultCamera().getPosition().y, m_renderer.getDefaultCamera().getPosition().z);
             const btVector3 cuwp = btVector3(cursorWorldPos.x, cursorWorldPos.y, cursorWorldPos.z);
-            _world.getPhysics().Explosion(cuwp, 10.f, 10.025f);
+            m_world.getPhysics().Explosion(cuwp, 10.f, 10.025f);
         }
         else if (event == InputEvent::Edit_Mode_Object)
         {
-           const glm::vec3 vel = (cursorWorldPos - m_renderer3D.getDefaultCamera().getPosition());
-            _world.AddSkeleton(cursorWorldPos - glm::normalize(vel));
+           const glm::vec3 vel = (cursorWorldPos - m_renderer.getDefaultCamera().getPosition());
+            m_world.AddSkeleton(cursorWorldPos - glm::normalize(vel));
         }
         else if (event == InputEvent::Start)
         {
-            const glm::vec3 vel = (cursorWorldPos - m_renderer3D.getDefaultCamera().getPosition());
-            _world.AddHuman(cursorWorldPos - glm::normalize(vel));
+            const glm::vec3 vel = (cursorWorldPos - m_renderer.getDefaultCamera().getPosition());
+            m_world.AddHuman(cursorWorldPos - glm::normalize(vel));
             return true;
         }
         else if (event == InputEvent::Back)
@@ -311,11 +322,11 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
         else if (event == InputEvent::Grab)
         {
             // Grab nearest item
-            Entity* player = _entityManager.getEntity(_world.playerID);
-            HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid");
-            Entity* grabEntity = _entityManager.getNearestEntity(
+            Entity* player = m_entityManager.getEntity(m_world.m_playerID);
+            HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid");
+            Entity* grabEntity = m_entityManager.getNearestEntity(
                 player->GetAttributeDataPtr<glm::vec3>("position"),
-                _world.playerID,
+                m_world.m_playerID,
                 ENTITY_ITEM);
             if (grabEntity) {
                 human->Grab(grabEntity);
@@ -349,27 +360,27 @@ bool LocalGame::OnEvent(const InputEvent event, const float amount)
     }
     else if (event == InputEvent::Jump) 
     {
-        if (Entity* player = _entityManager.getEntity(_world.playerID)) 
+        if (Entity* player = m_entityManager.getEntity(m_world.m_playerID)) 
         {
             player->GetAttributeDataPtr<bool>("jumping") = (amount > 0.5f);
         }
     }
     //else if (event == InputEvent::Look_Down) 
     //{
-    //    m_renderer3D.getDefaultCamera().shakeAmount -= 1.0f;
+    //    m_renderer.getDefaultCamera().shakeAmount -= 1.0f;
     //} 
     //else if (event == InputEvent::Look_Up)
     //{
-    //    m_renderer3D.getDefaultCamera().shakeAmount += 1.0f;
+    //    m_renderer.getDefaultCamera().shakeAmount += 1.0f;
     //}
-    else if (event == InputEvent::Scroll_Y) 
-    {
-        if (m_renderer3D.getDefaultCamera().getThirdPerson())
-        {
-            m_renderer3D.getDefaultCamera().setDistance(m_renderer3D.getDefaultCamera().getDistance() + amount);
-            return true;
-        }
-    }
+    //else if (event == InputEvent::Scroll_Y) 
+    //{
+    //    if (m_renderer.getDefaultCamera().getThirdPerson())
+    //    {
+    //        m_renderer.getDefaultCamera().setDistance(m_renderer.getDefaultCamera().getDistance() + amount);
+    //        return true;
+    //    }
+    //}
     return false;
 }
 
@@ -382,23 +393,23 @@ bool LocalGame::OnMouse(const glm::ivec2 &coord)
     if (m_options.getOption<bool>("r_grabCursor"))
 	{
         float mouseSensitivity = 0.01f;
-        float rotationX = (midWindowX-coord.x)*mouseSensitivity;
-        float rotationY = (midWindowY-coord.y)*mouseSensitivity;
+        float rotationX = (midWindowX - coord.x) * mouseSensitivity;
+        float rotationY = (midWindowY - coord.y) * mouseSensitivity;
 		
-        if (m_renderer3D.getDefaultCamera().getThirdPerson())
+        if (m_renderer.getDefaultCamera().getThirdPerson())
         {
             rotationX *= -1.0f;
             rotationY *= -1.0f;
         }
 
-        HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid");
-        if (human && !m_renderer3D.getDefaultCamera().getThirdPerson())
+        HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid");
+        if (human && !m_renderer.getDefaultCamera().getThirdPerson())
         {
             human->Rotate(rotationX, rotationY);
         }
         else
         {
-            m_renderer3D.getDefaultCamera().rotate(rotationX, rotationY);
+            m_renderer.getDefaultCamera().rotate(rotationX, rotationY);
         }
         // Reset the mouse position to the centre of the window each frame
         m_input.MoveCursor(glm::ivec2(midWindowX, midWindowY));
@@ -424,33 +435,49 @@ void LocalGame::HandleJoyAxis(int axis, float value)
 //    }
 }
 
+void LocalGame::HandleFreeCameraMovement()
+{
+    float deadZone = 0.35f;
+    if (fabsf(joyMoveInput.x) + fabsf(joyMoveInput.y) < deadZone) joyMoveInput = glm::vec2();
+    if (fabsf(joyCameraInput.x) + fabsf(joyCameraInput.y) < deadZone) joyCameraInput = glm::vec2();
+    if (!m_renderer.getDefaultCamera().getThirdPerson())
+    {
+        glm::vec3 movement = m_renderer.getDefaultCamera().getMovement();
+        m_renderer.getDefaultCamera().setMovement(glm::vec3(joyMoveInput.x, movement.y, joyMoveInput.y));
+    }
+    float joySensitivity = 2.0f;
+    float rotationX = -joyCameraInput.x * joySensitivity;
+    float rotationY = -joyCameraInput.y * joySensitivity;
+    m_renderer.getDefaultCamera().rotate(rotationX, rotationY);
+}
+
 void LocalGame::UpdateMovement()
 {
-    Entity* player = _entityManager.getEntity(_world.playerID);
+    Entity* player = m_entityManager.getEntity(m_world.m_playerID);
     float deadZone = 0.35f;
-    if ( fabsf(joyMoveInput.x)+fabsf(joyMoveInput.y) < deadZone ) joyMoveInput = glm::vec2();
-    if ( fabsf(joyCameraInput.x)+fabsf(joyCameraInput.y) < deadZone ) joyCameraInput = glm::vec2();
+    if (fabsf(joyMoveInput.x) + fabsf(joyMoveInput.y) < deadZone) joyMoveInput = glm::vec2();
+    if (fabsf(joyCameraInput.x) + fabsf(joyCameraInput.y) < deadZone) joyCameraInput = glm::vec2();
 
     float joySensitivity = 2.0f;
     float rotationX = -joyCameraInput.x * joySensitivity;
     float rotationY = -joyCameraInput.y * joySensitivity;
-    m_renderer3D.getDefaultCamera().rotate(rotationX, rotationY);
+    m_renderer.getDefaultCamera().rotate(rotationX, rotationY);
 
-    if (_world.paused)
+    if (m_world.paused)
     {
-        const float movementY = m_renderer3D.getDefaultCamera().getMovement().y;
-        m_renderer3D.getDefaultCamera().setMovement(glm::vec3(joyMoveInput.x, movementY, joyMoveInput.y));
+        const float movementY = m_renderer.getDefaultCamera().getMovement().y;
+        m_renderer.getDefaultCamera().setMovement(glm::vec3(joyMoveInput.x, movementY, joyMoveInput.y));
     } 
     else if (player) 
     {
-        if (m_renderer3D.getDefaultCamera().getThirdPerson())
+        if (m_renderer.getDefaultCamera().getThirdPerson())
         {
-            const glm::vec3 direction = glm::rotateY(glm::vec3(joyMoveInput.x, 0.0f, joyMoveInput.y), m_renderer3D.getDefaultCamera().getRotation().y);
+            const glm::vec3 direction = glm::rotateY(glm::vec3(joyMoveInput.x, 0.0f, joyMoveInput.y), m_renderer.getDefaultCamera().getRotation().y);
             player->GetAttributeDataPtr<glm::vec3>("direction") = direction;
             if (m_aiming)
             {
-                HumanoidComponent* human = (HumanoidComponent*)_entityManager.getComponent(_world.playerID, "Humanoid");
-                human->Rotate(glm::quat(glm::vec3(0.f, m_renderer3D.getDefaultCamera().getRotation().y - M_PI, 0.f)));
+                HumanoidComponent* human = (HumanoidComponent*)m_entityManager.getComponent(m_world.m_playerID, "Humanoid");
+                human->Rotate(glm::quat(glm::vec3(0.f, m_renderer.getDefaultCamera().getRotation().y - M_PI, 0.f)));
             }
         }
         else 
@@ -460,9 +487,9 @@ void LocalGame::UpdateMovement()
             moveInput.y = joyMoveInput.y;
         }
 
-        Entity* player = _entityManager.getEntity(_world.playerID);
+        Entity* player = m_entityManager.getEntity(m_world.m_playerID);
         glm::vec3& lookDir = player->GetAttributeDataPtr<glm::vec3>("lookDirection");
-        lookDir = m_renderer3D.getDefaultCamera().getRotation();
+        lookDir = m_renderer.getDefaultCamera().getRotation();
     }
 }
 
@@ -472,7 +499,6 @@ void LocalGame::SaveWorld(const std::string fileName)
 
 void LocalGame::LoadWorld(const std::string fileName)
 {
-
 }
 
 void LocalGame::onCollision(void* entityA, void* entityB, const glm::vec3& pos, float force)
@@ -508,7 +534,7 @@ void LocalGame::onEntityWorldCollision(Entity* entity, const glm::vec3& pos, flo
             const glm::vec3 sparkPos = pos + (randPos * 0.2f);
             const glm::vec3 vel = (sparkPos - pos) * force / 5.f;
             btVector3 p = btVector3(sparkPos.x, sparkPos.y, sparkPos.z);
-            PhysicsCube* cube = _world.AddDynaCube(p, btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), 2);
+            PhysicsCube* cube = m_world.AddDynaCube(p, btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), 2);
             cube->setVelocity(btVector3(vel.x, vel.y, vel.z));
             cube->setTimer(1.f);
         }
@@ -536,7 +562,7 @@ void LocalGame::onProjectileImpact(Entity* projectile, Entity* hitEntity, const 
     {
         return;
     }
-    _entityManager.destroyEntity(projectile->GetID());
+    m_entityManager.destroyEntity(projectile->GetID());
     projectile->GetAttributeDataPtr<bool>("done") = true;
 
     const glm::vec3 projectilePos = projectile->GetAttributeDataPtr<glm::vec3>("position");
@@ -548,24 +574,24 @@ void LocalGame::onProjectileImpact(Entity* projectile, Entity* hitEntity, const 
         const glm::vec3 sparkPos = projectilePos + (randPos * 0.25f);
         const glm::vec3 vel = randPos * ((2.f + force) * 10.f);
         btVector3 p = btVector3(sparkPos.x, sparkPos.y, sparkPos.z);
-        PhysicsCube* cube = _world.AddDynaCube(p, btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), 2);
+        PhysicsCube* cube = m_world.AddDynaCube(p, btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), 2);
         cube->setVelocity(btVector3(vel.x, vel.y, vel.z));
         cube->setTimer(1.f);
     }
 
-    _world.Explosion(projectilePos, 2.f, 30.f);
+    m_world.Explosion(projectilePos, 2.f, 30.f);
 
     const int hitType = hitEntity->GetAttributeDataPtr<int>("type");
     if (hitType == ENTITY_PROJECTILE)
     {
-        _entityManager.destroyEntity(hitEntity->GetID());
+        m_entityManager.destroyEntity(hitEntity->GetID());
         return;
     }
 
     if (hitType == ENTITY_SKELETON || hitType == ENTITY_HUMANOID)
     {
-        _world.AddParticleEntity("Blood3D.plist", pos);
-        if (HealthComponent* healthB = (HealthComponent*)_entityManager.getComponent(hitEntity->GetID(), "Health"))
+        m_world.AddParticleEntity("Blood3D.plist", pos);
+        if (HealthComponent* healthB = (HealthComponent*)m_entityManager.getComponent(hitEntity->GetID(), "Health"))
         {
             healthB->takeDamage(150);
         }

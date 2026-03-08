@@ -378,7 +378,7 @@
     <ClInclude Include="Renderer\ReflectionProbe.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\RenderDataBuffer.h">
+    <ClInclude Include="Renderer\VertexDataBufferMap.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\VoxelRenderer.h">
@@ -410,6 +410,9 @@
     </ClInclude>
     <ClInclude Include="GUI\ScrollBar.h">
       <Filter>Header Files\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\VertexDataBuffer.h">
+      <Filter>Header Files\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -6,11 +6,8 @@ uniform sampler2D albedoMap;
 uniform sampler2D materialMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
-uniform samplerCube cubeMap;
 
 uniform vec3 camPos;
-uniform float reflectionSize;
-uniform vec3 reflectionPos;
 uniform vec2 depthParameter;
 uniform float nearDepth = 0.1;
 uniform float farDepth = 250.1;
@@ -22,18 +19,18 @@ uniform vec3 lightSpotDirection;        // Spot light direction
 uniform float lightSpotCutoff = 360.0;  // For spot lights < 90.0
 uniform float lightSpotExponent = 1.0;  // Spot light exponent
 
-uniform bool renderFog;
 
 uniform float globalTime;
 
 in vec2 texCoord;
 in vec3 viewRay;
 
-uniform float fogDensity = 1.0;          // Global fog density
-uniform float fogHeightFalloff = 0.5;   // Fog height falloff parameter
-uniform float fogExtinctionFalloff = 20.0;
-uniform float fogInscatteringFalloff = 20.0;
-uniform vec3 fogColor = vec3(0.5,0.6,0.8);
+//uniform bool renderFog;
+//uniform float fogDensity = 1.0;          // Global fog density
+//uniform float fogHeightFalloff = 0.5;   // Fog height falloff parameter
+//uniform float fogExtinctionFalloff = 20.0;
+//uniform float fogInscatteringFalloff = 20.0;
+//uniform vec3 fogColor = vec3(0.5,0.6,0.8);
 
 // Calculate amount of fog due to atmosphere scattering
 // float VolumetricFog(float dist,         // camera to point distance
@@ -46,10 +43,11 @@ uniform vec3 fogColor = vec3(0.5,0.6,0.8);
 //     float fogAmount = max(min(fogDensity * (fogDistAmount + fogHeightAmount), 1.0), 0.0);
 //     return fogAmount;
 // }
+//#define GAMMACORRECT
 //--- noise for final light blending
 //note: from https://www.shadertoy.com/view/4djSRW
 // This set suits the coords of of 0-1.0 ranges..
-#define RENDERNOISE
+//#define RENDERNOISE
 #define MOD3 vec3(443.8975,397.2973, 491.1871)
 vec3 hash32(vec2 p)
 {
@@ -242,10 +240,10 @@ void main(void)
     float metalness = material.g;
 
     // Linearize depth
-    float depthLinear = -depthParameter.y/(depthParameter.x - depth);
+    float depthLinear = -depthParameter.y / (depthParameter.x - depth);
     float depthProjected = depthLinear/(farDepth-nearDepth);
     // Get distance to pixel in world coordinates
-    vec3 pixelDistance = viewRay*depthProjected;
+    vec3 pixelDistance = viewRay * depthProjected;
     // Project pixel world position
     vec3 pixelWorldPos = camPos + pixelDistance;
 
@@ -261,8 +259,8 @@ void main(void)
     {
         float dist = length(lightToFragment);
         if (dist > lightPosition.w) discard;
-        //attenuation = getLightAttenuation(lightDir, dist/lightPosition.w);
-        attenuation = getLightAttenuation(lightDir, dist);
+        attenuation = getLightAttenuation(lightDir, dist/lightPosition.w);
+        //attenuation = getLightAttenuation(lightDir, dist);
     }
 
     // disney bdrf
@@ -276,14 +274,16 @@ void main(void)
 
     // ----------------------------------------------------------------------
     // POST PROCESSING
-
+#ifdef GAMMACORRECT
     // Gamma correct
     surfaceColor = pow(surfaceColor, vec3(0.45));
     // Contrast adjust - cute trick learned from iq
     surfaceColor = mix( surfaceColor, vec3(dot(surfaceColor,vec3(0.333))), -0.6 );
     // color tint
     surfaceColor = .5 * surfaceColor + .5 * surfaceColor * vec3(1., 1., .9);
+#endif
     colorOut.rgb = surfaceColor;
+    //colorOut.rgb = vec3(1,1,1);
 
 #ifdef RENDERNOISE
     colorOut.rgb = triangleNoise(colorOut.rgb);

@@ -24,7 +24,7 @@ Lighting3DDeferred::Lighting3DDeferred(RenderCore& renderCore)
 	, m_fogHeightFalloff(0.25f)
 	, m_fogExtinctionFalloff(20.0f)
 	, m_fogInscatteringFalloff(20.0f)
-	, m_basicLighting(true)
+	, m_basicLighting(false)
 {
 }
 
@@ -44,7 +44,7 @@ void Lighting3DDeferred::initialize()
 	}
 	else
 	{
-		m_lightPassShaderID = m_renderCore.getShaderID("d_light_pass_disney.vsh", "d_light_pass_disney.fsh");
+		m_lightPassShaderID = m_renderCore.getShaderID("d_light_pass_badass.vsh", "d_light_pass_badass.fsh");
 	}
 }
 
@@ -128,14 +128,17 @@ void Lighting3DDeferred::renderLighting(
 	shader->setUniform2fv("depthParameter", depthParameter);
 	shader->setUniform1fv("farDepth", farDepth);
 	shader->setUniform1fv("nearDepth", nearDepth);
-	//shader->setUniform1iv("renderFog", m_renderFog);
 	//shader->setUniform1fv("fogDensity", m_fogDensity);
 	//shader->setUniform1fv("fogHeightFalloff", m_fogHeightFalloff);
 	//shader->setUniform1fv("fogExtinctionFalloff", m_fogExtinctionFalloff);
 	//shader->setUniform1fv("fogInscatteringFalloff", m_fogInscatteringFalloff);
 	//shader->setUniform3fv("fogColor", m_fogColor.r, m_fogColor.g, m_fogColor.b);
-	//const float globalTime = Timer::RunTimeSeconds();
-	//shader->setUniform1fv("globalTime", globalTime);
+	if (!m_basicLighting)
+	{
+		//shader->setUniform1iv("renderFog", m_renderFog);
+		//const float globalTime = Timer::RunTimeSeconds();
+		//shader->setUniform1fv("globalTime", globalTime);
+	}
 
 	// Render all lights
 	for (int i = 0; i < lights.size(); i++)

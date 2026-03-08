@@ -74,14 +74,14 @@ void VoxelTestScene::Initialize()
 	else
 	{
 		m_simplerCubeDrawDataID = m_renderer3D.createVoxelMeshDrawData();
-		m_simplerCubeShaderID = m_renderCore.getShaderID("d_cube_instance_color.vsh", "d_cube_instance_color.fsh");
+		m_simplerCubeShaderID = m_renderCore.getShaderID("d_mesh_instance_colored.vsh", "d_mesh_instance_colored.fsh");
 
 		VoxelMeshPBRVertexData* simplerCubeVerts = m_renderer3D.bufferVoxelMeshVerts(36, m_simplerCubeDrawDataID);
 		for (uint32_t i = 0; i < 36; i++)
 		{
 			const glm::vec3 v = glm::vec3(CubeConstants::raw_cube_vertices[i * 4], CubeConstants::raw_cube_vertices[i * 4 + 1], CubeConstants::raw_cube_vertices[i * 4 + 2]);
 			const glm::vec3 n = glm::vec3(CubeConstants::raw_cube_normals[i * 3], CubeConstants::raw_cube_normals[i * 3 + 1], CubeConstants::raw_cube_normals[i * 3 + 2]);
-			simplerCubeVerts[i] = { v, n, COLOR_WHITE };
+			simplerCubeVerts[i] = { v, n, COLOR_WHITE, glm::vec3(1,1,1)};
 		}
 	}
 }
@@ -178,12 +178,12 @@ void VoxelTestScene::Draw()
 		drawParams.blendMode = BLEND_MODE_DISABLED;
 		drawParams.depthMode = DEPTH_MODE_DEFAULT;
 
-		ColoredInstanceTransform3DData* instances = m_renderer3D.bufferVoxelMeshInstances(256, drawParams);
+		ColoredInstanceTransform3DData* instances = m_renderer3D.bufferVoxelMeshInstances(256, m_simplerCubeDrawDataID);
 		for (uint32_t x = 0; x < 16; x++)
 		{
 			for (uint32_t y = 0; y < 16; y++)
 			{
-				instances[(x * 16) + y] = { glm::vec3(x, 0.0, y), glm::quat(), HSVColor((x / 16.f)*360.f, y / 16.f, 1.f), glm::vec3(1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 1.f)};
+				instances[(x * 16) + y] = { glm::vec3(x, 0.0, y), glm::vec3(1.f, 1.f, 1.f), glm::quat(), HSVColor((x / 16.f)*360.f, y / 16.f, 1.f)};
 			}
 		}
 

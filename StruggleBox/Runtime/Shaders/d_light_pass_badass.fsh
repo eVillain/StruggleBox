@@ -367,7 +367,7 @@ void main(void)
 
     vec3 ambient = lightColor.rgb * lightColor.a;
 
-		colorOut.rgb = ambient + diffuse + specular;
+	colorOut.rgb = ambient + diffuse + specular;
     //colorOut.rgb = pow(colorOut.rgb * .4, vec3(1. / 2.2));
 
 #ifdef RENDERNOISE
