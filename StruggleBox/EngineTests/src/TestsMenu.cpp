@@ -82,7 +82,7 @@ void TestsMenu::Initialize()
 	ButtonNode* buttonCompute = createMenuButton("Compute Tests");
 	buttonCompute->setPosition(glm::vec3(hW, buttonPosY, 1.f));
 	buttonCompute->setCallback([this](bool) {
-		ComputeTestScene& testScene = m_injector.instantiateUnmapped<ComputeTestScene, Allocator, VoxelRenderer, RenderCore, SceneManager, Input, OSWindow, Options, StatTracker>();
+		ComputeTestScene& testScene = m_injector.instantiateUnmapped<ComputeTestScene, Allocator, Renderer2D, RenderCore, SceneManager, Input, OSWindow, Options, StatTracker>();
 		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
 		});
 	m_gui.getRoot().addChild(buttonCompute);

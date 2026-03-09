@@ -13,9 +13,11 @@ public:
 
 	ShaderCache();
 
+	ShaderID addShader(Shader* shader, const std::string& computeName);
 	ShaderID addShader(Shader* shader, const std::string& vertexName, const std::string& fragmentName);
 	ShaderID addShader(Shader* shader, const std::string& geometryName, const std::string& vertexName, const std::string& fragmentName);
 
+	ShaderID getShaderID(const std::string& computeName);
 	ShaderID getShaderID(const std::string& vertexName, const std::string& fragmentName);
 	ShaderID getShaderID(const std::string& geometryName, const std::string& vertexName, const std::string& fragmentName);
 	Shader* getShaderByID(const ShaderID shaderID);

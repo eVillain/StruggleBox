@@ -1,10 +1,23 @@
 #include "ShaderLoader.h"
 
-#include "Shader.h"
-#include "FileUtil.h"
-#include "Log.h"
 #include "Allocator.h"
 #include "ArenaOperators.h"
+#include "FileUtil.h"
+#include "Log.h"
+#include "Shader.h"
+
+Shader* ShaderLoader::load(const std::string& cshFile, Allocator& allocator)
+{
+	const std::string cshPath = FileUtil::GetPath() + "Shaders/" + cshFile;
+	const std::string computeShader = loadFile(cshPath, allocator);
+	if (computeShader.empty())
+	{
+		Log::Error("[ShaderLoader] Compute shader program loading failed!");
+		return nullptr;
+	}
+
+	return loadFromSource(computeShader, allocator);
+}
 
 Shader* ShaderLoader::load(const std::string& vshFile, const std::string& fshFile, Allocator& allocator)
 {
@@ -30,8 +43,6 @@ Shader* ShaderLoader::load(const std::string& gshFile, const std::string& vshFil
 	const std::string vshPath = FileUtil::GetPath() + "Shaders/" + vshFile;
 	const std::string fshPath = FileUtil::GetPath() + "Shaders/" + fshFile;
 
-	//Log::Debug("[ShaderLoader] Loading shader:\n %s\n %s\n %s", gshPath.c_str(), vshPath.c_str(), fshPath.c_str());
-
 	const std::string geomShader = loadFile(gshPath, allocator);
 	const std::string vertShader = loadFile(vshPath, allocator);
 	const std::string fragShader = loadFile(fshPath, allocator);
@@ -42,6 +53,20 @@ Shader* ShaderLoader::load(const std::string& gshFile, const std::string& vshFil
 	}
 
 	return loadFromSource(geomShader, vertShader, fragShader, allocator);
+}
+
+Shader* ShaderLoader::loadFromSource(const std::string& computeShaderSource, Allocator& allocator)
+{
+	Shader* shader = CUSTOM_NEW(Shader, allocator)();
+	shader->initialize(computeShaderSource);
+
+	if (shader->GetProgram() == 0)
+	{
+		Log::Error("[ShaderLoader] Compute shader program compiling failed!");
+		CUSTOM_DELETE(shader, allocator);
+		return nullptr;
+	}
+	return shader;
 }
 
 Shader* ShaderLoader::loadFromSource(const std::string& vshSource, const std::string& fshSource, Allocator& allocator)

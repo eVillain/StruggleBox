@@ -35,4 +35,5 @@ private:
     RenderCore& m_renderCore;
     SceneManager& m_sceneManager;
     TextureID m_textureID;
+    ShaderID m_computeShaderID;
 };

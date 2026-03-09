@@ -9,17 +9,30 @@ ShaderCache::ShaderCache()
 {
 }
 
+ShaderID ShaderCache::addShader(Shader* shader, const std::string& computeName)
+{
+	const std::size_t nameHash = std::hash<std::string>{}(computeName);
+	return addShader(shader, nameHash);
+}
+
 ShaderID ShaderCache::addShader(Shader* shader, const std::string& vertexName, const std::string& fragmentName)
 {
 	const std::string combinedName = vertexName + fragmentName;
 	const std::size_t nameHash = std::hash<std::string>{}(combinedName);
 	return addShader(shader, nameHash);
 }
+
 ShaderID ShaderCache::addShader(Shader* shader, const std::string& geometryName, const std::string& vertexName, const std::string& fragmentName)
 {
 	const std::string combinedName = geometryName + vertexName + fragmentName;
 	const std::size_t nameHash = std::hash<std::string>{}(combinedName);
 	return addShader(shader, nameHash);
+}
+
+ShaderID ShaderCache::getShaderID(const std::string& computeName)
+{
+	const std::size_t nameHash = std::hash<std::string>{}(computeName);
+	return getShaderID(nameHash);
 }
 
 ShaderID ShaderCache::getShaderID(const std::string& vertexName, const std::string& fragmentName)

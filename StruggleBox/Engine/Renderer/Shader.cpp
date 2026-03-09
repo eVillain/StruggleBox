@@ -8,11 +8,55 @@ Shader::Shader()
 	, m_vertexShader(0)
 	, m_geometryShader(0)
 	, m_fragmentShader(0)
+	, m_computeShader(0)
 {
 }
 
 Shader::~Shader()
 {
+}
+
+void Shader::initialize(const std::string& cshSrc)
+{
+	GLint result;
+	const GLchar* source = cshSrc.c_str();
+
+	// compute shader
+	m_computeShader = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(m_computeShader, 1, &source, NULL);
+	glCompileShader(m_computeShader);
+
+	glGetShaderiv(m_computeShader, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE)
+	{
+		GLint length;
+		char* log;
+		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
+		log = (char*)malloc(length);
+		glGetShaderInfoLog(m_computeShader, length, &result, log);
+		Log::Error("[Shader] Program compilation failed: %s\n", log);
+		free(log);
+		m_computeShader = 0;
+		return;
+	};
+
+	// shader Program
+	m_program = glCreateProgram();
+	glAttachShader(m_program, m_computeShader);
+	glLinkProgram(m_program);
+
+	glGetProgramiv(m_program, GL_LINK_STATUS, &result);
+	if (result == GL_FALSE)
+	{
+		GLint length;
+		char* log;
+		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
+		log = (char*)malloc(length);
+		glGetProgramInfoLog(m_program, length, &result, log);
+		Log::Error("[Shader] Program linking failed: %s\n", log);
+		free(log);
+		m_program = 0;
+	}
 }
 
 void Shader::initialize(const std::string& vshSource, const std::string& fshSource)

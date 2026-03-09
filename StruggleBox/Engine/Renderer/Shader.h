@@ -12,6 +12,7 @@ public:
     Shader();
     ~Shader();
 
+    void initialize(const std::string& cshSrc);
     void initialize(const std::string& vshSource, const std::string& fshSource);
 	void initialize(const std::string& gshSource, const std::string& vshSource, const std::string& fshSource);
     void terminate();
@@ -22,6 +23,7 @@ public:
     GLuint GetVertexShader() { return m_vertexShader; }
     GLuint getGeometryShader() { return m_geometryShader; }
     GLuint GetFragmentShader() { return m_fragmentShader; }
+    GLuint GetComputeShader() { return m_computeShader; };
     GLuint GetProgram() { return m_program; };
     
     bool hasUniform(const char* name) const;
@@ -46,6 +48,7 @@ private:
     GLuint m_vertexShader;
     GLuint m_geometryShader;
     GLuint m_fragmentShader;
+    GLuint m_computeShader;
 
     GLuint compile(GLenum type, const GLchar **source);
     GLuint attach(GLuint program, GLenum type, const GLchar **source);

@@ -14,6 +14,7 @@
 #include <functional>
 
 class Allocator;
+class ComputeShader;
 class LinearAllocator;
 class Texture2D;
 class TextureAtlas;
@@ -45,6 +46,7 @@ public:
     TextureAtlasID getTextureAtlasIDForFrame(const std::string& frameName);
     void removeTextureAtlas(const TextureAtlasID textureAtlasID);
 
+    ShaderID getShaderID(const std::string& shaderComputeName);
     ShaderID getShaderID(const std::string& shaderVertexName, const std::string& shaderFragName);
     ShaderID getShaderID(const std::string& shaderGeometryName, const std::string& shaderVertexName, const std::string& shaderFragName);
     ShaderID getShaderIDFromSource(const std::string& shaderVertexSource, const std::string& shaderFragmentSource, const std::string& shaderName);

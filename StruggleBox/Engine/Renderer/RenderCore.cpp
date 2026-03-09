@@ -175,6 +175,20 @@ void RenderCore::removeTextureAtlas(const TextureAtlasID textureAtlasID)
     m_atlasCache.removeTextureAtlas(textureAtlasID);
 }
 
+ShaderID RenderCore::getShaderID(const std::string& shaderComputeName)
+{
+    ShaderID cachedID = m_shaderCache.getShaderID(shaderComputeName);
+    if (cachedID == ShaderCache::NO_SHADER_ID)
+    {
+        Shader* shader = ShaderLoader::load(shaderComputeName, m_allocator);
+        if (shader)
+        {
+            cachedID = m_shaderCache.addShader(shader, shaderComputeName);
+        }
+    }
+    return cachedID;
+}
+
 ShaderID RenderCore::getShaderID(const std::string& shaderVertexName, const std::string& shaderFragName)
 {
     ShaderID cachedID = m_shaderCache.getShaderID(shaderVertexName, shaderFragName);
