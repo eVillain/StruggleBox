@@ -2,7 +2,7 @@
 
 #include "ParticleSystem.h"
 #include "Dictionary.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "Base64.h"
 #include "Log.h"
 #include <fstream>              // File input/output

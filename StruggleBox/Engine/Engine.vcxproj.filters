@@ -288,7 +288,7 @@
     <ClInclude Include="Renderer\ShaderLoader.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Texture2D.h">
+    <ClInclude Include="Renderer\Texture.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\TextureAtlas.h">
@@ -412,6 +412,9 @@
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\VertexDataBuffer.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Octree.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
@@ -554,7 +557,7 @@
     <ClCompile Include="Renderer\ShaderLoader.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Texture2D.cpp">
+    <ClCompile Include="Renderer\Texture.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\TextureAtlas.cpp">
@@ -658,6 +661,9 @@
     </ClCompile>
     <ClCompile Include="GUI\ScrollBar.cpp">
       <Filter>Source Files\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Octree.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

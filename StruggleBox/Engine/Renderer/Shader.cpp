@@ -31,7 +31,7 @@ void Shader::initialize(const std::string& cshSrc)
 	{
 		GLint length;
 		char* log;
-		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
+		glGetShaderiv(m_computeShader, GL_INFO_LOG_LENGTH, &length);
 		log = (char*)malloc(length);
 		glGetShaderInfoLog(m_computeShader, length, &result, log);
 		Log::Error("[Shader] Program compilation failed: %s\n", log);

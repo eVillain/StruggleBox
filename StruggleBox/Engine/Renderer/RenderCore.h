@@ -14,9 +14,8 @@
 #include <functional>
 
 class Allocator;
-class ComputeShader;
 class LinearAllocator;
-class Texture2D;
+class Texture;
 class TextureAtlas;
 class Shader;
 class TextAtlas;
@@ -38,7 +37,7 @@ public:
 
     TextureID getTextureID(const std::string& textureName, bool load);
     void getTextureIDAsync(const std::string& textureName, const std::function<void(TextureID)>& callback);
-    const Texture2D* getTextureByID(const TextureID textureID);
+    const Texture* getTextureByID(const TextureID textureID);
     void removeTexture(const TextureID textureID);
 
     TextureAtlasID getTextureAtlasID(const std::string& textureAtlasName);

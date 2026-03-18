@@ -176,6 +176,29 @@ glm::mat4 Camera3D::getRotationMatrix() const
     return rotationMatrix;
 }
 
+void Camera3D::getFrustumCorners(glm::vec3& ray00, glm::vec3& ray10, glm::vec3& ray01, glm::vec3& ray11)
+{
+    const glm::mat4 projection = getProjectionMatrix();
+    const glm::mat4 view = getViewMatrix();
+    const glm::mat4 inverseViewProjection = glm::transpose(glm::inverse(projection * view));
+
+    glm::vec4 ray00_4 = glm::vec4(-1, -1, 0, 1) * inverseViewProjection;
+    ray00_4 /= ray00_4.w;
+    ray00 = glm::vec3(ray00_4.x, ray00_4.y, ray00_4.z) - m_position;
+
+    glm::vec4 ray10_4 = glm::vec4(+1, -1, 0, 1) * inverseViewProjection;
+    ray10_4 /= ray10_4.w;
+    ray10 = glm::vec3(ray10_4.x, ray10_4.y, ray10_4.z) - m_position;
+
+    glm::vec4 ray01_4 = glm::vec4(-1, +1, 0, 1) * inverseViewProjection;
+    ray01_4 /= ray01_4.w;
+    ray01 = glm::vec3(ray01_4.x, ray01_4.y, ray01_4.z) - m_position;
+
+    glm::vec4 ray11_4 = glm::vec4(+1, +1, 0, 1) * inverseViewProjection;
+    ray11_4 /= ray11_4.w;
+    ray11 = glm::vec3(ray11_4.x, ray11_4.y, ray11_4.z) - m_position;
+}
+
 // Function to calculate which direction we need to move the camera and by what amount
 void Camera3D::calculateCameraMovement(const glm::vec3& direction)
 {

@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 #include "ArenaOperators.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "ThreadPool.h"
 #include "Log.h"
 #include "GFXDefines.h"
@@ -137,7 +137,7 @@ png_byte* loadPNGImageData(const std::string& fileName, Allocator& allocator, pn
     return image_data;
 }
 
-Texture2D* TextureLoader::loadFromFile(
+Texture* TextureLoader::loadFromFile(
     const std::string& fileName,
     GLint wrap /*= GL_REPEAT*/,
     GLint minF /*= GL_NEAREST*/,
@@ -157,7 +157,7 @@ Texture2D* TextureLoader::loadFromFile(
 
     m_allocator.deallocate(image_data);
 
-    Texture2D* texture = CUSTOM_NEW(Texture2D, m_allocator)(textureIDGL, temp_width, temp_height, formatGL, GL_UNSIGNED_BYTE, wrap, minF, magF);
+    Texture* texture = CUSTOM_NEW(Texture, m_allocator)(textureIDGL, temp_width, temp_height, 0, formatGL, GL_UNSIGNED_BYTE, wrap, minF, magF);
 
 	return texture;
 }
@@ -185,7 +185,7 @@ int ReadChunkCustom(png_structp ptr, png_unknown_chunkp chunk)
     return unknown_numb;
 }
 
-Texture2D* TextureLoader::loadFromPNGData(const char* data)
+Texture* TextureLoader::loadFromPNGData(const char* data)
 {
     png_byte header[8];
 
@@ -343,7 +343,7 @@ Texture2D* TextureLoader::loadFromPNGData(const char* data)
     return nullptr;
 }
 
-void TextureLoader::asyncLoadFromFile(const std::string& fileName, const std::function<void(Texture2D*)>& callback, GLint wrap, GLint minF, GLint magF)
+void TextureLoader::asyncLoadFromFile(const std::string& fileName, const std::function<void(Texture*)>& callback, GLint wrap, GLint minF, GLint magF)
 {
     TextureLoadPackage* package = CUSTOM_NEW(TextureLoadPackage, m_allocator){ 
         fileName,
@@ -381,7 +381,7 @@ void TextureLoader::processQueue()
         //Log::Debug("TextureLoader::processQueue loaded package at %p (%s)", packageP, package.fileName.c_str());
 
         GLuint textureIDGL = GLUtils::createTexture(package.width, package.height, 0, package.formatGL, GL_UNSIGNED_BYTE, package.wrap, package.minF, package.magF, false, package.image_data);
-        Texture2D* texture = CUSTOM_NEW(Texture2D, m_allocator)(textureIDGL, package.width, package.height, package.formatGL, GL_UNSIGNED_BYTE, package.wrap, package.minF, package.magF);
+        Texture* texture = CUSTOM_NEW(Texture, m_allocator)(textureIDGL, package.width, package.height, 0, package.formatGL, GL_UNSIGNED_BYTE, package.wrap, package.minF, package.magF);
 
         package.callback(texture);
 

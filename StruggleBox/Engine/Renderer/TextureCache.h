@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-class Texture2D;
+class Texture;
 
 class TextureCache
 {
@@ -13,18 +13,18 @@ public:
 
 	TextureCache();
 
-	TextureID addTexture(Texture2D* texture, const std::string& name);
+	TextureID addTexture(Texture* texture, const std::string& name);
 	void removeTexture(const TextureID textureID);
 
 	TextureID getTextureID(const std::string& name);
-	Texture2D* getTextureByID(const TextureID texID);
+	Texture* getTextureByID(const TextureID texID);
 
 private:
 	TextureID m_nextTextureID;
 
 	friend class RenderCore;
 	
-	std::map<TextureID, Texture2D*> m_textures;
+	std::map<TextureID, Texture*> m_textures;
 	std::map<std::string, TextureID> m_textureNames;
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Texture2D.h"
+#include "Texture.h"
 #include "RendererDefines.h"
 #include "Rect2D.h"
 #include <map>

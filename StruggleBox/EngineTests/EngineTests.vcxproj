@@ -142,7 +142,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\ComputeTestScene.cpp" />
+    <ClCompile Include="src\DDATestScene.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\OctreeTestScene.cpp" />
     <ClCompile Include="src\Render3DTestScene.cpp" />
     <ClCompile Include="src\RenderPBRTestScene.cpp" />
     <ClCompile Include="src\RenderTestScene.cpp" />
@@ -151,6 +153,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ComputeTestScene.h" />
+    <ClInclude Include="src\DDATestScene.h" />
+    <ClInclude Include="src\OctreeTestScene.h" />
     <ClInclude Include="src\Render3DTestScene.h" />
     <ClInclude Include="src\RenderPBRTestScene.h" />
     <ClInclude Include="src\RenderTestScene.h" />

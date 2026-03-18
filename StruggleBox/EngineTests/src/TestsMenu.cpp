@@ -14,6 +14,8 @@
 #include "ButtonNode.h"
 #include "LabelNode.h"
 #include "ComputeTestScene.h"
+#include "DDATestScene.h"
+#include "OctreeTestScene.h"
 #include "RenderTestScene.h"
 #include "Render3DTestScene.h"
 #include "RenderPBRTestScene.h"
@@ -34,11 +36,11 @@ TestsMenu::~TestsMenu()
 
 void TestsMenu::Initialize()
 {
-	//Log::Info("[TestsMenu] initializing...");
 	GUIScene::Initialize();
 
 	int hW = m_window.GetWidth() / 2;
 	int hH = m_window.GetHeight() / 2;
+	
 	float buttonPosY = hH + 100.f;
 	const float buttonSpacing = 42.f;
 
@@ -86,6 +88,22 @@ void TestsMenu::Initialize()
 		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
 		});
 	m_gui.getRoot().addChild(buttonCompute);
+	buttonPosY -= buttonSpacing;
+	ButtonNode* buttonDDA = createMenuButton("DDA Tests");
+	buttonDDA->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+	buttonDDA->setCallback([this](bool) {
+		DDATestScene& testScene = m_injector.instantiateUnmapped<DDATestScene, Allocator, Renderer2D, RenderCore, SceneManager, Input, OSWindow, Options, StatTracker>();
+		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
+		});
+	m_gui.getRoot().addChild(buttonDDA);
+	buttonPosY -= buttonSpacing;
+	ButtonNode* buttonOctree = createMenuButton("Octree Tests");
+	buttonOctree->setPosition(glm::vec3(hW, buttonPosY, 1.f));
+	buttonOctree->setCallback([this](bool) {
+		OctreeTestScene& testScene = m_injector.instantiateUnmapped<OctreeTestScene, Allocator, Renderer2D, Renderer3D, RenderCore, SceneManager, Input, OSWindow, Options, StatTracker>();
+		m_injector.getInstance<SceneManager>().AddActiveScene(&testScene);
+		});
+	m_gui.getRoot().addChild(buttonOctree);
 }
 
 void TestsMenu::Update(const double delta)

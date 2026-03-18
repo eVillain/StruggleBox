@@ -129,7 +129,7 @@ ColoredVertex3DData* Renderer2D::bufferColoredTriangles(const size_t count)
 {
 	if (!m_coloredTriVertsBuffer.data)
 	{
-        m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(m_coloredTriVertsBuffer, MathUtils::Max(count, (size_t)1024));
+        m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(m_coloredTriVertsBuffer, MathUtils::Max(count, (size_t)131072));
 	}
     if (!m_coloredTriVertsBuffer.data)
     {
@@ -162,7 +162,7 @@ ColoredVertex3DData* Renderer2D::bufferColoredLines(const size_t count)
 {
     if (!m_coloredLineVertsBuffer.data)
     {
-        m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(m_coloredLineVertsBuffer, MathUtils::Max(count, (size_t)1024));
+        m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(m_coloredLineVertsBuffer, MathUtils::Max(count, (size_t)65536));
     }
     if (!m_coloredLineVertsBuffer.data)
     {

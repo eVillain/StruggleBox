@@ -18,6 +18,21 @@ public:
         bool createMipmap = false,
         const void* pixels = nullptr);
 
+    static GLuint createTexture3D(
+        GLsizei width,
+        GLsizei height,
+        GLsizei depth,
+        GLint border,
+        GLenum internalFormat,
+        GLenum format,
+        GLenum type,
+        GLint wrap = GL_REPEAT,
+        GLint minF = GL_NEAREST,
+        GLint magF = GL_NEAREST,
+        bool createMipmap = false,
+        const void* pixels = nullptr
+    );
+
     static GLuint getGLBlendFunc(const BlendFunc func);
     static BlendFunc getBlendFuncForGLValue(const GLuint func);
 

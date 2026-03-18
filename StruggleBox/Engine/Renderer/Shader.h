@@ -20,11 +20,11 @@ public:
     void begin() const { glUseProgram(m_program); }
     void end() const { glUseProgram(0); }
 
-    GLuint GetVertexShader() { return m_vertexShader; }
-    GLuint getGeometryShader() { return m_geometryShader; }
-    GLuint GetFragmentShader() { return m_fragmentShader; }
-    GLuint GetComputeShader() { return m_computeShader; };
-    GLuint GetProgram() { return m_program; };
+    GLuint GetVertexShader() const { return m_vertexShader; }
+    GLuint getGeometryShader() const { return m_geometryShader; }
+    GLuint GetFragmentShader() const { return m_fragmentShader; }
+    GLuint GetComputeShader() const { return m_computeShader; };
+    GLuint GetProgram() const { return m_program; };
     
     bool hasUniform(const char* name) const;
 	GLint getAttribute(const char* name) const;

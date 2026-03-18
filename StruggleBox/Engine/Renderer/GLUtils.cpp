@@ -11,16 +11,16 @@ GLuint GLUtils::createTexture(
     GLint border,
     GLenum format,
     GLenum type,
-    GLint wrap /*= GL_REPEAT*/,
-    GLint minF /*= GL_NEAREST*/,
-    GLint magF /*= GL_NEAREST*/,
-    bool createMipmap /*= false*/,
+    GLint wrap, /*= GL_REPEAT*/
+	GLint minF, /*= GL_NEAREST*/
+    GLint magF, /*= GL_NEAREST*/
+    bool createMipmap, /*= false*/
     const void* pixels /*= nullptr*/)
 {
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, border, format, type, pixels);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minF);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magF);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
@@ -31,6 +31,38 @@ GLuint GLUtils::createTexture(
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     return textureID;
+}
+
+GLuint GLUtils::createTexture3D(
+	GLsizei width,
+	GLsizei height,
+	GLsizei depth,
+	GLint border,
+	GLenum internalFormat,
+	GLenum format,
+	GLenum type,
+	GLint wrap, /*= GL_REPEAT*/
+	GLint minF, /*= GL_NEAREST*/
+	GLint magF, /*= GL_NEAREST*/
+	bool createMipmap, /*= false*/
+	const void* pixels /*= nullptr*/)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_3D, textureID);
+	glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, border, format, type, pixels);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	if (createMipmap)
+	{
+		glGenerateMipmap(GL_TEXTURE_3D);
+	}
+
+	return textureID;
 }
 
 GLuint GLUtils::getGLBlendFunc(const BlendFunc func)

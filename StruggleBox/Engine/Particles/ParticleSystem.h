@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GFXDefines.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "Dictionary.h"
 #include <vector>
 #include <queue>

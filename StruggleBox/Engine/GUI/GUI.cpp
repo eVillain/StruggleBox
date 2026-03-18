@@ -161,7 +161,7 @@ SpriteNode* GUI::createSpriteNode(const std::string& spriteFrame) const
 			Log::Error("[GUI] Couldnt load atlas or texture for frame: %s", spriteFrame.c_str());
 			return nullptr;
 		}
-		const Texture2D* texture = m_renderCore.getTextureByID(textureID);
+		const Texture* texture = m_renderCore.getTextureByID(textureID);
 		frameRect = Rect2D(0.f, 0.f, texture->getWidth(), texture->getHeight());
 		frameTexRect = Rect2D(0.f, 0.f, 1.f, 1.f);
 	}

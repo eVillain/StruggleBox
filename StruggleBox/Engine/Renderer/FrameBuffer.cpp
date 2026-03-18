@@ -4,7 +4,7 @@
 #include "CoreIncludes.h"
 #include "RenderCore.h"
 #include "GLUtils.h"
-#include "Texture2D.h"
+#include "Texture.h"
 
 FrameBuffer::FrameBuffer(RenderCore& renderCore, const std::string& name)
 	: m_renderCore(renderCore)
@@ -40,7 +40,7 @@ void FrameBuffer::terminate()
     glDeleteFramebuffers(1, &m_fboHandle);
 
     //m_renderCore.removeTexture(m_textureID);
-    Texture2D* textureAlbedo = m_renderCore.getTextureCache().getTextureByID(m_textureID);
+    Texture* textureAlbedo = m_renderCore.getTextureCache().getTextureByID(m_textureID);
     m_renderCore.getTextureCache().removeTexture(m_textureID);
     CUSTOM_DELETE(textureAlbedo, m_renderCore.getAllocator());
 }
@@ -63,7 +63,7 @@ void FrameBuffer::setupTexture(const uint32_t width, const uint32_t height)
     m_height = height;
     m_textureHandle = GLUtils::createTexture(width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR);
   
-    Texture2D* textureAlbedo = CUSTOM_NEW(Texture2D, m_renderCore.getAllocator())(m_textureHandle, m_width, m_height, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
+    Texture* textureAlbedo = CUSTOM_NEW(Texture, m_renderCore.getAllocator())(m_textureHandle, m_width, m_height, 0, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
     m_textureID = m_renderCore.getTextureCache().addTexture(textureAlbedo, m_textureName);
 
     glGenFramebuffers(1, &m_fboHandle);

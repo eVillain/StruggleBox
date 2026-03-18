@@ -9,7 +9,7 @@ TextureCache::TextureCache()
 {
 }
 
-TextureID TextureCache::addTexture(Texture2D* texture, const std::string& name)
+TextureID TextureCache::addTexture(Texture* texture, const std::string& name)
 {
 	const TextureID prevID = getTextureID(name);
 	if (prevID != NO_TEXTURE_ID)
@@ -53,7 +53,7 @@ TextureID TextureCache::getTextureID(const std::string& name)
 	return NO_TEXTURE_ID;
 }
 
-Texture2D* TextureCache::getTextureByID(const TextureID textureID)
+Texture* TextureCache::getTextureByID(const TextureID textureID)
 {
 	const auto it = m_textures.find(textureID);
 	if (it != m_textures.end())

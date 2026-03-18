@@ -208,6 +208,7 @@
     <ClInclude Include="Renderer\GLUtils.h" />
     <ClInclude Include="Renderer\Lighting2DDeferred.h" />
     <ClInclude Include="Renderer\Material.h" />
+    <ClInclude Include="Renderer\Octree.h" />
     <ClInclude Include="Renderer\ReflectionProbe.h" />
     <ClInclude Include="Renderer\VertexDataBuffer.h" />
     <ClInclude Include="Renderer\VertexDataBufferMap.h" />
@@ -225,7 +226,7 @@
     <ClInclude Include="Renderer\TextAtlas.h" />
     <ClInclude Include="Renderer\TextAtlasCache.h" />
     <ClInclude Include="Renderer\TextAtlasLoader.h" />
-    <ClInclude Include="Renderer\Texture2D.h" />
+    <ClInclude Include="Renderer\Texture.h" />
     <ClInclude Include="Renderer\TextureAtlas.h" />
     <ClInclude Include="Renderer\TextureAtlasCache.h" />
     <ClInclude Include="Renderer\TextureAtlasLoader.h" />
@@ -306,6 +307,7 @@
     <ClCompile Include="Renderer\Lighting3DDeferred.cpp" />
     <ClCompile Include="Renderer\Lighting2DDeferred.cpp" />
     <ClCompile Include="Renderer\Material.cpp" />
+    <ClCompile Include="Renderer\Octree.cpp" />
     <ClCompile Include="Renderer\ReflectionProbe.cpp" />
     <ClCompile Include="Renderer\RenderCore.cpp" />
     <ClCompile Include="Renderer\Renderer2D.cpp" />
@@ -318,7 +320,7 @@
     <ClCompile Include="Renderer\TextAtlas.cpp" />
     <ClCompile Include="Renderer\TextAtlasCache.cpp" />
     <ClCompile Include="Renderer\TextAtlasLoader.cpp" />
-    <ClCompile Include="Renderer\Texture2D.cpp" />
+    <ClCompile Include="Renderer\Texture.cpp" />
     <ClCompile Include="Renderer\TextureAtlas.cpp" />
     <ClCompile Include="Renderer\TextureAtlasCache.cpp" />
     <ClCompile Include="Renderer\TextureAtlasLoader.cpp" />

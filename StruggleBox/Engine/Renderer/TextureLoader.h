@@ -9,19 +9,19 @@
 
 class Allocator;
 class ThreadPool;
-class Texture2D;
+class Texture;
 
 class TextureLoader
 {
 public:
 	TextureLoader(Allocator& allocator, ThreadPool& threadPool);
 
-	Texture2D* loadFromFile(const std::string& fileName, GLint wrap = GL_REPEAT, GLint minF = GL_NEAREST, GLint magF = GL_NEAREST);
-	Texture2D* loadFromPNGData(const char* data);
+	Texture* loadFromFile(const std::string& fileName, GLint wrap = GL_REPEAT, GLint minF = GL_NEAREST, GLint magF = GL_NEAREST);
+	Texture* loadFromPNGData(const char* data);
 
 	void asyncLoadFromFile(
 		const std::string& fileName,
-		const std::function<void(Texture2D*)>& callback,
+		const std::function<void(Texture*)>& callback,
 		GLint wrap = GL_REPEAT,
 		GLint minF = GL_NEAREST,
 		GLint magF = GL_NEAREST);
@@ -33,7 +33,7 @@ public:
 private:
 	struct TextureLoadPackage {
 		std::string fileName;
-		std::function<void(Texture2D*)> callback;
+		std::function<void(Texture*)> callback;
 		GLint wrap;
 		GLint minF;
 		GLint magF;

@@ -3,7 +3,7 @@
 #include "CubeConstants.h"
 #include "DefaultShaders.h"
 #include "Shader.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "RenderCore.h"
 
 const glm::mat4 s_projection2D = glm::ortho<float>(-0.5f, 0.5f, -0.5f, 0.5f, -1.f, 1.f);

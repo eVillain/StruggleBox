@@ -7,7 +7,7 @@
 #include "CoreIncludes.h"
 #include "TextAtlas.h"
 #include "TextureCache.h"
-#include "Texture2D.h"
+#include "Texture.h"
 
 #include "MathUtils.h"
 #include "GLErrorUtil.h"
@@ -65,7 +65,7 @@ TextAtlas* TextAtlasLoader::load(const std::string& filename, const uint8_t font
 #endif
     const std::string fontNameAndSize = std::string(buf);
 
-    Texture2D* texture = CUSTOM_NEW(Texture2D, allocator)(textureIDGL, width, height, GL_RED, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST);
+    Texture* texture = CUSTOM_NEW(Texture, allocator)(textureIDGL, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST);
     TextureID textureID = textureCache.addTexture(texture, fontNameAndSize);
     //Log::Info("[TextAtlasLoader::load] Loaded atlas with texture ID: %i", textureID);
     TextAtlas* atlas = CUSTOM_NEW(TextAtlas, allocator)(textureID, width, height);

@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 #include "RenderCore.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "FileUtil.h"
 #include "Timer.h"
 

@@ -10,7 +10,7 @@
 #include "TextureAtlasLoader.h"
 #include "TextAtlas.h"
 #include "TextAtlasLoader.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "Shader.h"
 #include "ShaderLoader.h"
 #include <GL/glew.h>
@@ -43,7 +43,7 @@ void RenderCore::terminate()
     // TODO: get all cached things and delete them :)
     for (auto pair : m_textureCache.m_textures)
     {
-        Texture2D* texture = pair.second;
+        Texture* texture = pair.second;
         CUSTOM_DELETE(texture, m_allocator);
     }
     m_textureCache.m_textures.clear();
@@ -85,7 +85,7 @@ TextureID RenderCore::getTextureID(const std::string& textureName, bool load)
     TextureID cachedID = m_textureCache.getTextureID(textureName);
     if (cachedID == TextureCache::NO_TEXTURE_ID && load)
     {
-        Texture2D* texture = m_textureLoader.loadFromFile(textureName);
+        Texture* texture = m_textureLoader.loadFromFile(textureName);
         if (texture)
         {
             cachedID = m_textureCache.addTexture(texture, textureName);
@@ -103,7 +103,7 @@ void RenderCore::getTextureIDAsync(const std::string& textureName, const std::fu
         return;
     }
 
-    m_textureLoader.asyncLoadFromFile(textureName, [this, textureName, callback](Texture2D* texture) {
+    m_textureLoader.asyncLoadFromFile(textureName, [this, textureName, callback](Texture* texture) {
         if (texture)
         {
             TextureID cachedID = m_textureCache.addTexture(texture, textureName);
@@ -117,14 +117,14 @@ void RenderCore::getTextureIDAsync(const std::string& textureName, const std::fu
     });
 }
 
-const Texture2D* RenderCore::getTextureByID(const TextureID textureID)
+const Texture* RenderCore::getTextureByID(const TextureID textureID)
 {
     return m_textureCache.getTextureByID(textureID);
 }
 
 void RenderCore::removeTexture(const TextureID textureID)
 {
-    Texture2D* texture = m_textureCache.getTextureByID(textureID);
+    Texture* texture = m_textureCache.getTextureByID(textureID);
     if (!texture)
     {
         Log::Warn("RenderCore::removeTexture no texture with ID %lu", textureID);
@@ -436,7 +436,7 @@ void RenderCore::draw(
     }
     for (uint8_t i = 0; i < drawParams.textureCount; i++)
     {
-        const Texture2D* texture = getTextureByID(drawParams.textureIDs[i]);
+        const Texture* texture = getTextureByID(drawParams.textureIDs[i]);
         if (!texture)
         {
             continue;

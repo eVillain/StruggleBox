@@ -24,23 +24,22 @@ int main(int argc, char* argv[])
 	core.setTitle("Engine Tests");
 	core.initialize();
 	
-	Renderer2D* renderer2D = CUSTOM_NEW(Renderer2D, core.getRendererAllocator())(core.getGlobalInjector().getInstance<RenderCore>(), core.getRendererAllocator());
+	ProxyAllocator& rendererAllocator = core.getRendererAllocator();
+	Renderer2D* renderer2D = CUSTOM_NEW(Renderer2D, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(), rendererAllocator);
 	core.getGlobalInjector().mapInstance<Renderer2D>(*renderer2D);
 	renderer2D->initialize();
 
-	Renderer3D* renderer3D = CUSTOM_NEW(Renderer3D, core.getRendererAllocator())(core.getGlobalInjector().getInstance<RenderCore>(), core.getRendererAllocator());
+	Renderer3D* renderer3D = CUSTOM_NEW(Renderer3D, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(), rendererAllocator);
 	core.getGlobalInjector().mapInstance<Renderer3D>(*renderer3D);
 	renderer3D->initialize();
 
-	Renderer3DDeferred* renderer3DDeferred = CUSTOM_NEW(Renderer3DDeferred, core.getRendererAllocator())(core.getGlobalInjector().getInstance<RenderCore>(),
-		core.getRendererAllocator(), core.getGlobalInjector().getInstance<Options>());
+	Renderer3DDeferred* renderer3DDeferred = CUSTOM_NEW(Renderer3DDeferred, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(),
+		rendererAllocator, core.getGlobalInjector().getInstance<Options>());
 	core.getGlobalInjector().mapInstance<Renderer3DDeferred>(*renderer3DDeferred);
 	renderer3DDeferred->initialize();
 
-	//ProxyAllocator& rendererAllocator = core.getRendererAllocator();
 	//VoxelRenderer* voxelRenderer = CUSTOM_NEW(VoxelRenderer, rendererAllocator)(core.getGlobalInjector().getInstance<RenderCore>(), rendererAllocator, core.getGlobalInjector().getInstance<Options>());
 	//core.getGlobalInjector().mapInstance<VoxelRenderer>(*voxelRenderer);
-	//core.getGlobalInjector().mapInterfaceToType<Renderer3DDeferred, VoxelRenderer>();
 	//voxelRenderer->initialize();
 
 	TestsMenu& testsMenu = core.getGlobalInjector().instantiateUnmapped<TestsMenu, Injector, Allocator, Renderer2D, Input, OSWindow, Options, StatTracker>();

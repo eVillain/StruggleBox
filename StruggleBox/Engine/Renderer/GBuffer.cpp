@@ -3,7 +3,7 @@
 #include "ArenaOperators.h"
 #include "RenderCore.h"
 #include "GLUtils.h"
-#include "Texture2D.h"
+#include "Texture.h"
 
 #include <iostream>
 
@@ -23,13 +23,13 @@ void GBuffer::Initialize(uint32_t width, uint32_t height)
 	m_depthTextureHandle = GLUtils::GenerateTextureDepth(m_width, m_height);
 	m_normalTextureHandle = GLUtils::GenerateTextureNormal(m_width, m_height);
 
-	Texture2D* textureAlbedo = CUSTOM_NEW(Texture2D, m_renderCore.getAllocator())(m_albedoTextureHandle, m_width, m_height, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
+	Texture* textureAlbedo = CUSTOM_NEW(Texture, m_renderCore.getAllocator())(m_albedoTextureHandle, m_width, m_height, 0, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
 	m_albedoTextureID = m_renderCore.getTextureCache().addTexture(textureAlbedo, "GBufferAlbedo");
-	Texture2D* textureMaterial = CUSTOM_NEW(Texture2D, m_renderCore.getAllocator())(m_materialTextureHandle, m_width, m_height, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
+	Texture* textureMaterial = CUSTOM_NEW(Texture, m_renderCore.getAllocator())(m_materialTextureHandle, m_width, m_height, 0, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
 	m_materialTextureID = m_renderCore.getTextureCache().addTexture(textureMaterial, "GBufferMaterial");
-	Texture2D* textureDepth = CUSTOM_NEW(Texture2D, m_renderCore.getAllocator())(m_depthTextureHandle, m_width, m_height, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
+	Texture* textureDepth = CUSTOM_NEW(Texture, m_renderCore.getAllocator())(m_depthTextureHandle, m_width, m_height, 0, GL_RGBA, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
 	m_depthTextureID = m_renderCore.getTextureCache().addTexture(textureDepth, "GBufferDepth");
-	Texture2D* textureNormal = CUSTOM_NEW(Texture2D, m_renderCore.getAllocator())(m_normalTextureHandle, m_width, m_height, GL_RGB, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
+	Texture* textureNormal = CUSTOM_NEW(Texture, m_renderCore.getAllocator())(m_normalTextureHandle, m_width, m_height, 0, GL_RGB, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR, 0);
 	m_normalTextureID = m_renderCore.getTextureCache().addTexture(textureNormal, "GBufferNormal");
 
 	// Generate main rendering frame buffer
@@ -65,19 +65,19 @@ void GBuffer::Terminate()
 	if (m_normalTextureHandle) glDeleteTextures(1, &m_normalTextureHandle);
 	if (m_fboHandle) glDeleteFramebuffers(1, &m_fboHandle);
 
-	Texture2D* textureAlbedo = m_renderCore.getTextureCache().getTextureByID(m_albedoTextureID);
+	Texture* textureAlbedo = m_renderCore.getTextureCache().getTextureByID(m_albedoTextureID);
 	CUSTOM_DELETE(textureAlbedo, m_renderCore.getAllocator());
 	m_renderCore.getTextureCache().removeTexture(m_albedoTextureID);
 
-	Texture2D* textureMaterial = m_renderCore.getTextureCache().getTextureByID(m_materialTextureID);
+	Texture* textureMaterial = m_renderCore.getTextureCache().getTextureByID(m_materialTextureID);
 	CUSTOM_DELETE(textureMaterial, m_renderCore.getAllocator());
 	m_renderCore.getTextureCache().removeTexture(m_materialTextureID);
 
-	Texture2D* textureDepth = m_renderCore.getTextureCache().getTextureByID(m_depthTextureID);
+	Texture* textureDepth = m_renderCore.getTextureCache().getTextureByID(m_depthTextureID);
 	CUSTOM_DELETE(textureDepth, m_renderCore.getAllocator());
 	m_renderCore.getTextureCache().removeTexture(m_depthTextureID);
 
-	Texture2D* textureNormal = m_renderCore.getTextureCache().getTextureByID(m_normalTextureID);
+	Texture* textureNormal = m_renderCore.getTextureCache().getTextureByID(m_normalTextureID);
 	CUSTOM_DELETE(textureNormal, m_renderCore.getAllocator());
 	m_renderCore.getTextureCache().removeTexture(m_normalTextureID);
 }

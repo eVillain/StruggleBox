@@ -3,6 +3,7 @@
 #include "Camera3D.h"
 #include "RenderCore.h"
 #include "Rect2D.h"
+#include "VertexDataBuffer.h"
 
 class Allocator;
 
@@ -48,7 +49,7 @@ private:
 	ShaderID m_impostorShaderID;
 	ShaderID m_instancedColoredVertsShaderID;
 	TempVertBuffer m_coloredTriVertsBuffer;
-	TempVertBuffer m_coloredLineVertsBuffer;
+	VertexDataBuffer<ColoredVertex3DData> m_coloredLineVertsBuffer;
 	std::map<TextureID, TempVertBuffer> m_texturedTriVertsBuffers;
 	std::map<TextureID, TempVertBuffer> m_textTriVertsBuffers;
 	std::map<TextureID, TempVertBuffer> m_impostorBuffers;

@@ -4,8 +4,6 @@
 #include "DefaultShaders.h"
 #include "Shader.h"
 
-const uint32_t MAX_COLORED_LINE_VERTS = 2000;
-
 Renderer3D::Renderer3D(RenderCore& renderCore, Allocator& allocator)
 : m_renderCore(renderCore)
 , m_allocator(allocator)
@@ -21,7 +19,7 @@ Renderer3D::Renderer3D(RenderCore& renderCore, Allocator& allocator)
 , m_impostorShaderID(0)
 , m_instancedColoredVertsShaderID(0)
 , m_coloredTriVertsBuffer()
-, m_coloredLineVertsBuffer()
+, m_coloredLineVertsBuffer(renderCore)
 {
 }
 
@@ -66,7 +64,7 @@ void Renderer3D::flush()
     const glm::mat4 viewProjection = projection * view;
 
     m_renderCore.draw(m_coloredVertsShaderID, 0, m_coloredVertsDrawDataID, viewProjection, DrawMode::Triangles, m_coloredTriVertsBuffer.data, 0, m_coloredTriVertsBuffer.count, BLEND_MODE_DEFAULT, DEPTH_MODE_DEFAULT);
-    m_renderCore.draw(m_coloredVertsShaderID, 0, m_coloredLinesDrawDataID, viewProjection, DrawMode::Lines, m_coloredLineVertsBuffer.data, 0, m_coloredLineVertsBuffer.count, BLEND_MODE_DEFAULT, DEPTH_MODE_DEFAULT);
+    m_renderCore.draw(m_coloredVertsShaderID, 0, m_coloredLinesDrawDataID, viewProjection, DrawMode::Lines, m_coloredLineVertsBuffer.getData().data, 0, m_coloredLineVertsBuffer.getData().count, BLEND_MODE_DEFAULT, DEPTH_MODE_DEFAULT);
 
     for (const auto& pair : m_texturedTriVertsBuffers)
     {
@@ -107,7 +105,8 @@ void Renderer3D::flush()
     }
 
     m_renderCore.clearTempVertBuffer(m_coloredTriVertsBuffer);
-    m_renderCore.clearTempVertBuffer(m_coloredLineVertsBuffer);
+    //m_renderCore.clearTempVertBuffer(m_coloredLineVertsBuffer);
+    m_coloredLineVertsBuffer.clear();
     m_texturedTriVertsBuffers.clear();
     m_textTriVertsBuffers.clear();
     m_impostorBuffers.clear();
@@ -134,19 +133,7 @@ ColoredVertex3DData* Renderer3D::bufferColoredTriangles(const size_t count)
 
 ColoredVertex3DData* Renderer3D::bufferColoredLines(const size_t count)
 {
-    if (!m_coloredLineVertsBuffer.data)
-    {
-        m_renderCore.setupTempVertBuffer<ColoredVertex3DData>(m_coloredLineVertsBuffer, MAX_COLORED_LINE_VERTS);
-    }
-    if (m_coloredLineVertsBuffer.count + count >= m_coloredLineVertsBuffer.capacity)
-    {
-        Log::Error("[Renderer3D::bufferColoredLines] Trying to buffer too many verts, increase buffer size!");
-        return nullptr;
-    }
-    ColoredVertex3DData* dataPtr = (ColoredVertex3DData*)m_coloredLineVertsBuffer.data;
-    dataPtr += m_coloredLineVertsBuffer.count;
-    m_coloredLineVertsBuffer.count += count;
-    return dataPtr;
+    return m_coloredLineVertsBuffer.buffer(count);
 }
 
 TexturedVertex3DData* Renderer3D::bufferTexturedTriangles(const size_t count, const TextureID textureID)
@@ -261,34 +248,34 @@ void Renderer3D::drawGrid(const float gridSize, const glm::vec3& position, const
     const uint32_t linesX = (uint32_t)(size.x / gridSize) + 1;
     const uint32_t linesY = (uint32_t)(size.y / gridSize) + 1;
     const uint32_t linesZ = (uint32_t)(size.z / gridSize) + 1;
-    const uint32_t clampedWidth = (uint32_t)(linesX * gridSize);
-    const uint32_t clampedHeight = (uint32_t)(linesY* gridSize);
-    const uint32_t clampedDepth = (uint32_t)(linesZ * gridSize);
+    const uint32_t clampedWidth = (uint32_t)((linesX - 1) * gridSize);
+    const uint32_t clampedHeight = (uint32_t)((linesY - 1) * gridSize);
+    const uint32_t clampedDepth = (uint32_t)((linesZ - 1) * gridSize);
     const uint32_t grid_slice_verts = ((linesX + linesY) * linesZ) * 2;
     const uint32_t grid_z_verts = (linesX * linesY) * 2;
     ColoredVertex3DData* lineVerts = bufferColoredLines(grid_slice_verts + grid_z_verts);
     uint32_t lineBufferIdx = 0;
 
-    for (uint32_t z = 0; z <= linesZ; z++)
+    for (uint32_t z = 0; z < linesZ; z++)
     {
-        for (uint32_t x = 0; x <= linesX; x++)
+        for (uint32_t x = 0; x < linesX; x++)
         {
             const glm::vec3 a = glm::vec3(position.x + (x * gridSize), position.y, position.z + (z * gridSize));
             const glm::vec3 b = glm::vec3(position.x + (x * gridSize), position.y + clampedHeight, position.z + (z * gridSize));
             lineVerts[lineBufferIdx++] = { a, color };
             lineVerts[lineBufferIdx++] = { b, color };
         }
-        for (uint32_t y = 0; y <= linesY; y++)
+        for (uint32_t y = 0; y < linesY; y++)
         {
-            const glm::vec3 a = glm::vec3(position.x - 1, position.y + (y * gridSize), position.z + (z * gridSize));
+            const glm::vec3 a = glm::vec3(position.x, position.y + (y * gridSize), position.z + (z * gridSize));
             const glm::vec3 b = glm::vec3(position.x + clampedWidth, position.y + (y * gridSize), position.z + (z * gridSize));
             lineVerts[lineBufferIdx++] = { a, color };
             lineVerts[lineBufferIdx++] = { b, color };
         }
     }
-    for (uint32_t x = 0; x <= linesX; x++)
+    for (uint32_t x = 0; x < linesX; x++)
     {
-        for (uint32_t y = 0; y <= linesY; y++)
+        for (uint32_t y = 0; y < linesY; y++)
         {
             const glm::vec3 a = glm::vec3(position.x + (x * gridSize), position.y + (y * gridSize), position.z);
             const glm::vec3 b = glm::vec3(position.x + (x * gridSize), position.y + (y * gridSize), position.z + clampedDepth);

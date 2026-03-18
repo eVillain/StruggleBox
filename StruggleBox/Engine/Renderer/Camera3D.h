@@ -40,6 +40,7 @@ public:
 
 	void rotate(const float rotX, const float rotY);
 	glm::mat4 getRotationMatrix() const;
+	void getFrustumCorners(glm::vec3& ray00, glm::vec3& ray10, glm::vec3& ray01, glm::vec3& ray11);
 
 private:
 	friend class CameraWindow;

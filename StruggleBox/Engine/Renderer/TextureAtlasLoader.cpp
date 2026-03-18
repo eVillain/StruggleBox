@@ -3,7 +3,7 @@
 #include "Allocator.h"
 #include "ArenaOperators.h"
 #include "Log.h"
-#include "Texture2D.h"
+#include "Texture.h"
 #include "TextureAtlas.h"
 #include "Dictionary.h"
 #include "RenderCore.h"
@@ -29,7 +29,7 @@ TextureAtlas* TextureAtlasLoader::load(const std::string& atlasFile, Allocator& 
     const std::string textureFileName = atlasFolder + rootDict.getStringForKey("textureFileName");
 
     const TextureID textureID = renderCore.getTextureID(textureFileName, true);
-    const Texture2D* texture = renderCore.getTextureByID(textureID);
+    const Texture* texture = renderCore.getTextureByID(textureID);
 
     if (texture == nullptr)
     {
